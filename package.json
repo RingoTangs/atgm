@@ -7,13 +7,13 @@
   "description": "Team-oriented React application template built with Vite, TanStack Router, TanStack Query, Tailwind CSS, and Vitest.",
   "author": "RingoTangs",
   "license": "MIT",
-  "homepage": "https://github.com/RingoTangs/react-app#readme",
+  "homepage": "https://github.com/RingoTangs/atgm#readme",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/RingoTangs/react-app.git"
+    "url": "git+ssh://git@github.com/RingoTangs/atgm.git"
   },
   "bugs": {
-    "url": "https://github.com/RingoTangs/react-app/issues"
+    "url": "https://github.com/RingoTangs/atgm/issues"
   },
   "keywords": [
     "react",
@@ -34,6 +34,7 @@
     "format:fix": "prettier --write .",
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm -r --if-present test",
+    "build": "pnpm -r --if-present build",
     "check": "pnpm lint && pnpm format && pnpm typecheck && pnpm test",
     "check:fix": "pnpm lint:fix && pnpm format:fix"
   },
