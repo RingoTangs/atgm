@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="/favicon.svg"
+      media="(prefers-color-scheme: light)"
+    />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="/favicon_light.svg"
+      media="(prefers-color-scheme: dark)"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="/favicon.png"
+      media="(prefers-color-scheme: light)"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="/favicon_light.png"
+      media="(prefers-color-scheme: dark)"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>%VITE_SITE_NAME%</title>
+    <script>
+      ;(() => {
+        const themes = ['light', 'dark', 'system']
+        let saved = 'system'
+
+        try {
+          const stored = localStorage.getItem('%VITE_THEME_STORAGE_KEY%')
+          if (themes.includes(stored)) saved = stored
+        } catch {}
+
+        const theme =
+          saved === 'system'
+            ? matchMedia('(prefers-color-scheme: dark)').matches
+              ? 'dark'
+              : 'light'
+            : saved
+
+        document.documentElement.classList.toggle('dark', theme === 'dark')
+        document.documentElement.style.colorScheme = theme
+      })()
+    </script>
+  </head>
+  <body>
+    <noscript>
+      <p>
+        This app requires JavaScript. Please enable it in your browser settings
+        and reload the page.
+      </p>
+    </noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

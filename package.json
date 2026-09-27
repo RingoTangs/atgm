@@ -1,0 +1,50 @@
+{
+  "name": "atgm-monorepo",
+  "type": "module",
+  "version": "0.1.1",
+  "private": true,
+  "packageManager": "pnpm@10.24.0",
+  "description": "Team-oriented React application template built with Vite, TanStack Router, TanStack Query, Tailwind CSS, and Vitest.",
+  "author": "RingoTangs",
+  "license": "MIT",
+  "homepage": "https://github.com/RingoTangs/react-app#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/RingoTangs/react-app.git"
+  },
+  "bugs": {
+    "url": "https://github.com/RingoTangs/react-app/issues"
+  },
+  "keywords": [
+    "react",
+    "vite",
+    "typescript",
+    "tanstack-router",
+    "tanstack-query",
+    "tailwindcss",
+    "template"
+  ],
+  "engines": {
+    "node": "22.23.2"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write ."
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "8.3.0",
+    "@eslint-react/eslint-plugin": "^3.0.0",
+    "@prettier/plugin-xml": "^3.4.2",
+    "@types/node": "^22.20.4",
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "10.11.0",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "prettier": "^3.9.8",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
+  }
+}
