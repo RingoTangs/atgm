@@ -31,14 +31,17 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --check .",
-    "format:fix": "prettier --write ."
+    "format:fix": "prettier --write .",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test:run": "pnpm -r --if-present test:run",
+    "check": "pnpm lint && pnpm format && pnpm typecheck && pnpm test:run",
+    "check:fix": "pnpm lint:fix && pnpm format:fix"
   },
   "devDependencies": {
     "@antfu/eslint-config": "8.3.0",
     "@eslint-react/eslint-plugin": "^3.0.0",
     "@prettier/plugin-xml": "^3.4.2",
     "@types/node": "^22.20.4",
-    "@vitejs/plugin-react": "^6.1.1",
     "eslint": "10.11.0",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-react-refresh": "^0.5.7",
