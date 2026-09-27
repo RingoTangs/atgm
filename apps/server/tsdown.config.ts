@@ -6,7 +6,7 @@ import pkg from './package.json' with { type: 'json' }
 const isProd = process.env.NODE_ENV === 'production'
 
 export default defineConfig({
-  entry: './src/app.ts',
+  entry: './src/server.ts',
   outDir: '.output',
   alias: {
     '@': path.resolve(import.meta.dirname, './src'),

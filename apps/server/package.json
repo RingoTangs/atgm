@@ -4,9 +4,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "tsx watch src/app.ts",
+    "dev": "tsx watch src/server.ts",
     "build": "cross-env NODE_ENV=production tsdown",
-    "start": "node ./.output/app.mjs",
+    "start": "node ./.output/server.mjs",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run"
   },
