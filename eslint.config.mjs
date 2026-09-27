@@ -21,13 +21,4 @@ export default antfu(
       'react-refresh/only-export-components': 'off',
     },
   },
-
-  // Server-specific rules
-  {
-    name: 'atgm/server',
-    files: ['apps/server/**/*.ts'],
-    rules: {
-      // server-only overrides go here
-    },
-  },
 ).append(prettier)
