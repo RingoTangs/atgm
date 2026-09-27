@@ -2,11 +2,13 @@
   "name": "atgm-server",
   "type": "module",
   "version": "0.1.0",
-  "packageManager": "pnpm@10.24.0",
+  "private": true,
   "scripts": {
     "dev": "tsdown && pnpm start",
     "build": "cross-env NODE_ENV=production tsdown",
-    "start": "node ./.output/app.mjs"
+    "start": "node ./.output/app.mjs",
+    "typecheck": "tsc -p tsconfig.json",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "fastify": "^5.12.5"
