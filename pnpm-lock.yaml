@@ -17,6 +17,9 @@ importers:
       '@prettier/plugin-xml':
         specifier: ^3.4.2
         version: 3.4.2(prettier@3.9.8)
+      '@ringotangs/tsconfig':
+        specifier: ^0.1.2
+        version: 0.1.2(typescript@5.9.3)
       '@types/node':
         specifier: ^22.20.4
         version: 22.20.4
@@ -732,6 +735,11 @@ packages:
 
   '@quansync/fs@1.1.0':
     resolution: {integrity: sha512-qAPG/t3HqML1TlN7sY/pTbEjzFVAKsMjNNMGheyDosro+kT4iw2KCUoHcVdmliwWjorm4elZbgNQyU2eD97eDg==}
+
+  '@ringotangs/tsconfig@0.1.2':
+    resolution: {integrity: sha512-shRQp0SGJa2j+qxAlikFDUHe+lqbzg7NZ+oWt3eGVvp2yYWMvGqQ/ZyTdv61jqrNPdHdy/OZ2RB/9wOeye0fEA==}
+    peerDependencies:
+      typescript: '>=5.8.0'
 
   '@rolldown/binding-android-arm-eabi@1.2.8':
     resolution: {integrity: sha512-tN5aztYkKCte4i5SIrrz5yK/HMjEuCqCSCJa418jOV8tZ1cBY3YF2otxB1ktPxzsLA1BeTqwapK0bfjxNvHJVw==}
@@ -4078,6 +4086,10 @@ snapshots:
   '@quansync/fs@1.1.0':
     dependencies:
       quansync: 1.0.0
+
+  '@ringotangs/tsconfig@0.1.2(typescript@5.9.3)':
+    dependencies:
+      typescript: 5.9.3
 
   '@rolldown/binding-android-arm-eabi@1.2.8':
     optional: true

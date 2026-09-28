@@ -42,6 +42,7 @@
     "@antfu/eslint-config": "8.3.0",
     "@eslint-react/eslint-plugin": "^3.0.0",
     "@prettier/plugin-xml": "^3.4.2",
+    "@ringotangs/tsconfig": "^0.1.2",
     "@types/node": "^22.20.4",
     "eslint": "10.11.0",
     "eslint-config-prettier": "10.1.8",
