@@ -2,6 +2,7 @@ import swagger from '@fastify/swagger'
 import swaggerUi from '@fastify/swagger-ui'
 import Fastify from 'fastify'
 import { isDevelopment } from './config/runtime-env'
+import { accountRoutes } from './routes/accounts'
 
 export function buildApp() {
   const app = Fastify({
@@ -49,6 +50,8 @@ export function buildApp() {
 
     done()
   })
+
+  app.register(accountRoutes, { prefix: '/api' })
 
   return app
 }
