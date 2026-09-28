@@ -16,13 +16,13 @@
   "dependencies": {
     "@fastify/swagger": "^9.9.0",
     "@fastify/swagger-ui": "^5.2.6",
+    "cross-env": "^10.1.0",
     "fastify": "^5.12.5",
     "kysely": "^0.29.6",
     "mysql2": "^3.24.4",
     "zod": "^4.6.5"
   },
   "devDependencies": {
-    "cross-env": "^10.1.0",
     "tsdown": "^0.23.0",
     "tsx": "^4.23.15"
   }
