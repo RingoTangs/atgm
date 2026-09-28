@@ -70,9 +70,9 @@ describe('app', () => {
     expect(response.statusCode).toBe(200)
     expect(document).toMatchObject({
       info: {
-        title: 'ATGM API',
+        title: 'Asktao GM API',
         description: 'AskTao Game Management API',
-        version: '0.1.0',
+        version: '0.1.1',
       },
       paths: {
         '/_status': {
@@ -156,6 +156,82 @@ describe('app', () => {
               },
             },
           },
+          post: {
+            tags: ['Account'],
+            summary: '注册账号',
+            description: '创建 dl_adb_all.account 账号',
+            requestBody: {
+              required: true,
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    required: [
+                      'account',
+                      'rawPassword',
+                      'goldCoin',
+                      'silverCoin',
+                      'privilege',
+                    ],
+                    additionalProperties: false,
+                    properties: {
+                      account: {
+                        type: 'string',
+                        minLength: 1,
+                        maxLength: 32,
+                      },
+                      rawPassword: { type: 'string', minLength: 1 },
+                      goldCoin: {
+                        type: 'integer',
+                        minimum: 0,
+                        maximum: 2_000_000_000,
+                      },
+                      silverCoin: {
+                        type: 'integer',
+                        minimum: 0,
+                        maximum: 2_000_000_000,
+                      },
+                      privilege: {
+                        type: 'integer',
+                        minimum: 0,
+                        maximum: 1000,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            responses: {
+              201: {
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      required: ['account'],
+                      additionalProperties: false,
+                      properties: {
+                        account: { type: 'string' },
+                      },
+                    },
+                  },
+                },
+              },
+              409: {
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      required: ['message'],
+                      additionalProperties: false,
+                      properties: {
+                        message: { type: 'string' },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       },
     })
@@ -179,13 +255,30 @@ describe('app', () => {
     { environment: 'test', app: testApp, url: '/docs/json' },
     { environment: 'unspecified', app: unspecifiedApp, url: '/docs' },
     { environment: 'unspecified', app: unspecifiedApp, url: '/docs/json' },
-    { environment: 'production', app: productionApp, url: '/api/accounts' },
-    { environment: 'test', app: testApp, url: '/api/accounts' },
-    { environment: 'unspecified', app: unspecifiedApp, url: '/api/accounts' },
   ])('does not register $url in $environment', async ({ app, url }) => {
     const response = await app.inject({
       method: 'GET',
       url,
+    })
+
+    expect(response.statusCode).toBe(404)
+  })
+
+  it.each([
+    ['production', productionApp],
+    ['test', testApp],
+    ['unspecified', unspecifiedApp],
+  ])('does not register account creation in %s', async (_environment, app) => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/accounts',
+      payload: {
+        account: 'test',
+        rawPassword: '123123',
+        goldCoin: 0,
+        silverCoin: 0,
+        privilege: 0,
+      },
     })
 
     expect(response.statusCode).toBe(404)
