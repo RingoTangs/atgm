@@ -25,12 +25,14 @@ const serverEnvSchema = z.object({
     .string()
     .trim()
     .min(1, 'must not be empty')
-    .regex(/^\w+$/, 'must contain only letters, numbers, and underscores'),
+    .regex(/^\w+$/, 'must contain only letters, numbers, and underscores')
+    .default('dl_adb_all'),
   MYSQL_DL_DDB_1: z
     .string()
     .trim()
     .min(1, 'must not be empty')
-    .regex(/^\w+$/, 'must contain only letters, numbers, and underscores'),
+    .regex(/^\w+$/, 'must contain only letters, numbers, and underscores')
+    .default('dl_ddb_1'),
 })
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>

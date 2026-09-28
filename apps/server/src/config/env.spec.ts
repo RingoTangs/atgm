@@ -2,19 +2,17 @@ import type { ServerEnv } from './env'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { parseServerEnv } from './env'
 
-const validDatabaseEnv = {
+const validRequiredEnv = {
   MYSQL_HOST: '127.0.0.1',
   MYSQL_USER: 'root',
   MYSQL_PASSWORD: 'password',
-  MYSQL_DL_ADB_ALL: 'dl_adb_all',
-  MYSQL_DL_DDB_1: 'dl_ddb_1',
 }
 
 const parseEnv = (input: NodeJS.ProcessEnv = {}) =>
-  parseServerEnv({ ...validDatabaseEnv, ...input })
+  parseServerEnv({ ...validRequiredEnv, ...input })
 
 describe('parseServerEnv', () => {
-  it('uses defaults when HOST, PORT, and MYSQL_PORT are not set', () => {
+  it('uses defaults when optional server settings are not set', () => {
     expect(parseEnv()).toEqual({
       HOST: '0.0.0.0',
       PORT: 8080,
@@ -100,17 +98,18 @@ describe('parseServerEnv', () => {
     },
   )
 
-  it.each(['MYSQL_DL_ADB_ALL', 'MYSQL_DL_DDB_1'] as const)(
-    'requires %s',
-    (name) => {
-      const input: NodeJS.ProcessEnv = { ...validDatabaseEnv }
-      delete input[name]
-
-      expect(() => parseServerEnv(input)).toThrow(
-        new RegExp(`Invalid server environment:[\\s\\S]*${name}`),
-      )
-    },
-  )
+  it.each([
+    [
+      { MYSQL_DL_ADB_ALL: 'custom_adb' },
+      { MYSQL_DL_ADB_ALL: 'custom_adb', MYSQL_DL_DDB_1: 'dl_ddb_1' },
+    ],
+    [
+      { MYSQL_DL_DDB_1: 'custom_ddb' },
+      { MYSQL_DL_ADB_ALL: 'dl_adb_all', MYSQL_DL_DDB_1: 'custom_ddb' },
+    ],
+  ])('defaults the database name omitted from %j', (input, expected) => {
+    expect(parseEnv(input)).toMatchObject(expected)
+  })
 
   it.each(['MYSQL_DL_ADB_ALL', 'MYSQL_DL_DDB_1'] as const)(
     'rejects an empty %s',
@@ -121,14 +120,16 @@ describe('parseServerEnv', () => {
     },
   )
 
-  it.each(['dl-adb-all', 'dl.ddb.1', 'dl ddb 1', '数据库'])(
-    'rejects invalid database name %j',
-    (databaseName) => {
-      expect(() => parseEnv({ MYSQL_DL_DDB_1: databaseName })).toThrow(
-        /Invalid server environment:[\s\S]*MYSQL_DL_DDB_1/,
-      )
-    },
-  )
+  it.each([
+    ['MYSQL_DL_ADB_ALL', 'dl-adb-all'],
+    ['MYSQL_DL_DDB_1', 'dl.ddb.1'],
+    ['MYSQL_DL_ADB_ALL', 'dl adb all'],
+    ['MYSQL_DL_DDB_1', '数据库'],
+  ] as const)('rejects invalid %s value %j', (name, databaseName) => {
+    expect(() => parseEnv({ [name]: databaseName })).toThrow(
+      new RegExp(`Invalid server environment:[\\s\\S]*${name}`),
+    )
+  })
 
   it.each(['0', '65536', '1.5', 'abc', '0xcea', '3.3e3', 'Infinity', 'NaN'])(
     'rejects invalid MYSQL_PORT %j',

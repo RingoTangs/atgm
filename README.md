@@ -44,16 +44,16 @@ pnpm build
 
 ## Server 环境变量
 
-| 变量               | 默认值    | 说明                                                      |
-| ------------------ | --------- | --------------------------------------------------------- |
-| `HOST`             | `0.0.0.0` | Server 监听地址                                           |
-| `PORT`             | `8080`    | Server 监听端口，必须是 `1` 到 `65535` 的十进制整数字符串 |
-| `MYSQL_HOST`       | —         | MySQL Server 地址                                         |
-| `MYSQL_PORT`       | `3306`    | MySQL Server 端口                                         |
-| `MYSQL_USER`       | —         | MySQL 用户名                                              |
-| `MYSQL_PASSWORD`   | —         | MySQL 密码                                                |
-| `MYSQL_DL_ADB_ALL` | —         | `dl_adb_all` database 名称                                |
-| `MYSQL_DL_DDB_1`   | —         | `dl_ddb_1` database 名称                                  |
+| 变量               | 默认值       | 说明                                                      |
+| ------------------ | ------------ | --------------------------------------------------------- |
+| `HOST`             | `0.0.0.0`    | Server 监听地址                                           |
+| `PORT`             | `8080`       | Server 监听端口，必须是 `1` 到 `65535` 的十进制整数字符串 |
+| `MYSQL_HOST`       | —            | MySQL Server 地址                                         |
+| `MYSQL_PORT`       | `3306`       | MySQL Server 端口                                         |
+| `MYSQL_USER`       | —            | MySQL 用户名                                              |
+| `MYSQL_PASSWORD`   | —            | MySQL 密码                                                |
+| `MYSQL_DL_ADB_ALL` | `dl_adb_all` | 可选，ADB database 名称                                   |
+| `MYSQL_DL_DDB_1`   | `dl_ddb_1`   | 可选，DDB database 名称                                   |
 
 `apps/server/.env.example` 仅提供配置示例。当前启动命令不会自动加载 `.env`；请通过运行环境或 shell 设置变量。开发时也可以复制为已忽略的 `apps/server/.env.local`，并显式使用 Node.js 22 加载：
 
