@@ -7,9 +7,9 @@
     "node": ">=22.23.2 <23"
   },
   "scripts": {
-    "dev": "node --env-file=.env.local --watch --import tsx src/server.ts",
+    "dev": "cross-env NODE_ENV=development node --env-file=.env.local --watch --import tsx src/server.ts",
     "build": "cross-env NODE_ENV=production tsdown",
-    "start": "node ./.output/server.mjs",
+    "start": "cross-env NODE_ENV=production node ./.output/server.mjs",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run"
   },
