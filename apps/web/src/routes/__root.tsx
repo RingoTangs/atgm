@@ -16,7 +16,7 @@ export const Route = createRootRouteWithContext<{
         {
           name: 'description',
           content:
-            'A React application template with typed routing, shared state, and async data examples.',
+            'AskTao game management system with typed routing and async data handling.',
         },
       ],
     }

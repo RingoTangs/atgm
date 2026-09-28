@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './../../routes/__root'
 import { Route as IndexRouteImport } from './../../routes/index'
 import { Route as SplatRouteImport } from './../../routes/$'
-import { Route as ErrorRouteImport } from './../../routes/error'
 import { Route as LoadingRouteImport } from './../../routes/loading'
 
 const IndexRoute = IndexRouteImport.update({
@@ -24,11 +23,6 @@ const SplatRoute = SplatRouteImport.update({
   path: '/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ErrorRoute = ErrorRouteImport.update({
-  id: '/error',
-  path: '/error',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoadingRoute = LoadingRouteImport.update({
   id: '/loading',
   path: '/loading',
@@ -38,34 +32,30 @@ const LoadingRoute = LoadingRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
-  '/error': typeof ErrorRoute
   '/loading': typeof LoadingRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
-  '/error': typeof ErrorRoute
   '/loading': typeof LoadingRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
-  '/error': typeof ErrorRoute
   '/loading': typeof LoadingRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$' | '/error' | '/loading'
+  fullPaths: '/' | '/$' | '/loading'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$' | '/error' | '/loading'
-  id: '__root__' | '/' | '/$' | '/error' | '/loading'
+  to: '/' | '/$' | '/loading'
+  id: '__root__' | '/' | '/$' | '/loading'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SplatRoute: typeof SplatRoute
-  ErrorRoute: typeof ErrorRoute
   LoadingRoute: typeof LoadingRoute
 }
 
@@ -85,13 +75,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/error': {
-      id: '/error'
-      path: '/error'
-      fullPath: '/error'
-      preLoaderRoute: typeof ErrorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/loading': {
       id: '/loading'
       path: '/loading'
@@ -105,7 +88,6 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SplatRoute: SplatRoute,
-  ErrorRoute: ErrorRoute,
   LoadingRoute: LoadingRoute,
 }
 export const routeTree = rootRouteImport
