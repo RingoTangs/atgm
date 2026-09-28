@@ -67,6 +67,16 @@ pnpm build
 
 `apps/server/.env.example` 仅提供配置示例。开发命令只自动加载 `.env.local`；生产环境仍通过系统环境变量传入配置。
 
+## API 文档
+
+开发环境启动 `pnpm dev:server` 后，可访问 Swagger UI：
+
+```text
+http://localhost:8080/docs
+```
+
+OpenAPI JSON 位于 `http://localhost:8080/docs/json`。Swagger 会自动收集带 Schema 的 Fastify 路由，生产环境默认不注册文档路由。Swagger UI 的 Try it out 会实际发送 HTTP 请求；业务接口仍需独立实现认证、授权和输入校验。
+
 ## Database
 
 Server 使用 Kysely 和 mysql2 访问同一台 MySQL 5.7 Server 上的 `dl_adb_all` 与 `dl_ddb_1`。两个数据库共享一个连接池和一个 Kysely 根实例，并分别通过 `app.db.adb`、`app.db.ddb` 提供查询入口。`MYSQL_DL_ADB_ALL`、`MYSQL_DL_DDB_1` 仅指定数据库名称；Fastify 的 `onClose` hook 会销毁根实例并释放连接池。
