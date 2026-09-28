@@ -14,7 +14,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "fastify": "^5.12.5"
+    "fastify": "^5.12.5",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "cross-env": "^10.1.0",

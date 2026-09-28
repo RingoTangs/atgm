@@ -50,6 +50,9 @@ importers:
       fastify:
         specifier: ^5.12.5
         version: 5.12.5
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
     devDependencies:
       cross-env:
         specifier: ^10.1.0
@@ -3473,6 +3476,9 @@ packages:
   zod@4.6.2:
     resolution: {integrity: sha512-lh5RCAGFa1Cm2hjtNwLQhSs/AsqdWnTQaBER9fEwN/88pSh7KOtJavtBx/0VlkN/uFd61SwYmljLMDAsHlvzBQ==}
 
+  zod@4.6.5:
+    resolution: {integrity: sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q==}
+
   zustand@5.0.15:
     resolution: {integrity: sha512-MpSEjRiBkA9crSYeOUH32rJC7SVqAbm0Fqcqge/bUi2PPoLcBWKOsG+C8mevmpr8TwXHBVkChbbJiyvkE+i/3A==}
     engines: {node: '>=12.20.0'}
@@ -6832,6 +6838,8 @@ snapshots:
       '@yuku-parser/binding-win32-x64': 0.10.2
 
   zod@4.6.2: {}
+
+  zod@4.6.5: {}
 
   zustand@5.0.15(@types/react@19.3.0)(react@19.3.0)(use-sync-external-store@1.6.0(react@19.3.0)):
     optionalDependencies:
