@@ -34,7 +34,7 @@ const parseBasePath = (basePath: string): string => {
 
   if (!BASE_PATH_PATTERN.test(basePath) || hasDotSegment) {
     throw new Error(
-      'Invalid VITE_BASE_PATH: expected "/" or an absolute path ending in "/", for example "/react-app/"',
+      'Invalid VITE_BASE_PATH: expected "/" or an absolute path ending in "/", for example "/atgm/"',
     )
   }
 
