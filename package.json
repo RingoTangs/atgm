@@ -22,7 +22,11 @@
     "tanstack-router",
     "tanstack-query",
     "tailwindcss",
-    "template"
+    "fastify",
+    "pnpm",
+    "monorepo",
+    "asktao",
+    "game-management"
   ],
   "devEngines": {
     "runtime": {
@@ -32,6 +36,9 @@
     }
   },
   "scripts": {
+    "dev": "pnpm -r --parallel --if-present dev",
+    "dev:web": "pnpm --filter atgm-web dev",
+    "dev:server": "pnpm --filter atgm-server dev",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --check .",
