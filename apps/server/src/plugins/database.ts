@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify'
-import type { ServerEnv } from '../config/env'
 import type { FastifyDatabases } from '../db/types'
+import type { ServerEnv } from '../env'
 import { createDatabases } from '../db'
 
 declare module 'fastify' {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { buildApp } from '../app'
-import { parseServerEnv } from '../config/env'
+import { parseServerEnv } from '../env'
 import { registerDatabase } from './database'
 
 describe('registerDatabase', () => {

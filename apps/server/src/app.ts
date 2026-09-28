@@ -8,7 +8,7 @@ import {
   validatorCompiler,
 } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { isDevelopment } from './config/runtime-env'
+import { isDevelopment } from './env'
 import { accountRoutes } from './routes/accounts'
 
 export function buildApp() {

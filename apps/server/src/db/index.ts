@@ -1,4 +1,4 @@
-import type { ServerEnv } from '../config/env'
+import type { ServerEnv } from '../env'
 import type { AdbDatabase, DdbDatabase } from './types'
 import { Kysely, MysqlDialect } from 'kysely'
 import { createPool } from 'mysql2'

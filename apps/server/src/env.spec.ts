@@ -1,6 +1,6 @@
 import type { ServerEnv } from './env'
-import { describe, expect, expectTypeOf, it } from 'vitest'
-import { parseServerEnv } from './env'
+import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest'
+import { isDevelopment, isProduction, parseServerEnv } from './env'
 
 const validRequiredEnv = {
   MYSQL_HOST: '127.0.0.1',
@@ -10,6 +10,10 @@ const validRequiredEnv = {
 
 const parseEnv = (input: NodeJS.ProcessEnv = {}) =>
   parseServerEnv({ ...validRequiredEnv, ...input })
+
+afterEach(() => {
+  vi.unstubAllEnvs()
+})
 
 describe('parseServerEnv', () => {
   it('uses defaults when optional server settings are not set', () => {
@@ -137,6 +141,30 @@ describe('parseServerEnv', () => {
       expect(() => parseEnv({ MYSQL_PORT })).toThrow(
         /Invalid server environment:[\s\S]*MYSQL_PORT/,
       )
+    },
+  )
+})
+
+describe('runtime environment', () => {
+  it('reads NODE_ENV each time it checks the runtime environment', () => {
+    vi.stubEnv('NODE_ENV', 'development')
+
+    expect(isDevelopment()).toBe(true)
+    expect(isProduction()).toBe(false)
+
+    vi.stubEnv('NODE_ENV', 'production')
+
+    expect(isDevelopment()).toBe(false)
+    expect(isProduction()).toBe(true)
+  })
+
+  it.each([['test'], [undefined]])(
+    'does not identify NODE_ENV=%s as development or production',
+    (nodeEnv) => {
+      vi.stubEnv('NODE_ENV', nodeEnv)
+
+      expect(isDevelopment()).toBe(false)
+      expect(isProduction()).toBe(false)
     },
   )
 })

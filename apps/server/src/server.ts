@@ -1,6 +1,6 @@
 import process from 'node:process'
 import { buildApp } from './app'
-import { parseServerEnv } from './config/env'
+import { parseServerEnv } from './env'
 import { registerDatabase } from './plugins/database'
 
 const main = async (): Promise<void> => {

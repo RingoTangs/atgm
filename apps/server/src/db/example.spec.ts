@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { createDatabases } from '.'
-import { parseServerEnv } from '../config/env'
+import { parseServerEnv } from '../env'
 import {
   findAccountByAccount,
   listAccounts,

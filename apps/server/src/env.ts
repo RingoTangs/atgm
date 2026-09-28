@@ -1,3 +1,4 @@
+import process from 'node:process'
 import { z } from 'zod'
 
 const portSchema = (defaultPort: number) =>
@@ -14,9 +15,12 @@ const portSchema = (defaultPort: number) =>
     )
     .default(defaultPort)
 
-const serverEnvSchema = z.object({
+const hostPortEnvSchema = z.object({
   HOST: z.string().trim().min(1, 'must not be empty').default('0.0.0.0'),
   PORT: portSchema(8080),
+})
+
+const mysqlEnvSchema = z.object({
   MYSQL_HOST: z.string().trim().min(1, 'must not be empty'),
   MYSQL_PORT: portSchema(3306),
   MYSQL_USER: z.string().trim().min(1, 'must not be empty'),
@@ -35,6 +39,11 @@ const serverEnvSchema = z.object({
     .default('dl_ddb_1'),
 })
 
+const serverEnvSchema = z.object({
+  ...hostPortEnvSchema.shape,
+  ...mysqlEnvSchema.shape,
+})
+
 export type ServerEnv = z.infer<typeof serverEnvSchema>
 
 export function parseServerEnv(input: NodeJS.ProcessEnv): ServerEnv {
@@ -48,3 +57,8 @@ export function parseServerEnv(input: NodeJS.ProcessEnv): ServerEnv {
 
   return result.data
 }
+
+export const isDevelopment = (): boolean =>
+  process.env.NODE_ENV === 'development'
+
+export const isProduction = (): boolean => process.env.NODE_ENV === 'production'

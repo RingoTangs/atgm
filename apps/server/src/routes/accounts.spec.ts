@@ -1,6 +1,6 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { buildApp } from '../app'
-import { parseServerEnv } from '../config/env'
+import { parseServerEnv } from '../env'
 import { registerDatabase } from '../plugins/database'
 
 const mocks = vi.hoisted(() => {
