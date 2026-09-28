@@ -1,6 +1,6 @@
-import { useNavigate, useRouter } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
+import { Button } from 'antd'
 import { cn } from 'cn'
-import { Button } from '@/components/Button'
 
 type GeneralErrorProps = React.HTMLAttributes<HTMLDivElement> & {
   minimal?: boolean
@@ -11,7 +11,6 @@ export function GeneralError({
   minimal = false,
 }: GeneralErrorProps) {
   const navigate = useNavigate()
-  const { history } = useRouter()
   return (
     <div className={cn('h-svh w-full', className)}>
       <div className="m-auto flex h-full w-full flex-col items-center justify-center gap-2">
@@ -24,10 +23,11 @@ export function GeneralError({
         </p>
         {!minimal && (
           <div className="mt-6 flex gap-4">
-            <Button size="lg" variant="outline" onClick={() => history.go(-1)}>
-              Go Back
-            </Button>
-            <Button size="lg" onClick={() => navigate({ to: '/' })}>
+            <Button
+              size="large"
+              type="primary"
+              onClick={() => navigate({ to: '/' })}
+            >
               Back to Home
             </Button>
           </div>
