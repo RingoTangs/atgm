@@ -2,7 +2,7 @@
 /* https://github.com/tailwindlabs/tailwindcss/blob/main/packages/tailwindcss/preflight.css */
 @import 'tailwindcss';
 @import 'tw-animate-css';
-@import '../antd/token.css';
+@import './theme.css';
 
 /*
  * Tailwind 默认 dark: 使用 prefers-color-scheme。
