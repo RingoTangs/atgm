@@ -1,5 +1,5 @@
 import { useNavigate, useRouter } from '@tanstack/react-router'
-import { Button } from '@/components/Button'
+import { Button } from 'antd'
 
 export const NotFoundError: React.FC = () => {
   const navigate = useNavigate()
@@ -14,10 +14,14 @@ export const NotFoundError: React.FC = () => {
           does not exist or might have been removed.
         </p>
         <div className="mt-6 flex gap-4">
-          <Button size="lg" variant="outline" onClick={() => history.go(-1)}>
+          <Button size="large" onClick={() => history.go(-1)}>
             Go Back
           </Button>
-          <Button size="lg" onClick={() => navigate({ to: '/' })}>
+          <Button
+            size="large"
+            type="primary"
+            onClick={() => navigate({ to: '/' })}
+          >
             Back to Home
           </Button>
         </div>
