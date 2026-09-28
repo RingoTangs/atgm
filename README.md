@@ -84,9 +84,9 @@ http://localhost:8080/docs
 
 OpenAPI JSON 位于 `http://localhost:8080/docs/json`。Swagger 仅在 `development` 环境注册，并自动收集带 Schema 的 Fastify 路由；`test`、`production` 和未设置 `NODE_ENV` 时均关闭。`.env.local` 仅用于开发，生产环境由外部环境提供 MySQL 配置。Swagger UI 的 Try it out 会实际发送 HTTP 请求；业务接口仍需独立实现认证、授权和输入校验。
 
-API 请求与响应使用 Zod Schema 校验和序列化，并通过 Fastify Type Provider 自动推导 TypeScript 类型；Swagger 会根据同一份 Zod Schema 生成 OpenAPI，不维护重复的 JSON Schema。账号列表 `GET /api/accounts` 按当前服务策略在所有环境注册；注册账号 `POST /api/accounts` 因尚未实现管理员鉴权，仅在 `development` 环境注册。正式对外开放账号业务接口前，必须增加身份认证和管理员权限控制。
+API 请求与响应使用 Zod Schema 校验和序列化，并通过 Fastify Type Provider 自动推导 TypeScript 类型；Swagger 会根据同一份 Zod Schema 生成 OpenAPI，不维护重复的 JSON Schema。账号列表 `GET /accounts`、注册账号 `POST /account` 和服务状态 `GET /_status` 在所有环境注册；Swagger 仍仅在 `development` 环境启用。
 
-本地使用未鉴权的注册接口时，建议将 `HOST` 设为 `127.0.0.1`；如果继续使用默认的 `0.0.0.0`，必须配置网络访问控制，避免注册接口暴露到局域网。
+账号管理接口尚未实现管理员鉴权，不得直接暴露到公网。正式部署前必须增加身份认证、管理员授权及适当的网络访问控制；本地开发建议将 `HOST` 设为 `127.0.0.1`。
 
 `GET /_status` 是 HTTP 服务存活检查，所有运行环境均可访问，响应为 `{ "status": "ok" }`。该结果不代表 MySQL 一定可用；开发环境的 Swagger 会自动收录此接口。
 
