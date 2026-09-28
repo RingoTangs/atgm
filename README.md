@@ -11,7 +11,7 @@ apps/
 ## 技术栈
 
 - Web：React、Vite、TanStack Router、TanStack Query、Tailwind CSS、Vitest
-- Server：Fastify、TypeScript、tsx、tsdown、Vitest
+- Server：Fastify、Zod、TypeScript、tsx、tsdown、Vitest
 - 工程工具：pnpm workspace、ESLint、Prettier、`@ringotangs/tsconfig`
 
 ## 环境要求
@@ -44,10 +44,10 @@ pnpm build
 
 ## Server 环境变量
 
-| 变量   | 默认值    | 说明                                          |
-| ------ | --------- | --------------------------------------------- |
-| `HOST` | `0.0.0.0` | Server 监听地址                               |
-| `PORT` | `8080`    | Server 监听端口，必须是 `1` 到 `65535` 的整数 |
+| 变量   | 默认值    | 说明                                                      |
+| ------ | --------- | --------------------------------------------------------- |
+| `HOST` | `0.0.0.0` | Server 监听地址                                           |
+| `PORT` | `8080`    | Server 监听端口，必须是 `1` 到 `65535` 的十进制整数字符串 |
 
 `apps/server/.env.example` 仅提供配置示例。当前启动命令不会自动加载 `.env`；请通过运行环境或 shell 设置变量。
 
