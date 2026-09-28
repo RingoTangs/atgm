@@ -4,7 +4,7 @@
   "version": "0.1.1",
   "private": true,
   "packageManager": "pnpm@10.24.0",
-  "description": "Team-oriented React application template built with Vite, TanStack Router, TanStack Query, Tailwind CSS, and Vitest.",
+  "description": "game management system for asktao.",
   "author": "RingoTangs",
   "license": "MIT",
   "homepage": "https://github.com/RingoTangs/atgm#readme",
