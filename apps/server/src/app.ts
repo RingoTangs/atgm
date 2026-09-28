@@ -1,14 +1,14 @@
-import process from 'node:process'
 import swagger from '@fastify/swagger'
 import swaggerUi from '@fastify/swagger-ui'
 import Fastify from 'fastify'
+import { isDevelopment } from './config/runtime-env'
 
 export function buildApp() {
   const app = Fastify({
     logger: true,
   })
 
-  if (process.env.NODE_ENV !== 'production') {
+  if (isDevelopment()) {
     app.register(swagger, {
       openapi: {
         info: {

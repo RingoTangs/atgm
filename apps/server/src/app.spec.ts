@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, it, vi } from 'vitest'
 import { buildApp } from './app'
 
-function buildAppFor(nodeEnv: string) {
+function buildAppFor(nodeEnv: string | undefined) {
   vi.stubEnv('NODE_ENV', nodeEnv)
 
   try {
@@ -11,11 +11,18 @@ function buildAppFor(nodeEnv: string) {
   }
 }
 
-const developmentApp = buildAppFor('test')
+const developmentApp = buildAppFor('development')
 const productionApp = buildAppFor('production')
+const testApp = buildAppFor('test')
+const unspecifiedApp = buildAppFor(undefined)
 
 afterAll(async () => {
-  await Promise.all([developmentApp.close(), productionApp.close()])
+  await Promise.all([
+    developmentApp.close(),
+    productionApp.close(),
+    testApp.close(),
+    unspecifiedApp.close(),
+  ])
 })
 
 describe('app', () => {
@@ -84,15 +91,19 @@ describe('app', () => {
     expect(response.headers['content-type']).toContain('text/html')
   })
 
-  it.each(['/docs', '/docs/json'])(
-    'does not register %s in production',
-    async (url) => {
-      const response = await productionApp.inject({
-        method: 'GET',
-        url,
-      })
+  it.each([
+    { environment: 'production', app: productionApp, url: '/docs' },
+    { environment: 'production', app: productionApp, url: '/docs/json' },
+    { environment: 'test', app: testApp, url: '/docs' },
+    { environment: 'test', app: testApp, url: '/docs/json' },
+    { environment: 'unspecified', app: unspecifiedApp, url: '/docs' },
+    { environment: 'unspecified', app: unspecifiedApp, url: '/docs/json' },
+  ])('does not register $url in $environment', async ({ app, url }) => {
+    const response = await app.inject({
+      method: 'GET',
+      url,
+    })
 
-      expect(response.statusCode).toBe(404)
-    },
-  )
+    expect(response.statusCode).toBe(404)
+  })
 })
