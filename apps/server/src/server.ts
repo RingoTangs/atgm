@@ -1,6 +1,7 @@
 import process from 'node:process'
 import { buildApp } from './app'
 import { parseServerEnv } from './config/env'
+import { registerDatabase } from './plugins/database'
 
 const main = async (): Promise<void> => {
   const app = buildApp()
@@ -22,7 +23,10 @@ const main = async (): Promise<void> => {
   }
 
   try {
-    const { HOST, PORT } = parseServerEnv(process.env)
+    const env = parseServerEnv(process.env)
+    const { HOST, PORT } = env
+
+    registerDatabase(app, env)
 
     await app.listen({ host: HOST, port: PORT })
     process.on('SIGINT', shutdown)
