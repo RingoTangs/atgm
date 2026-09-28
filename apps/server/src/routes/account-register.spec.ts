@@ -56,11 +56,11 @@ afterAll(async () => {
   await app.close()
 })
 
-describe('post /api/accounts endpoint', () => {
+describe('post /account endpoint', () => {
   it('creates an account using only the six supported database fields', async () => {
     const response = await app.inject({
       method: 'POST',
-      url: '/api/accounts',
+      url: '/account',
       payload: validBody,
     })
 
@@ -109,7 +109,7 @@ describe('post /api/accounts endpoint', () => {
   ])('accepts the $name', async ({ body }) => {
     const response = await app.inject({
       method: 'POST',
-      url: '/api/accounts',
+      url: '/account',
       payload: body,
     })
 
@@ -125,7 +125,7 @@ describe('post /api/accounts endpoint', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: '/api/accounts',
+        url: '/account',
         payload: body,
       })
 
@@ -176,7 +176,7 @@ describe('post /api/accounts endpoint', () => {
   ])('rejects $name before inserting', async ({ body }) => {
     const response = await app.inject({
       method: 'POST',
-      url: '/api/accounts',
+      url: '/account',
       payload: body,
     })
 
@@ -193,7 +193,7 @@ describe('post /api/accounts endpoint', () => {
 
     const response = await app.inject({
       method: 'POST',
-      url: '/api/accounts',
+      url: '/account',
       payload: validBody,
     })
 
@@ -206,7 +206,7 @@ describe('post /api/accounts endpoint', () => {
 
     const response = await app.inject({
       method: 'POST',
-      url: '/api/accounts',
+      url: '/account',
       payload: validBody,
     })
 

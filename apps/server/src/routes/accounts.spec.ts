@@ -59,11 +59,11 @@ afterAll(async () => {
   await app.close()
 })
 
-describe('get /api/accounts endpoint', () => {
+describe('get /accounts endpoint', () => {
   it('uses the default pagination and returns selected account fields', async () => {
     const response = await app.inject({
       method: 'GET',
-      url: '/api/accounts',
+      url: '/accounts',
     })
 
     expect(response.statusCode).toBe(200)
@@ -88,7 +88,7 @@ describe('get /api/accounts endpoint', () => {
   it('coerces valid pagination strings and calculates the offset', async () => {
     const response = await app.inject({
       method: 'GET',
-      url: '/api/accounts?page=2&pageSize=10',
+      url: '/accounts?page=2&pageSize=10',
     })
 
     expect(response.statusCode).toBe(200)
@@ -116,7 +116,7 @@ describe('get /api/accounts endpoint', () => {
     async (query) => {
       const response = await app.inject({
         method: 'GET',
-        url: `/api/accounts?${query}`,
+        url: `/accounts?${query}`,
       })
 
       expect(response.statusCode).toBe(400)

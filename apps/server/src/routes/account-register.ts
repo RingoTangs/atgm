@@ -29,9 +29,9 @@ function isDuplicateEntryError(error: unknown): boolean {
   )
 }
 
-export async function registerAccountRoutes(app: FastifyInstance) {
+export async function accountRegisterRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().post(
-    '/accounts',
+    '/account',
     {
       schema: {
         tags: ['Account'],
