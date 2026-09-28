@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { createDatabases } from '.'
-import { parseServerEnv } from '../env'
 import {
+  createDatabases,
   findAccountByAccount,
   listAccounts,
   listAccountsByLastLoginTime,
-} from './example'
+} from '.'
+import { parseServerEnv } from '../env'
 
 type Databases = ReturnType<typeof createDatabases>
 

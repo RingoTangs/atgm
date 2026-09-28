@@ -1,5 +1,5 @@
 import type { Kysely } from 'kysely'
-import type { AdbDatabase } from './types'
+import type { AdbDatabase } from '.'
 
 const DEFAULT_PAGE_SIZE = 20
 const MAX_PAGE_SIZE = 100

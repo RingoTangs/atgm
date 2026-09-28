@@ -1,4 +1,4 @@
-import type { AccountRow, AccountTable, NewAccount } from './account'
+import type { AccountRow, AccountTable, NewAccount } from '.'
 import { describe, expectTypeOf, it } from 'vitest'
 
 type IsOptional<T, K extends keyof T> = object extends Pick<T, K> ? true : false

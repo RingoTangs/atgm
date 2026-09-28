@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
+import { registerDatabase } from '.'
 import { buildApp } from '../app'
 import { parseServerEnv } from '../env'
-import { registerDatabase } from './database'
 
 describe('registerDatabase', () => {
   it('decorates Fastify with scoped databases and closes without connecting', async () => {

@@ -1,7 +1,7 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { buildApp } from '../app'
+import { registerDatabase } from '../db'
 import { parseServerEnv } from '../env'
-import { registerDatabase } from '../plugins/database'
 
 const mocks = vi.hoisted(() => {
   const execute = vi.fn()
@@ -10,10 +10,8 @@ const mocks = vi.hoisted(() => {
   const orderBy = vi.fn(() => ({ limit }))
   const select = vi.fn(() => ({ orderBy }))
   const selectFrom = vi.fn(() => ({ select }))
-  const destroy = vi.fn(async () => {})
 
   return {
-    destroy,
     execute,
     limit,
     offset,
@@ -24,11 +22,14 @@ const mocks = vi.hoisted(() => {
 })
 
 vi.mock('../db', () => ({
-  createDatabases: () => ({
-    db: { destroy: mocks.destroy },
-    adbDb: { selectFrom: mocks.selectFrom },
-    ddbDb: {},
-  }),
+  registerDatabase: (app: {
+    decorate: (name: string, value: unknown) => void
+  }) => {
+    app.decorate('db', {
+      adb: { selectFrom: mocks.selectFrom },
+      ddb: {},
+    })
+  },
 }))
 
 vi.stubEnv('NODE_ENV', 'development')
