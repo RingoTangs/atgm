@@ -1,6 +1,7 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "@ringotangs/tsconfig",
   "compilerOptions": {
+    "incremental": true,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
     "types": ["node", "vitest/config"]
   },
