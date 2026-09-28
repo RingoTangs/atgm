@@ -21,9 +21,8 @@ coverage
 .tanstack/
 
 # Public Vite build defaults in .env are intentionally tracked
-**/.env
-**/.env.*
-!**/.env.example
+.env
+.env.*
 !apps/web/.env
 *.local
 
