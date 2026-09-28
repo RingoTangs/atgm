@@ -1,62 +1,39 @@
 import type { FastifyInstance } from 'fastify'
+import type { ZodTypeProvider } from 'fastify-type-provider-zod'
+import { z } from 'zod'
 
-interface AccountsQuery {
-  page?: number
-  pageSize?: number
-}
+const accountsQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+})
+
+const accountsResponseSchema = z.object({
+  page: z.number().int(),
+  pageSize: z.number().int(),
+  items: z.array(
+    z.object({
+      account: z.string(),
+      last_login_time: z.string(),
+    }),
+  ),
+})
 
 export async function accountRoutes(app: FastifyInstance) {
-  app.get<{ Querystring: AccountsQuery }>(
+  app.withTypeProvider<ZodTypeProvider>().get(
     '/accounts',
     {
       schema: {
         tags: ['Account'],
         summary: '查询账号列表',
         description: '分页查询 dl_adb_all.account',
-
-        querystring: {
-          type: 'object',
-          additionalProperties: false,
-          properties: {
-            page: {
-              type: 'integer',
-              minimum: 1,
-              default: 1,
-            },
-            pageSize: {
-              type: 'integer',
-              minimum: 1,
-              maximum: 100,
-              default: 20,
-            },
-          },
-        },
-
+        querystring: accountsQuerySchema,
         response: {
-          200: {
-            type: 'object',
-            required: ['page', 'pageSize', 'items'],
-            properties: {
-              page: { type: 'integer' },
-              pageSize: { type: 'integer' },
-              items: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  required: ['account', 'last_login_time'],
-                  properties: {
-                    account: { type: 'string' },
-                    last_login_time: { type: 'string' },
-                  },
-                },
-              },
-            },
-          },
+          200: accountsResponseSchema,
         },
       },
     },
     async (request) => {
-      const { page = 1, pageSize = 20 } = request.query
+      const { page, pageSize } = request.query
 
       const items = await app.db.adb
         .selectFrom('account')

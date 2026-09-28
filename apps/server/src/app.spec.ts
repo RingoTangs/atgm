@@ -29,6 +29,8 @@ describe('app', () => {
   it.each([
     ['development', developmentApp],
     ['production', productionApp],
+    ['test', testApp],
+    ['unspecified', unspecifiedApp],
   ])('returns hello world in %s', async (_environment, app) => {
     const response = await app.inject({
       method: 'GET',
@@ -67,8 +69,68 @@ describe('app', () => {
                     schema: {
                       type: 'object',
                       required: ['hello'],
+                      additionalProperties: false,
                       properties: {
                         hello: { type: 'string' },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        '/api/accounts': {
+          get: {
+            tags: ['Account'],
+            summary: '查询账号列表',
+            description: '分页查询 dl_adb_all.account',
+            parameters: [
+              {
+                in: 'query',
+                name: 'page',
+                required: false,
+                schema: {
+                  default: 1,
+                  type: 'integer',
+                  minimum: 1,
+                },
+              },
+              {
+                in: 'query',
+                name: 'pageSize',
+                required: false,
+                schema: {
+                  default: 20,
+                  type: 'integer',
+                  minimum: 1,
+                  maximum: 100,
+                },
+              },
+            ],
+            responses: {
+              200: {
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      required: ['page', 'pageSize', 'items'],
+                      additionalProperties: false,
+                      properties: {
+                        page: { type: 'integer' },
+                        pageSize: { type: 'integer' },
+                        items: {
+                          type: 'array',
+                          items: {
+                            type: 'object',
+                            required: ['account', 'last_login_time'],
+                            additionalProperties: false,
+                            properties: {
+                              account: { type: 'string' },
+                              last_login_time: { type: 'string' },
+                            },
+                          },
+                        },
                       },
                     },
                   },
@@ -98,6 +160,9 @@ describe('app', () => {
     { environment: 'test', app: testApp, url: '/docs/json' },
     { environment: 'unspecified', app: unspecifiedApp, url: '/docs' },
     { environment: 'unspecified', app: unspecifiedApp, url: '/docs/json' },
+    { environment: 'production', app: productionApp, url: '/api/accounts' },
+    { environment: 'test', app: testApp, url: '/api/accounts' },
+    { environment: 'unspecified', app: unspecifiedApp, url: '/api/accounts' },
   ])('does not register $url in $environment', async ({ app, url }) => {
     const response = await app.inject({
       method: 'GET',
