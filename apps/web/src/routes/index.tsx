@@ -6,14 +6,7 @@ const HomePage: React.FC = () => {
 
 export const Route = createFileRoute('/')({
   head: () => ({
-    meta: [
-      { title: `Home - ${import.meta.env.VITE_SITE_NAME}` },
-      {
-        name: 'description',
-        content:
-          'Explore Zustand shared state and TanStack Query data examples.',
-      },
-    ],
+    meta: [{ title: `Home - ${import.meta.env.VITE_SITE_NAME}` }],
   }),
   component: HomePage,
 })

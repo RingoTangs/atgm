@@ -13,11 +13,6 @@ export const Route = createRootRouteWithContext<{
         {
           title: import.meta.env.VITE_SITE_NAME,
         },
-        {
-          name: 'description',
-          content:
-            'AskTao game management system with typed routing and async data handling.',
-        },
       ],
     }
   },
