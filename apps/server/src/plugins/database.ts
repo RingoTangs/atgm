@@ -10,11 +10,11 @@ declare module 'fastify' {
 }
 
 export function registerDatabase(app: FastifyInstance, env: ServerEnv): void {
-  const { db, accountDb, gameDb } = createDatabases(env)
+  const { db, adbDb, ddbDb } = createDatabases(env)
 
   app.decorate('db', {
-    account: accountDb,
-    game: gameDb,
+    adb: adbDb,
+    ddb: ddbDb,
   })
 
   app.addHook('onClose', async () => {

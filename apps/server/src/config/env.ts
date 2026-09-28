@@ -21,12 +21,12 @@ const serverEnvSchema = z.object({
   MYSQL_PORT: portSchema(3306),
   MYSQL_USER: z.string().trim().min(1, 'must not be empty'),
   MYSQL_PASSWORD: z.string().min(1, 'must not be empty'),
-  MYSQL_ACCOUNT_DB: z
+  MYSQL_DL_ADB_ALL: z
     .string()
     .trim()
     .min(1, 'must not be empty')
     .regex(/^\w+$/, 'must contain only letters, numbers, and underscores'),
-  MYSQL_GAME_DB: z
+  MYSQL_DL_DDB_1: z
     .string()
     .trim()
     .min(1, 'must not be empty')

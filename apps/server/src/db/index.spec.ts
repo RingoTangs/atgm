@@ -1,6 +1,4 @@
-import type { Insertable } from 'kysely'
-import type { PlayerTable } from './types'
-import { afterEach, describe, expect, expectTypeOf, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { createDatabases } from '.'
 import { parseServerEnv } from '../config/env'
 
@@ -11,30 +9,27 @@ afterEach(async () => {
 })
 
 describe('createDatabases', () => {
-  it('creates database-scoped query entries without connecting to MySQL', () => {
+  it('creates ADB and DDB entries on one root instance', () => {
     const env = parseServerEnv({
       MYSQL_HOST: '127.0.0.1',
       MYSQL_USER: 'atgm',
       MYSQL_PASSWORD: 'password',
-      MYSQL_ACCOUNT_DB: 'account_db',
-      MYSQL_GAME_DB: 'game_db',
+      MYSQL_DL_ADB_ALL: 'dl_adb_all',
+      MYSQL_DL_DDB_1: 'dl_ddb_1',
     })
-    const { db, accountDb, gameDb } = createDatabases(env)
+    const { db, adbDb, ddbDb } = createDatabases(env)
     databases.push(db)
 
-    const accountQuery = accountDb.selectFrom('users').selectAll().compile()
-    const gameQuery = gameDb.selectFrom('players').selectAll().compile()
+    const accountQuery = adbDb.selectFrom('account').select('account').compile()
+    const ddbNamespaceProbe = ddbDb.schema
+      .createTable('__namespace_probe__')
+      .addColumn('id', 'integer')
+      .compile()
 
-    expect(accountQuery.sql).toContain('`account_db`.`users`')
-    expect(gameQuery.sql).toContain('`game_db`.`players`')
-  })
-
-  it('keeps generated ids optional for inserts', () => {
-    const player = {
-      account_id: 1,
-      level: 1,
-    }
-
-    expectTypeOf(player).toMatchTypeOf<Insertable<PlayerTable>>()
+    expect(db).toBeDefined()
+    expect(adbDb).toBeDefined()
+    expect(ddbDb).toBeDefined()
+    expect(accountQuery.sql).toContain('`dl_adb_all`.`account`')
+    expect(ddbNamespaceProbe.sql).toContain('`dl_ddb_1`.`__namespace_probe__`')
   })
 })

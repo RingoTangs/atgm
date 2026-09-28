@@ -1,33 +1,73 @@
-import type { Insertable, Kysely } from 'kysely'
-import type { AccountDatabase, GameDatabase, PlayerTable } from './types'
+import type { Kysely } from 'kysely'
+import type { AdbDatabase } from './types'
 
-export function getExampleUsers(accountDb: Kysely<AccountDatabase>) {
-  return accountDb.selectFrom('users').selectAll().limit(10).execute()
+const DEFAULT_PAGE_SIZE = 20
+const MAX_PAGE_SIZE = 100
+
+const accountColumns = [
+  'account',
+  'gold_coin',
+  'silver_coin',
+  'last_login_time',
+  'update_time',
+] as const
+
+export interface AccountPageOptions {
+  limit?: number
+  offset?: number
 }
 
-export function getExamplePlayers(gameDb: Kysely<GameDatabase>) {
-  return gameDb.selectFrom('players').selectAll().limit(10).execute()
+function normalizeLimit(limit = DEFAULT_PAGE_SIZE): number {
+  if (!Number.isInteger(limit) || limit < 1) {
+    throw new RangeError('limit must be a positive integer')
+  }
+
+  return Math.min(limit, MAX_PAGE_SIZE)
 }
 
-export function createExamplePlayer(
-  gameDb: Kysely<GameDatabase>,
-  player: Insertable<PlayerTable>,
+function normalizeOffset(offset = 0): number {
+  if (!Number.isInteger(offset) || offset < 0) {
+    throw new RangeError('offset must be a non-negative integer')
+  }
+
+  return offset
+}
+
+export function findAccountByAccount(
+  adbDb: Kysely<AdbDatabase>,
+  account: string,
 ) {
-  return gameDb.insertInto('players').values(player).executeTakeFirst()
+  return adbDb
+    .selectFrom('account')
+    .select(accountColumns)
+    .where('account', '=', account)
 }
 
-export function updateExamplePlayerLevel(
-  gameDb: Kysely<GameDatabase>,
-  id: number,
-  level: number,
+export function listAccounts(
+  adbDb: Kysely<AdbDatabase>,
+  options: AccountPageOptions = {},
 ) {
-  return gameDb
-    .updateTable('players')
-    .set({ level })
-    .where('id', '=', id)
-    .executeTakeFirst()
+  const limit = normalizeLimit(options.limit)
+  const offset = normalizeOffset(options.offset)
+
+  return adbDb
+    .selectFrom('account')
+    .select(accountColumns)
+    .orderBy('account')
+    .limit(limit)
+    .offset(offset)
 }
 
-export function deleteExamplePlayer(gameDb: Kysely<GameDatabase>, id: number) {
-  return gameDb.deleteFrom('players').where('id', '=', id).executeTakeFirst()
+export function listAccountsByLastLoginTime(
+  adbDb: Kysely<AdbDatabase>,
+  lastLoginTime: string,
+  limit = DEFAULT_PAGE_SIZE,
+) {
+  return adbDb
+    .selectFrom('account')
+    .select(accountColumns)
+    .where('last_login_time', '>=', lastLoginTime)
+    .orderBy('last_login_time', 'desc')
+    .orderBy('account')
+    .limit(normalizeLimit(limit))
 }

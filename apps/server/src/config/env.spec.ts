@@ -6,8 +6,8 @@ const validDatabaseEnv = {
   MYSQL_HOST: '127.0.0.1',
   MYSQL_USER: 'root',
   MYSQL_PASSWORD: 'password',
-  MYSQL_ACCOUNT_DB: 'account_db',
-  MYSQL_GAME_DB: 'game_db',
+  MYSQL_DL_ADB_ALL: 'dl_adb_all',
+  MYSQL_DL_DDB_1: 'dl_ddb_1',
 }
 
 const parseEnv = (input: NodeJS.ProcessEnv = {}) =>
@@ -22,8 +22,8 @@ describe('parseServerEnv', () => {
       MYSQL_PORT: 3306,
       MYSQL_USER: 'root',
       MYSQL_PASSWORD: 'password',
-      MYSQL_ACCOUNT_DB: 'account_db',
-      MYSQL_GAME_DB: 'game_db',
+      MYSQL_DL_ADB_ALL: 'dl_adb_all',
+      MYSQL_DL_DDB_1: 'dl_ddb_1',
     })
   })
 
@@ -75,8 +75,8 @@ describe('parseServerEnv', () => {
       MYSQL_PORT: '3307',
       MYSQL_USER: ' atgm ',
       MYSQL_PASSWORD: ' password with spaces ',
-      MYSQL_ACCOUNT_DB: ' account_db ',
-      MYSQL_GAME_DB: ' game_db ',
+      MYSQL_DL_ADB_ALL: ' dl_adb_all ',
+      MYSQL_DL_DDB_1: ' dl_ddb_1 ',
     })
 
     expect(env).toMatchObject({
@@ -84,8 +84,8 @@ describe('parseServerEnv', () => {
       MYSQL_PORT: 3307,
       MYSQL_USER: 'atgm',
       MYSQL_PASSWORD: ' password with spaces ',
-      MYSQL_ACCOUNT_DB: 'account_db',
-      MYSQL_GAME_DB: 'game_db',
+      MYSQL_DL_ADB_ALL: 'dl_adb_all',
+      MYSQL_DL_DDB_1: 'dl_ddb_1',
     })
     expectTypeOf(env.MYSQL_PORT).toEqualTypeOf<number>()
     expectTypeOf<ServerEnv['MYSQL_PORT']>().toEqualTypeOf<number>()
@@ -100,7 +100,19 @@ describe('parseServerEnv', () => {
     },
   )
 
-  it.each(['MYSQL_ACCOUNT_DB', 'MYSQL_GAME_DB'] as const)(
+  it.each(['MYSQL_DL_ADB_ALL', 'MYSQL_DL_DDB_1'] as const)(
+    'requires %s',
+    (name) => {
+      const input: NodeJS.ProcessEnv = { ...validDatabaseEnv }
+      delete input[name]
+
+      expect(() => parseServerEnv(input)).toThrow(
+        new RegExp(`Invalid server environment:[\\s\\S]*${name}`),
+      )
+    },
+  )
+
+  it.each(['MYSQL_DL_ADB_ALL', 'MYSQL_DL_DDB_1'] as const)(
     'rejects an empty %s',
     (name) => {
       expect(() => parseEnv({ [name]: '   ' })).toThrow(
@@ -109,11 +121,11 @@ describe('parseServerEnv', () => {
     },
   )
 
-  it.each(['account-db', 'game.db', 'game db', '游戏库'])(
+  it.each(['dl-adb-all', 'dl.ddb.1', 'dl ddb 1', '数据库'])(
     'rejects invalid database name %j',
     (databaseName) => {
-      expect(() => parseEnv({ MYSQL_GAME_DB: databaseName })).toThrow(
-        /Invalid server environment:[\s\S]*MYSQL_GAME_DB/,
+      expect(() => parseEnv({ MYSQL_DL_DDB_1: databaseName })).toThrow(
+        /Invalid server environment:[\s\S]*MYSQL_DL_DDB_1/,
       )
     },
   )

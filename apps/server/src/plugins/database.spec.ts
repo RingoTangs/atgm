@@ -10,18 +10,21 @@ describe('registerDatabase', () => {
       MYSQL_HOST: '127.0.0.1',
       MYSQL_USER: 'atgm',
       MYSQL_PASSWORD: 'password',
-      MYSQL_ACCOUNT_DB: 'account_db',
-      MYSQL_GAME_DB: 'game_db',
+      MYSQL_DL_ADB_ALL: 'dl_adb_all',
+      MYSQL_DL_DDB_1: 'dl_ddb_1',
     })
 
     registerDatabase(app, env)
 
     expect(
-      app.db.account.selectFrom('users').selectAll().compile().sql,
-    ).toContain('`account_db`.`users`')
+      app.db.adb.selectFrom('account').select('account').compile().sql,
+    ).toContain('`dl_adb_all`.`account`')
     expect(
-      app.db.game.selectFrom('players').selectAll().compile().sql,
-    ).toContain('`game_db`.`players`')
+      app.db.ddb.schema
+        .createTable('__namespace_probe__')
+        .addColumn('id', 'integer')
+        .compile().sql,
+    ).toContain('`dl_ddb_1`.`__namespace_probe__`')
 
     await app.close()
   })

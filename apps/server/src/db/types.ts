@@ -1,25 +1,20 @@
-import type { Generated, Kysely } from 'kysely'
+import type { Kysely } from 'kysely'
+import type { AccountTable } from './types/account'
 
-export interface UserTable {
-  id: Generated<number>
-  username: string
+export type {
+  AccountRow,
+  AccountTable,
+  AccountUpdate,
+  NewAccount,
+} from './types/account'
+
+export interface AdbDatabase {
+  account: AccountTable
 }
 
-export interface PlayerTable {
-  id: Generated<number>
-  account_id: number
-  level: number
-}
-
-export interface Database {
-  users: UserTable
-  players: PlayerTable
-}
-
-export type AccountDatabase = Pick<Database, 'users'>
-export type GameDatabase = Pick<Database, 'players'>
+export type DdbDatabase = Record<never, never>
 
 export interface FastifyDatabases {
-  account: Kysely<AccountDatabase>
-  game: Kysely<GameDatabase>
+  adb: Kysely<AdbDatabase>
+  ddb: Kysely<DdbDatabase>
 }
