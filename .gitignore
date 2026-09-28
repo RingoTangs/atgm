@@ -23,6 +23,7 @@ coverage
 # Public Vite build defaults in .env are intentionally tracked
 .env
 .env.*
+!**/.env.example
 !apps/web/.env
 *.local
 
