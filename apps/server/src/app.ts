@@ -1,4 +1,3 @@
-import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import swagger from '@fastify/swagger'
 import swaggerUi from '@fastify/swagger-ui'
 import Fastify from 'fastify'
@@ -7,9 +6,9 @@ import {
   serializerCompiler,
   validatorCompiler,
 } from 'fastify-type-provider-zod'
-import { z } from 'zod'
 import { isDevelopment } from './env'
 import { accountRoutes } from './routes/accounts'
+import { statusRoutes } from './routes/status'
 
 export function buildApp() {
   const app = Fastify({
@@ -36,28 +35,7 @@ export function buildApp() {
     })
   }
 
-  app.register((routeApp, _options, done) => {
-    routeApp.withTypeProvider<ZodTypeProvider>().get(
-      '/',
-      {
-        schema: {
-          tags: ['System'],
-          summary: '服务状态',
-          description: '返回服务状态示例',
-          response: {
-            200: z.object({
-              hello: z.string(),
-            }),
-          },
-        },
-      },
-      async () => {
-        return { hello: 'world' }
-      },
-    )
-
-    done()
-  })
+  app.register(statusRoutes)
 
   if (development) {
     app.register(accountRoutes, { prefix: '/api' })

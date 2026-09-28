@@ -31,47 +31,65 @@ describe('app', () => {
     ['production', productionApp],
     ['test', testApp],
     ['unspecified', unspecifiedApp],
-  ])('returns hello world in %s', async (_environment, app) => {
+  ])('serves the status route in %s', async (_environment, app) => {
     const response = await app.inject({
       method: 'GET',
-      url: '/',
+      url: '/_status',
     })
 
     expect(response.statusCode).toBe(200)
     expect(response.json()).toEqual({
-      hello: 'world',
+      status: 'ok',
     })
   })
 
-  it('serves an OpenAPI document with the root route in development', async () => {
+  it.each([
+    ['development', developmentApp],
+    ['production', productionApp],
+    ['test', testApp],
+    ['unspecified', unspecifiedApp],
+  ])(
+    'does not serve the removed root route in %s',
+    async (_environment, app) => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/',
+      })
+
+      expect(response.statusCode).toBe(404)
+    },
+  )
+
+  it('serves an OpenAPI document with the status route in development', async () => {
     const response = await developmentApp.inject({
       method: 'GET',
       url: '/docs/json',
     })
+    const document = response.json()
 
     expect(response.statusCode).toBe(200)
-    expect(response.json()).toMatchObject({
+    expect(document).toMatchObject({
       info: {
         title: 'ATGM API',
         description: 'AskTao Game Management API',
         version: '0.1.0',
       },
       paths: {
-        '/': {
+        '/_status': {
           get: {
             tags: ['System'],
             summary: '服务状态',
-            description: '返回服务状态示例',
+            description: '检查 HTTP 服务是否正常运行',
             responses: {
               200: {
                 content: {
                   'application/json': {
                     schema: {
                       type: 'object',
-                      required: ['hello'],
+                      required: ['status'],
                       additionalProperties: false,
                       properties: {
-                        hello: { type: 'string' },
+                        status: { type: 'string' },
                       },
                     },
                   },
@@ -141,6 +159,7 @@ describe('app', () => {
         },
       },
     })
+    expect(document.paths).not.toHaveProperty('/')
   })
 
   it('serves Swagger UI in development', async () => {

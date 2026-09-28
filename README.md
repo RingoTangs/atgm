@@ -86,6 +86,8 @@ OpenAPI JSON 位于 `http://localhost:8080/docs/json`。Swagger 仅在 `developm
 
 API 请求与响应使用 Zod Schema 校验和序列化，并通过 Fastify Type Provider 自动推导 TypeScript 类型；Swagger 会根据同一份 Zod Schema 生成 OpenAPI，不维护重复的 JSON Schema。当前账号列表接口 `/api/accounts` 与 Swagger UI 一样仅在 `development` 环境注册，这是开发阶段的临时安全策略；正式开放账号业务接口前，必须增加身份认证和管理员权限控制。
 
+`GET /_status` 是 HTTP 服务存活检查，所有运行环境均可访问，响应为 `{ "status": "ok" }`。该结果不代表 MySQL 一定可用；开发环境的 Swagger 会自动收录此接口。
+
 ## Database
 
 Server 使用 Kysely 和 mysql2 访问同一台 MySQL 5.7 Server 上的 `dl_adb_all` 与 `dl_ddb_1`。两个数据库共享一个连接池和一个 Kysely 根实例，并分别通过 `app.db.adb`、`app.db.ddb` 提供查询入口。`MYSQL_DL_ADB_ALL`、`MYSQL_DL_DDB_1` 仅指定数据库名称；Fastify 的 `onClose` hook 会销毁根实例并释放连接池。
