@@ -69,13 +69,20 @@ pnpm build
 
 ## API 文档
 
-开发环境启动 `pnpm dev:server` 后，可访问 Swagger UI：
+| 命令                              | `NODE_ENV`    | Swagger |
+| --------------------------------- | ------------- | ------- |
+| `pnpm dev`                        | `development` | 启用    |
+| `pnpm dev:server`                 | `development` | 启用    |
+| `pnpm --filter atgm-server start` | `production`  | 关闭    |
+| `pnpm --filter atgm-server test`  | `test`        | 关闭    |
+
+开发环境可访问 Swagger UI：
 
 ```text
 http://localhost:8080/docs
 ```
 
-OpenAPI JSON 位于 `http://localhost:8080/docs/json`。Swagger 会自动收集带 Schema 的 Fastify 路由，生产环境默认不注册文档路由。Swagger UI 的 Try it out 会实际发送 HTTP 请求；业务接口仍需独立实现认证、授权和输入校验。
+OpenAPI JSON 位于 `http://localhost:8080/docs/json`。Swagger 仅在 `development` 环境注册，并自动收集带 Schema 的 Fastify 路由；`test`、`production` 和未设置 `NODE_ENV` 时均关闭。`.env.local` 仅用于开发，生产环境由外部环境提供 MySQL 配置。Swagger UI 的 Try it out 会实际发送 HTTP 请求；业务接口仍需独立实现认证、授权和输入校验。
 
 ## Database
 
