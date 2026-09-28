@@ -16,4 +16,5 @@ export default defineConfig({
   format: 'esm',
   banner: `/*! ${pkg.name} v${pkg.version} */`,
   minify: isProd,
+  sourcemap: !isProd,
 })
