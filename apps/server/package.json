@@ -7,7 +7,7 @@
     "node": ">=22.23.2 <23"
   },
   "scripts": {
-    "dev": "tsx watch src/server.ts",
+    "dev": "node --env-file=.env.local --watch --import tsx src/server.ts",
     "build": "cross-env NODE_ENV=production tsdown",
     "start": "node ./.output/server.mjs",
     "typecheck": "tsc -p tsconfig.json",

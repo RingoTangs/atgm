@@ -34,4 +34,4 @@ Recent history follows Conventional Commit prefixes such as `feat:`, `fix:`, and
 
 ## Configuration & Security
 
-`apps/web/.env` contains tracked public Vite defaults. Put machine-specific or sensitive values in ignored `*.local` files, and never expose secrets through `VITE_` variables. The server reads its listener and required MySQL connection settings from the environment; it does not load `.env` files automatically.
+`apps/web/.env` contains tracked public Vite defaults. Put machine-specific or sensitive values in ignored `*.local` files, and never expose secrets through `VITE_` variables. The server development script loads ignored `apps/server/.env.local`; production reads listener and MySQL settings from the process environment.

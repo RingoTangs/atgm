@@ -27,11 +27,21 @@ pnpm install
 
 ## 开发
 
+先创建 Server 的本地配置并填写本机 MySQL 连接信息：
+
+```bash
+cp apps/server/.env.example apps/server/.env.local
+```
+
+`MYSQL_DL_ADB_ALL` 和 `MYSQL_DL_DDB_1` 已有 Zod 默认值，通常可以从 `.env.local` 省略；需要连接其他数据库时仍可覆盖。`.env.local` 包含本地凭据，不应提交到 Git。
+
 ```bash
 pnpm dev          # 同时启动 Web 与 Server
 pnpm dev:web      # 仅启动 Web，默认端口 3000
 pnpm dev:server   # 仅启动 Server，默认端口 8080
 ```
+
+`pnpm dev` 和 `pnpm dev:server` 会通过 Node.js 22 原生 `--env-file` 自动加载 `apps/server/.env.local`，并使用原生 watch 模式热重启 Server。生产环境使用 `pnpm --filter atgm-server start`，不会加载该开发配置文件；请由部署平台或进程管理器提供环境变量。
 
 ## 检查与构建
 
@@ -55,12 +65,7 @@ pnpm build
 | `MYSQL_DL_ADB_ALL` | `dl_adb_all` | 可选，ADB database 名称                                   |
 | `MYSQL_DL_DDB_1`   | `dl_ddb_1`   | 可选，DDB database 名称                                   |
 
-`apps/server/.env.example` 仅提供配置示例。当前启动命令不会自动加载 `.env`；请通过运行环境或 shell 设置变量。开发时也可以复制为已忽略的 `apps/server/.env.local`，并显式使用 Node.js 22 加载：
-
-```bash
-cd apps/server
-node --env-file=.env.local --watch --import tsx src/server.ts
-```
+`apps/server/.env.example` 仅提供配置示例。开发命令只自动加载 `.env.local`；生产环境仍通过系统环境变量传入配置。
 
 ## Database
 
