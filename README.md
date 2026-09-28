@@ -11,7 +11,7 @@ apps/
 ## 技术栈
 
 - Web：React、Vite、TanStack Router、TanStack Query、Tailwind CSS、Vitest
-- Server：Fastify、Zod、TypeScript、tsx、tsdown、Vitest
+- Server：Fastify、Zod、Kysely、mysql2、TypeScript、tsx、tsdown、Vitest
 - 工程工具：pnpm workspace、ESLint、Prettier、`@ringotangs/tsconfig`
 
 ## 环境要求
@@ -44,12 +44,29 @@ pnpm build
 
 ## Server 环境变量
 
-| 变量   | 默认值    | 说明                                                      |
-| ------ | --------- | --------------------------------------------------------- |
-| `HOST` | `0.0.0.0` | Server 监听地址                                           |
-| `PORT` | `8080`    | Server 监听端口，必须是 `1` 到 `65535` 的十进制整数字符串 |
+| 变量               | 默认值    | 说明                                                      |
+| ------------------ | --------- | --------------------------------------------------------- |
+| `HOST`             | `0.0.0.0` | Server 监听地址                                           |
+| `PORT`             | `8080`    | Server 监听端口，必须是 `1` 到 `65535` 的十进制整数字符串 |
+| `MYSQL_HOST`       | —         | MySQL Server 地址                                         |
+| `MYSQL_PORT`       | `3306`    | MySQL Server 端口                                         |
+| `MYSQL_USER`       | —         | MySQL 用户名                                              |
+| `MYSQL_PASSWORD`   | —         | MySQL 密码                                                |
+| `MYSQL_ACCOUNT_DB` | —         | Account database 名称                                     |
+| `MYSQL_GAME_DB`    | —         | Game database 名称                                        |
 
-`apps/server/.env.example` 仅提供配置示例。当前启动命令不会自动加载 `.env`；请通过运行环境或 shell 设置变量。
+`apps/server/.env.example` 仅提供配置示例。当前启动命令不会自动加载 `.env`；请通过运行环境或 shell 设置变量。开发时也可以复制为已忽略的 `apps/server/.env.local`，并显式使用 Node.js 22 加载：
+
+```bash
+cd apps/server
+node --env-file=.env.local --watch --import tsx src/server.ts
+```
+
+## Database
+
+Server 使用 Kysely 和 mysql2 访问 MySQL 5.7。同一台 MySQL Server 上的 account database 与 game database 共享一个连接池和一个 Kysely 根实例，`MYSQL_ACCOUNT_DB`、`MYSQL_GAME_DB` 仅指定各自的数据库名称。应用关闭时，Fastify 的 `onClose` hook 会销毁根实例并释放连接池。
+
+如果将来两个数据库使用不同账号、位于不同 MySQL Server，或需要独立的连接池隔离，再拆分为多个 Kysely 和 pool 实例。
 
 ## Web 环境变量
 
