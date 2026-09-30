@@ -179,13 +179,11 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
             }}
             trigger={['click']}
           >
-            <Tooltip title={`切换主题，当前：${themeLabels[theme]}`}>
-              <Button
-                aria-label={`切换主题，当前：${themeLabels[theme]}`}
-                icon={themeIcon}
-                type="text"
-              />
-            </Tooltip>
+            <Button
+              aria-label={`切换主题，当前：${themeLabels[theme]}`}
+              icon={themeIcon}
+              type="text"
+            />
           </Dropdown>
         </Header>
 
