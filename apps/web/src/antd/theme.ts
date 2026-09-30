@@ -1,6 +1,5 @@
 import type { ThemeConfig } from 'antd'
 import type { ResolvedTheme } from '@/theme/theme'
-import { theme } from 'antd'
 
 function readThemeTokens(mode: ResolvedTheme) {
   const probe = document.createElement('div')
@@ -29,8 +28,6 @@ export function createAntdTheme(mode: ResolvedTheme): ThemeConfig {
   const tokens = readThemeTokens(mode)
 
   return {
-    algorithm: mode === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
-
     token: {
       colorPrimary: tokens.primary,
       colorBgBase: tokens.background,
