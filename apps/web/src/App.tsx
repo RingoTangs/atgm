@@ -1,3 +1,4 @@
+import { StyleProvider } from '@ant-design/cssinjs'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { RouterProvider } from '@tanstack/react-router'
@@ -13,19 +14,21 @@ import 'dayjs/locale/zh-cn'
 const App: React.FC = () => {
   const { resolvedTheme } = useTheme()
   return (
-    <ConfigProvider locale={zhCN} theme={createAntdTheme(resolvedTheme)}>
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-        <RouterProgress />
-        <RouterSpinner />
-        <TanStackRouterDevtools router={router} position="bottom-left" />
-        <ReactQueryDevtools
-          initialIsOpen={false}
-          position="bottom"
-          buttonPosition="bottom-right"
-        />
-      </QueryClientProvider>
-    </ConfigProvider>
+    <StyleProvider layer>
+      <ConfigProvider locale={zhCN} theme={createAntdTheme(resolvedTheme)}>
+        <QueryClientProvider client={queryClient}>
+          <RouterProvider router={router} />
+          <RouterProgress />
+          <RouterSpinner />
+          <TanStackRouterDevtools router={router} position="bottom-left" />
+          <ReactQueryDevtools
+            initialIsOpen={false}
+            position="bottom"
+            buttonPosition="bottom-right"
+          />
+        </QueryClientProvider>
+      </ConfigProvider>
+    </StyleProvider>
   )
 }
 
