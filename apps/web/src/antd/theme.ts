@@ -19,7 +19,6 @@ function readThemeTokens(mode: ResolvedTheme) {
       primary: get('--primary'),
       background: get('--background'),
       foreground: get('--foreground'),
-      destructive: get('--destructive'),
     }
   } finally {
     probe.remove()
@@ -34,7 +33,6 @@ export function createAntdTheme(mode: ResolvedTheme): ThemeConfig {
 
     token: {
       colorPrimary: tokens.primary,
-      colorError: tokens.destructive,
       colorBgBase: tokens.background,
       colorTextBase: tokens.foreground,
     },
