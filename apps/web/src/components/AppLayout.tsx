@@ -1,15 +1,6 @@
 import type { MenuProps } from 'antd'
 import { useLocation, useNavigate } from '@tanstack/react-router'
-import {
-  theme as antdTheme,
-  Button,
-  Drawer,
-  Dropdown,
-  Grid,
-  Layout,
-  Menu,
-  Tooltip,
-} from 'antd'
+import { Button, Drawer, Dropdown, Grid, Layout, Menu, Tooltip } from 'antd'
 import {
   Gamepad2,
   LayoutDashboard,
@@ -53,7 +44,6 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   const pathname = useLocation({ select: (location) => location.pathname })
   const navigate = useNavigate()
   const { theme, resolvedTheme, setTheme } = useTheme()
-  const { token } = antdTheme.useToken()
   const dashboardSelected = pathname === '/'
 
   const navigationItems: MenuProps['items'] = [
@@ -91,10 +81,8 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
 
   const navigationMenu = (
     <Menu
-      styles={{
-        root: {
-          borderInlineEnd: 'none',
-        },
+      classNames={{
+        root: 'bg-background border-e-0',
       }}
       items={navigationItems}
       mode="inline"
@@ -110,10 +98,8 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
           collapsed={collapsed}
           collapsedWidth={72}
           width={240}
-          styles={{
-            root: {
-              backgroundColor: token.colorBgContainer,
-            },
+          classNames={{
+            root: 'bg-background',
           }}
         >
           <div
@@ -134,9 +120,8 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
 
       <Layout className="bg-transparent">
         <Header
-          className="sticky top-0 z-10 flex items-center justify-between"
+          className="bg-background sticky top-0 z-10 flex items-center justify-between"
           style={{
-            background: token.colorBgContainer,
             paddingInline: isDesktop ? 24 : 16,
           }}
         >
