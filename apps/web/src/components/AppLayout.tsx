@@ -100,7 +100,7 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   )
 
   return (
-    <Layout className="min-h-screen">
+    <Layout className="min-h-screen bg-transparent">
       {isDesktop && (
         <Sider
           collapsed={collapsed}
@@ -124,12 +124,11 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
         </Sider>
       )}
 
-      <Layout>
+      <Layout className="bg-transparent">
         <Header
           className="sticky top-0 z-10 flex items-center justify-between"
           style={{
             background: token.colorBgContainer,
-            borderBottom: `1px solid ${token.colorBorderSecondary}`,
             paddingInline: isDesktop ? 24 : 16,
           }}
         >
