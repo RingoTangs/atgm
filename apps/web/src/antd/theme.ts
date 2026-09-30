@@ -20,7 +20,6 @@ function readThemeTokens(mode: ResolvedTheme) {
       background: get('--background'),
       foreground: get('--foreground'),
       destructive: get('--destructive'),
-      radius: get('--radius'),
     }
   } finally {
     probe.remove()

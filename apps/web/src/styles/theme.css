@@ -13,8 +13,6 @@
   --border: #d9d9d9;
   --destructive: #ff4d4f;
   --ring: #1677ff;
-
-  --radius: 8px;
 }
 
 .dark {
@@ -47,8 +45,4 @@
   --color-border: var(--border);
   --color-destructive: var(--destructive);
   --color-ring: var(--ring);
-
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
 }
