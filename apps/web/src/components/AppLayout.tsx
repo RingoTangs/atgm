@@ -14,7 +14,6 @@ import {
   Gamepad2,
   LayoutDashboard,
   Menu as MenuIcon,
-  Monitor,
   Moon,
   PanelLeftClose,
   PanelLeftOpen,
@@ -84,9 +83,7 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   }
 
   const themeIcon =
-    theme === 'system' ? (
-      <Monitor aria-hidden="true" size={18} />
-    ) : resolvedTheme === 'dark' ? (
+    resolvedTheme === 'dark' ? (
       <Moon aria-hidden="true" size={18} />
     ) : (
       <Sun aria-hidden="true" size={18} />
