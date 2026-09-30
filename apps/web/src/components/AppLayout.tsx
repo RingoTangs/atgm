@@ -34,17 +34,14 @@ const themeLabels = {
 const themeItems: MenuProps['items'] = [
   {
     key: 'light',
-    icon: <Sun aria-hidden="true" size={16} />,
     label: themeLabels.light,
   },
   {
     key: 'dark',
-    icon: <Moon aria-hidden="true" size={16} />,
     label: themeLabels.dark,
   },
   {
     key: 'system',
-    icon: <Monitor aria-hidden="true" size={16} />,
     label: themeLabels.system,
   },
 ]
