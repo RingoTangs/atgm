@@ -137,20 +137,18 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
         >
           <div className="flex items-center gap-3">
             {isDesktop ? (
-              <Tooltip title={collapsed ? '展开侧边栏' : '折叠侧边栏'}>
-                <Button
-                  aria-label={collapsed ? '展开侧边栏' : '折叠侧边栏'}
-                  icon={
-                    collapsed ? (
-                      <PanelLeftOpen aria-hidden="true" size={18} />
-                    ) : (
-                      <PanelLeftClose aria-hidden="true" size={18} />
-                    )
-                  }
-                  onClick={() => setCollapsed((value) => !value)}
-                  type="text"
-                />
-              </Tooltip>
+              <Button
+                aria-label={collapsed ? '展开侧边栏' : '折叠侧边栏'}
+                icon={
+                  collapsed ? (
+                    <PanelLeftOpen aria-hidden="true" size={18} />
+                  ) : (
+                    <PanelLeftClose aria-hidden="true" size={18} />
+                  )
+                }
+                onClick={() => setCollapsed((value) => !value)}
+                type="text"
+              />
             ) : (
               <>
                 <Tooltip title="打开导航">
