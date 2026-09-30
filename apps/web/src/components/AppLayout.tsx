@@ -95,7 +95,6 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
       mode="inline"
       onClick={handleNavigation}
       selectedKeys={dashboardSelected ? ['/'] : []}
-      theme={resolvedTheme}
     />
   )
 
@@ -105,8 +104,12 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
         <Sider
           collapsed={collapsed}
           collapsedWidth={72}
-          theme={resolvedTheme}
           width={240}
+          styles={{
+            root: {
+              backgroundColor: token.colorBgContainer,
+            },
+          }}
         >
           <div
             aria-label="ATGM"
