@@ -78,6 +78,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@ant-design/cssinjs':
+        specifier: ^2.1.2
+        version: 2.1.2(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@tanstack/react-query':
         specifier: ^5.103.2
         version: 5.103.2(react@19.3.0)
