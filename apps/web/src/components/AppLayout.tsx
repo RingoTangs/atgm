@@ -109,8 +109,7 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
             <Gamepad2 aria-hidden="true" className="shrink-0" size={24} />
             {!collapsed && (
               <div className="min-w-0 leading-tight">
-                <div className="font-semibold">ATGM</div>
-                <div className="truncate text-xs opacity-70">AskTao GM</div>
+                <div className="font-semibold">Asktao GM</div>
               </div>
             )}
           </div>
