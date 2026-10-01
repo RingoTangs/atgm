@@ -5,20 +5,8 @@ import {
   registerAccountBodySchema,
   registerAccountResponseSchema,
 } from '@atgm/contracts'
+import { formatGameTime } from '../lib/game-time'
 import { createAccountChecksum, createAccountPassword } from './account-crypto'
-
-function formatGameDateTime(date: Date): string {
-  const pad = (value: number) => String(value).padStart(2, '0')
-
-  return [
-    date.getFullYear(),
-    pad(date.getMonth() + 1),
-    pad(date.getDate()),
-    pad(date.getHours()),
-    pad(date.getMinutes()),
-    pad(date.getSeconds()),
-  ].join('')
-}
 
 function isDuplicateEntryError(error: unknown): boolean {
   return (
@@ -46,7 +34,7 @@ export async function accountRegisterRoutes(app: FastifyInstance) {
     async (request, reply) => {
       const { account, rawPassword, goldCoin, silverCoin, privilege } =
         request.body
-      const regDate = formatGameDateTime(new Date())
+      const regDate = formatGameTime()
       const password = createAccountPassword(account, rawPassword)
       const checksum = createAccountChecksum({
         account,

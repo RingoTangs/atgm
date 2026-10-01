@@ -3,7 +3,6 @@ import type { TableProps } from 'antd'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Alert, Button, Input, Table } from 'antd'
 import { useState } from 'react'
-import { formatGameDateTime } from '@/lib/date'
 import { AccountRegisterModal } from './AccountRegisterModal'
 import { getAccounts } from './accounts-api'
 
@@ -34,7 +33,6 @@ const columns: TableProps<AccountListItem>['columns'] = [
     title: '最后登录',
     dataIndex: 'lastLoginTime',
     key: 'lastLoginTime',
-    render: formatGameDateTime,
   },
   {
     title: '最后登录 IP',
@@ -46,7 +44,6 @@ const columns: TableProps<AccountListItem>['columns'] = [
     title: '注册时间',
     dataIndex: 'regDate',
     key: 'regDate',
-    render: formatGameDateTime,
   },
 ]
 

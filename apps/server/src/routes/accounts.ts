@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { accountsQuerySchema, accountsResponseSchema } from '@atgm/contracts'
 import { sql } from 'kysely'
+import { formatDisplayTime } from '../lib/game-time'
 
 const escapeLikePattern = (value: string): string =>
   value.replace(/[!%_]/g, (character) => `!${character}`)
@@ -73,9 +74,9 @@ export async function accountRoutes(app: FastifyInstance) {
           privilege: item.privilege,
           goldCoin: item.gold_coin,
           silverCoin: item.silver_coin,
-          lastLoginTime: item.last_login_time,
+          lastLoginTime: formatDisplayTime(item.last_login_time),
           lastLoginIp: item.last_login_ip,
-          regDate: item.reg_date,
+          regDate: formatDisplayTime(item.reg_date),
         })),
       }
     },

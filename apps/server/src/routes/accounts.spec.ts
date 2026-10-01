@@ -93,9 +93,9 @@ const accountResponseItem = {
   privilege: 100,
   goldCoin: 1_000_000,
   silverCoin: 50_000,
-  lastLoginTime: '20260928120000',
+  lastLoginTime: '2026-09-28 12:00:00',
   lastLoginIp: '192.0.2.1',
-  regDate: '20260901100000',
+  regDate: '2026-09-01 10:00:00',
 }
 
 interface LikeTestDatabase {
@@ -173,6 +173,23 @@ describe('get /accounts endpoint', () => {
 
     expect(response.statusCode).toBe(200)
     expect(mocks.limit).toHaveBeenCalledWith(100)
+  })
+
+  it('preserves empty account times in the response', async () => {
+    mocks.itemsExecute.mockResolvedValue([
+      { ...accountItem, last_login_time: '', reg_date: '' },
+    ])
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/accounts',
+    })
+
+    expect(response.statusCode).toBe(200)
+    expect(response.json().items[0]).toMatchObject({
+      lastLoginTime: '',
+      regDate: '',
+    })
   })
 
   it.each([

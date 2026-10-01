@@ -17,9 +17,9 @@ const accountItem = {
   privilege: 100,
   goldCoin: 1_000_000,
   silverCoin: 50_000,
-  lastLoginTime: '20261001191200',
+  lastLoginTime: '2026-10-01 19:12:00',
   lastLoginIp: '192.0.2.1',
-  regDate: '20260901100000',
+  regDate: '2026-09-01 10:00:00',
 }
 
 const accountsResponse = (
