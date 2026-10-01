@@ -140,16 +140,16 @@ describe('app layout', () => {
     renderApplication()
 
     await screen.findByRole('heading', { name: 'Dashboard' })
-    expect(screen.getByText('AskTao GM')).toBeInTheDocument()
+    expect(screen.getByText('Asktao GM')).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: '折叠侧边栏' }))
-    expect(screen.queryByText('AskTao GM')).not.toBeInTheDocument()
+    expect(screen.queryByText('Asktao GM')).not.toBeInTheDocument()
     expect(
       screen.getByRole('button', { name: '展开侧边栏' }),
     ).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: '展开侧边栏' }))
-    expect(screen.getByText('AskTao GM')).toBeInTheDocument()
+    expect(screen.getByText('Asktao GM')).toBeInTheDocument()
   })
 
   it('可以选择浅色、深色和跟随系统主题', async () => {

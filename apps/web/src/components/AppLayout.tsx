@@ -101,7 +101,7 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
           width={240}
           theme="light"
           classNames={{
-            root: 'border-r-1 border-r-muted px-2'
+            root: 'border-r-1 border-r-muted px-2',
           }}
         >
           <div
