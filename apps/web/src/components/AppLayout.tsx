@@ -99,9 +99,9 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
           collapsed={collapsed}
           collapsedWidth={72}
           width={240}
-          theme="light"
+          theme={resolvedTheme}
           classNames={{
-            root: 'border-r-1 border-r-muted px-2',
+            root: 'border-r-1 border-r-muted px-1 bg-transparent',
           }}
         >
           <div
