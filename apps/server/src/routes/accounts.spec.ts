@@ -139,16 +139,32 @@ describe('get /accounts endpoint', () => {
     expect(mocks.limit).toHaveBeenCalledWith(100)
   })
 
-  it('applies the same account filter to count and items queries', async () => {
-    const response = await app.inject({
-      method: 'GET',
-      url: '/accounts?account=%20test%20',
-    })
+  it.each([
+    ['普通文本', '%20test%20', '%test%'],
+    ['下划线', 'test_01', '%test\\_01%'],
+    ['百分号', '100%25', '%100\\%%'],
+    ['反斜杠', 'abc%5Cdef', '%abc\\\\def%'],
+  ])(
+    'escapes LIKE special characters for %s searches',
+    async (_case, account, expectedPattern) => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/accounts?account=${account}`,
+      })
 
-    expect(response.statusCode).toBe(200)
-    expect(mocks.itemsWhere).toHaveBeenCalledWith('account', 'like', '%test%')
-    expect(mocks.countWhere).toHaveBeenCalledWith('account', 'like', '%test%')
-  })
+      expect(response.statusCode).toBe(200)
+      expect(mocks.itemsWhere).toHaveBeenCalledWith(
+        'account',
+        'like',
+        expectedPattern,
+      )
+      expect(mocks.countWhere).toHaveBeenCalledWith(
+        'account',
+        'like',
+        expectedPattern,
+      )
+    },
+  )
 
   it('treats a blank account search as no filter', async () => {
     const response = await app.inject({

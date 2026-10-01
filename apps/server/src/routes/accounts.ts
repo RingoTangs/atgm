@@ -25,6 +25,9 @@ const accountsResponseSchema = z.object({
   ),
 })
 
+const escapeLikePattern = (value: string): string =>
+  value.replace(/[\\%_]/g, (character) => `\\${character}`)
+
 export async function accountRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().get(
     '/accounts',
@@ -61,7 +64,7 @@ export async function accountRoutes(app: FastifyInstance) {
         )
 
       if (account) {
-        const pattern = `%${account}%`
+        const pattern = `%${escapeLikePattern(account)}%`
         itemsQuery = itemsQuery.where('account', 'like', pattern)
         countQuery = countQuery.where('account', 'like', pattern)
       }
