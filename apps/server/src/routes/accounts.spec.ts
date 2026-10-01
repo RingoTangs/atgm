@@ -3,16 +3,41 @@ import { buildApp } from '../app'
 import { registerDatabase } from '../db'
 import { parseServerEnv } from '../env'
 
+const accountFields = [
+  'account',
+  'privilege',
+  'gold_coin',
+  'silver_coin',
+  'last_login_time',
+  'last_login_ip',
+  'reg_date',
+]
+
 const mocks = vi.hoisted(() => {
-  const execute = vi.fn()
-  const offset = vi.fn(() => ({ execute }))
+  const itemsExecute = vi.fn()
+  const countExecuteTakeFirstOrThrow = vi.fn()
+  const offset = vi.fn(() => ({ execute: itemsExecute }))
   const limit = vi.fn(() => ({ offset }))
   const orderBy = vi.fn(() => ({ limit }))
-  const select = vi.fn(() => ({ orderBy }))
+  const itemsWhere = vi.fn(() => ({ orderBy }))
+  const countWhere = vi.fn(() => ({
+    executeTakeFirstOrThrow: countExecuteTakeFirstOrThrow,
+  }))
+  const select = vi.fn((selection: unknown) =>
+    Array.isArray(selection)
+      ? { orderBy, where: itemsWhere }
+      : {
+          executeTakeFirstOrThrow: countExecuteTakeFirstOrThrow,
+          where: countWhere,
+        },
+  )
   const selectFrom = vi.fn(() => ({ select }))
 
   return {
-    execute,
+    countExecuteTakeFirstOrThrow,
+    countWhere,
+    itemsExecute,
+    itemsWhere,
     limit,
     offset,
     orderBy,
@@ -45,14 +70,20 @@ registerDatabase(
   }),
 )
 
+const accountItem = {
+  account: 'example_user',
+  privilege: 100,
+  gold_coin: 1_000_000,
+  silver_coin: 50_000,
+  last_login_time: '20260928120000',
+  last_login_ip: '192.0.2.1',
+  reg_date: '20260901100000',
+}
+
 beforeEach(() => {
   vi.clearAllMocks()
-  mocks.execute.mockResolvedValue([
-    {
-      account: 'example_user',
-      last_login_time: '20260928120000',
-    },
-  ])
+  mocks.countExecuteTakeFirstOrThrow.mockResolvedValue({ total: '125' })
+  mocks.itemsExecute.mockResolvedValue([accountItem])
 })
 
 afterAll(async () => {
@@ -60,7 +91,7 @@ afterAll(async () => {
 })
 
 describe('get /accounts endpoint', () => {
-  it('uses the default pagination and returns selected account fields', async () => {
+  it('uses default pagination and returns the public account fields', async () => {
     const response = await app.inject({
       method: 'GET',
       url: '/accounts',
@@ -70,19 +101,20 @@ describe('get /accounts endpoint', () => {
     expect(response.json()).toEqual({
       page: 1,
       pageSize: 20,
-      items: [
-        {
-          account: 'example_user',
-          last_login_time: '20260928120000',
-        },
-      ],
+      total: 125,
+      items: [accountItem],
     })
+    expect(mocks.selectFrom).toHaveBeenCalledTimes(2)
     expect(mocks.selectFrom).toHaveBeenCalledWith('account')
-    expect(mocks.select).toHaveBeenCalledWith(['account', 'last_login_time'])
+    expect(mocks.select).toHaveBeenCalledWith(accountFields)
+    expect(mocks.select).toHaveBeenCalledWith(expect.any(Function))
     expect(mocks.orderBy).toHaveBeenCalledWith('account')
     expect(mocks.limit).toHaveBeenCalledWith(20)
     expect(mocks.offset).toHaveBeenCalledWith(0)
-    expect(mocks.execute).toHaveBeenCalledOnce()
+    expect(mocks.itemsExecute).toHaveBeenCalledOnce()
+    expect(mocks.countExecuteTakeFirstOrThrow).toHaveBeenCalledOnce()
+    expect(response.payload).not.toContain('password')
+    expect(response.payload).not.toContain('checksum')
   })
 
   it('coerces valid pagination strings and calculates the offset', async () => {
@@ -95,6 +127,38 @@ describe('get /accounts endpoint', () => {
     expect(response.json()).toMatchObject({ page: 2, pageSize: 10 })
     expect(mocks.limit).toHaveBeenCalledWith(10)
     expect(mocks.offset).toHaveBeenCalledWith(10)
+  })
+
+  it('accepts the maximum page size', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/accounts?pageSize=100',
+    })
+
+    expect(response.statusCode).toBe(200)
+    expect(mocks.limit).toHaveBeenCalledWith(100)
+  })
+
+  it('applies the same account filter to count and items queries', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/accounts?account=%20test%20',
+    })
+
+    expect(response.statusCode).toBe(200)
+    expect(mocks.itemsWhere).toHaveBeenCalledWith('account', 'like', '%test%')
+    expect(mocks.countWhere).toHaveBeenCalledWith('account', 'like', '%test%')
+  })
+
+  it('treats a blank account search as no filter', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/accounts?account=%20',
+    })
+
+    expect(response.statusCode).toBe(200)
+    expect(mocks.itemsWhere).not.toHaveBeenCalled()
+    expect(mocks.countWhere).not.toHaveBeenCalled()
   })
 
   it.each([
@@ -121,7 +185,8 @@ describe('get /accounts endpoint', () => {
 
       expect(response.statusCode).toBe(400)
       expect(mocks.selectFrom).not.toHaveBeenCalled()
-      expect(mocks.execute).not.toHaveBeenCalled()
+      expect(mocks.itemsExecute).not.toHaveBeenCalled()
+      expect(mocks.countExecuteTakeFirstOrThrow).not.toHaveBeenCalled()
     },
   )
 })

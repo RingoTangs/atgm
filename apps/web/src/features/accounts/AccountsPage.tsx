@@ -2,11 +2,17 @@ import type { TableProps } from 'antd'
 import type { RegisterAccountValues } from './AccountRegisterModal'
 import { Button, Card, Input, message, Table } from 'antd'
 import { useMemo, useState } from 'react'
+import { formatGameDateTime } from '@/lib/date'
 import { AccountRegisterModal } from './AccountRegisterModal'
 
 interface AccountListItem {
   account: string
+  privilege: number
+  goldCoin: number
+  silverCoin: number
   lastLoginTime: string
+  lastLoginIp: string
+  regDate: string
 }
 
 const initialAccounts: AccountListItem[] = Array.from(
@@ -16,10 +22,20 @@ const initialAccounts: AccountListItem[] = Array.from(
 
     return {
       account: `test${String(accountNumber).padStart(2, '0')}`,
+      privilege: accountNumber % 10 === 0 ? 100 : 0,
+      goldCoin: accountNumber * 100_000,
+      silverCoin: accountNumber * 50_000,
       lastLoginTime:
         accountNumber % 6 === 0
           ? ''
-          : `2026-10-01 18:${String(60 - accountNumber).padStart(2, '0')}`,
+          : accountNumber === 1
+            ? '20261001191200'
+            : `202609${String(accountNumber).padStart(2, '0')}120000`,
+      lastLoginIp: accountNumber % 6 === 0 ? '' : `192.0.2.${accountNumber}`,
+      regDate:
+        accountNumber % 6 === 0
+          ? ''
+          : `202608${String(accountNumber).padStart(2, '0')}100000`,
     }
   },
 )
@@ -31,10 +47,39 @@ const columns: TableProps<AccountListItem>['columns'] = [
     key: 'account',
   },
   {
+    title: '权限',
+    dataIndex: 'privilege',
+    key: 'privilege',
+  },
+  {
+    title: '金币',
+    dataIndex: 'goldCoin',
+    key: 'goldCoin',
+    render: (value: number) => value.toLocaleString(),
+  },
+  {
+    title: '银币',
+    dataIndex: 'silverCoin',
+    key: 'silverCoin',
+    render: (value: number) => value.toLocaleString(),
+  },
+  {
     title: '最后登录',
     dataIndex: 'lastLoginTime',
     key: 'lastLoginTime',
+    render: formatGameDateTime,
+  },
+  {
+    title: '最后登录 IP',
+    dataIndex: 'lastLoginIp',
+    key: 'lastLoginIp',
     render: (value: string) => value || '-',
+  },
+  {
+    title: '注册时间',
+    dataIndex: 'regDate',
+    key: 'regDate',
+    render: formatGameDateTime,
   },
 ]
 
@@ -58,7 +103,15 @@ export const AccountsPage: React.FC = () => {
 
   const handleRegister = (values: RegisterAccountValues) => {
     setAccounts((current) => [
-      { account: values.account, lastLoginTime: '' },
+      {
+        account: values.account,
+        privilege: values.privilege,
+        goldCoin: values.goldCoin,
+        silverCoin: values.silverCoin,
+        lastLoginTime: '',
+        lastLoginIp: '',
+        regDate: '',
+      },
       ...current,
     ])
     setPage(1)

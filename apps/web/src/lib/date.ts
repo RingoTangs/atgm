@@ -1,8 +1,10 @@
 import type { ConfigType } from 'dayjs'
 import $_dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 
+$_dayjs.extend(customParseFormat)
 $_dayjs.extend(utc)
 $_dayjs.extend(timezone)
 
@@ -49,3 +51,13 @@ export const formatDateTime = (value: ConfigType): string =>
  */
 export const formatTime = (value: ConfigType): string =>
   format(value, dayPatterns.time)
+
+/**
+ * 格式化旧游戏使用的 14 位日期时间；空值显示为短横线，非法值原样返回。
+ */
+export const formatGameDateTime = (value: string): string => {
+  if (value === '') return '-'
+
+  const date = dayjs(value, 'YYYYMMDDHHmmss', true)
+  return date.isValid() ? date.format(dayPatterns.datetime) : value
+}

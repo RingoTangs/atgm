@@ -4,6 +4,7 @@ import {
   dayPatterns,
   formatDate,
   formatDateTime,
+  formatGameDateTime,
   formatTime,
 } from './date'
 
@@ -80,4 +81,19 @@ describe('日期格式化', () => {
     formatTime(value)
     expect(value.getTime()).toBe(timestamp)
   })
+
+  it('格式化旧游戏的 14 位日期时间', () => {
+    expect(formatGameDateTime('20261001191200')).toBe('2026-10-01 19:12:00')
+  })
+
+  it('旧游戏日期时间为空时显示短横线', () => {
+    expect(formatGameDateTime('')).toBe('-')
+  })
+
+  it.each(['invalid', '123', '20260230191200'])(
+    '旧游戏日期时间 %s 非法时保留原值',
+    (value) => {
+      expect(formatGameDateTime(value)).toBe(value)
+    },
+  )
 })

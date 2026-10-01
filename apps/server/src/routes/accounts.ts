@@ -5,15 +5,22 @@ import { z } from 'zod'
 const accountsQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
+  account: z.string().trim().optional(),
 })
 
 const accountsResponseSchema = z.object({
   page: z.number().int(),
   pageSize: z.number().int(),
+  total: z.number().int().min(0),
   items: z.array(
     z.object({
       account: z.string(),
+      privilege: z.number().int(),
+      gold_coin: z.number().int(),
+      silver_coin: z.number().int(),
       last_login_time: z.string(),
+      last_login_ip: z.string(),
+      reg_date: z.string(),
     }),
   ),
 })
@@ -33,19 +40,51 @@ export async function accountRoutes(app: FastifyInstance) {
       },
     },
     async (request) => {
-      const { page, pageSize } = request.query
+      const { account, page, pageSize } = request.query
 
-      const items = await app.db.adb
+      let itemsQuery = app.db.adb
         .selectFrom('account')
-        .select(['account', 'last_login_time'])
-        .orderBy('account')
-        .limit(pageSize)
-        .offset((page - 1) * pageSize)
-        .execute()
+        .select([
+          'account',
+          'privilege',
+          'gold_coin',
+          'silver_coin',
+          'last_login_time',
+          'last_login_ip',
+          'reg_date',
+        ])
+
+      let countQuery = app.db.adb
+        .selectFrom('account')
+        .select((expressionBuilder) =>
+          expressionBuilder.fn.countAll().as('total'),
+        )
+
+      if (account) {
+        const pattern = `%${account}%`
+        itemsQuery = itemsQuery.where('account', 'like', pattern)
+        countQuery = countQuery.where('account', 'like', pattern)
+      }
+
+      const [countResult, items] = await Promise.all([
+        countQuery.executeTakeFirstOrThrow(),
+        itemsQuery
+          .orderBy('account')
+          .limit(pageSize)
+          .offset((page - 1) * pageSize)
+          .execute(),
+      ])
+
+      const total = Number(countResult.total)
+
+      if (!Number.isSafeInteger(total) || total < 0) {
+        throw new Error('Invalid account count returned by database')
+      }
 
       return {
         page,
         pageSize,
+        total,
         items,
       }
     },
