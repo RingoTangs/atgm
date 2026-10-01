@@ -33,6 +33,7 @@ const columns: TableProps<AccountListItem>['columns'] = [
     title: '最后登录',
     dataIndex: 'lastLoginTime',
     key: 'lastLoginTime',
+    render: (value: string) => value || '-',
   },
   {
     title: '最后登录 IP',
@@ -44,6 +45,7 @@ const columns: TableProps<AccountListItem>['columns'] = [
     title: '注册时间',
     dataIndex: 'regDate',
     key: 'regDate',
+    render: (value: string) => value || '-',
   },
 ]
 

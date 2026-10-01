@@ -122,6 +122,17 @@ describe('accounts page', () => {
     expect(getLastRequestedUrl()).toBe('/_api/accounts?page=1&pageSize=20')
   })
 
+  it('renders placeholders for empty account times', async () => {
+    fetchMock.mockResolvedValue(
+      accountsResponse([{ ...accountItem, lastLoginTime: '', regDate: '' }]),
+    )
+    renderPage()
+
+    const row = (await screen.findByText('server-account')).closest('tr')
+    if (!row) throw new Error('server account row not found')
+    expect(within(row).getAllByText('-')).toHaveLength(2)
+  })
+
   it('uses the server total and requests the selected page', async () => {
     fetchMock.mockImplementation(async (input) => {
       const url = new URL(String(input), 'http://localhost')
