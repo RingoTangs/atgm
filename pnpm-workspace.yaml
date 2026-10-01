@@ -10,5 +10,8 @@ packages:
   - 'apps/*'
   - 'packages/*'
 
+catalog:
+  zod: ^4.6.5
+
 onlyBuiltDependencies:
   - esbuild
