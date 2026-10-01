@@ -1,6 +1,6 @@
 import type { MenuProps } from 'antd'
 import { useLocation, useNavigate } from '@tanstack/react-router'
-import { Button, Drawer, Dropdown, Grid, Layout, Menu, Tooltip } from 'antd'
+import { Button, Drawer, Dropdown, Grid, Layout, Menu } from 'antd'
 import {
   Gamepad2,
   LayoutDashboard,
@@ -142,14 +142,12 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
               />
             ) : (
               <>
-                <Tooltip title="打开导航">
-                  <Button
-                    aria-label="打开导航"
-                    icon={<MenuIcon aria-hidden="true" size={20} />}
-                    onClick={() => setDrawerOpen(true)}
-                    type="text"
-                  />
-                </Tooltip>
+                <Button
+                  aria-label="打开导航"
+                  icon={<MenuIcon aria-hidden="true" size={20} />}
+                  onClick={() => setDrawerOpen(true)}
+                  type="text"
+                />
                 <span className="font-semibold">ATGM</span>
               </>
             )}
