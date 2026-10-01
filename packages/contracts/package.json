@@ -1,4 +1,18 @@
 {
   "name": "@atgm/contracts",
-  "version": "0.1.1"
+  "type": "module",
+  "version": "0.1.1",
+  "private": true,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "zod": "^4.6.5"
+  }
 }

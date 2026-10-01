@@ -1,0 +1,7 @@
+{
+  "extends": "@ringotangs/tsconfig",
+  "compilerOptions": {
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts"]
+}
