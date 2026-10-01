@@ -97,7 +97,7 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   const navigationMenu = (
     <Menu
       classNames={{
-        root: 'border-e-0',
+        root: 'border-e-0 bg-transparent',
       }}
       items={navigationItems}
       mode="inline"
