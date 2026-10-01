@@ -33,6 +33,23 @@ const accountsResponse = (
     headers: { 'Content-Type': 'application/json' },
   })
 
+const privilegesResponse = () =>
+  new Response(
+    JSON.stringify([
+      {
+        privilege: 120,
+        grant: 'GA',
+        constant: 'ADMINISTRATOR',
+        type: '管理特权',
+        description: '管理员',
+      },
+    ]),
+    {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    },
+  )
+
 let queryClient: QueryClient
 
 beforeEach(() => {
@@ -218,6 +235,9 @@ describe('accounts page', () => {
   })
 
   it('opens the registration modal', async () => {
+    fetchMock
+      .mockResolvedValueOnce(accountsResponse())
+      .mockResolvedValueOnce(privilegesResponse())
     const user = userEvent.setup()
     renderPage()
 
@@ -226,5 +246,8 @@ describe('accounts page', () => {
     const dialog = await screen.findByRole('dialog')
     expect(within(dialog).getByText('注册账号')).toBeInTheDocument()
     expect(within(dialog).getByLabelText('账号')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith('/_api/privileges')
+    })
   })
 })

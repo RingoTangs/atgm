@@ -1,21 +1,21 @@
 import type { RegisterAccountRequest } from '@atgm/contracts'
 import type { FormProps } from 'antd'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Form, Input, InputNumber, message, Modal } from 'antd'
-import { AccountConflictError, registerAccount } from './accounts-api'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Alert, Form, Input, InputNumber, message, Modal, Select } from 'antd'
+import {
+  AccountConflictError,
+  getPrivileges,
+  registerAccount,
+} from './accounts-api'
 
 interface AccountRegisterModalProps {
   open: boolean
   onCancel: () => void
 }
 
-const initialValues: Pick<
-  RegisterAccountRequest,
-  'goldCoin' | 'silverCoin' | 'privilege'
-> = {
+const initialValues: Pick<RegisterAccountRequest, 'goldCoin' | 'silverCoin'> = {
   goldCoin: 0,
   silverCoin: 0,
-  privilege: 0,
 }
 
 const integerRangeValidator = (label: string, min: number, max: number) => ({
@@ -43,6 +43,12 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
   const [form] = Form.useForm<RegisterAccountRequest>()
   const [messageApi, messageContext] = message.useMessage()
   const queryClient = useQueryClient()
+  const privilegesQuery = useQuery({
+    queryKey: ['privileges'],
+    queryFn: getPrivileges,
+    enabled: open,
+    staleTime: Infinity,
+  })
   const registerMutation = useMutation({
     mutationFn: registerAccount,
     onSuccess: () => {
@@ -75,10 +81,13 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
   const handleFinish: FormProps<RegisterAccountRequest>['onFinish'] = (
     values,
   ) => {
-    if (!registerMutation.isPending) {
+    if (privilegesQuery.isSuccess && !registerMutation.isPending) {
       registerMutation.mutate(values)
     }
   }
+
+  const registrationDisabled =
+    !privilegesQuery.isSuccess || registerMutation.isPending
 
   return (
     <>
@@ -98,7 +107,7 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
         mask={{ closable: !registerMutation.isPending }}
         okButtonProps={{
           'aria-label': '注册',
-          disabled: registerMutation.isPending,
+          disabled: registrationDisabled,
         }}
         okText="注册"
         onCancel={handleCancel}
@@ -108,6 +117,15 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
         open={open}
         title="注册账号"
       >
+        {privilegesQuery.isError && (
+          <Alert
+            className="mb-4"
+            showIcon
+            title="权限列表加载失败"
+            type="error"
+          />
+        )}
+
         <Form<RegisterAccountRequest>
           form={form}
           initialValues={initialValues}
@@ -152,9 +170,17 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
           <Form.Item
             label="权限"
             name="privilege"
-            rules={[integerRangeValidator('权限', 0, 1000)]}
+            rules={[{ required: true, message: '请选择权限' }]}
           >
-            <InputNumber className="w-full" step={1} />
+            <Select
+              disabled={privilegesQuery.isPending || privilegesQuery.isError}
+              loading={privilegesQuery.isPending}
+              options={(privilegesQuery.data ?? []).map((privilege) => ({
+                label: `${privilege.privilege} - ${privilege.description}`,
+                value: privilege.privilege,
+              }))}
+              placeholder="请选择权限"
+            />
           </Form.Item>
         </Form>
       </Modal>

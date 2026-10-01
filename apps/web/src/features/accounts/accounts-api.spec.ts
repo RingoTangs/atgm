@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   AccountConflictError,
   getAccounts,
+  getPrivileges,
   registerAccount,
 } from './accounts-api'
 
@@ -96,6 +97,28 @@ describe('accounts API', () => {
     await expect(getAccounts({ page: 1, pageSize: 20 })).rejects.toThrow(
       '账号列表请求失败',
     )
+  })
+
+  it('requests and returns the shared privilege dictionary', async () => {
+    const privileges = [
+      {
+        privilege: 120,
+        grant: 'GA',
+        constant: 'ADMINISTRATOR',
+        type: '管理特权',
+        description: '管理员',
+      },
+    ]
+    fetchMock.mockResolvedValue(jsonResponse(privileges))
+
+    await expect(getPrivileges()).resolves.toEqual(privileges)
+    expect(fetchMock).toHaveBeenCalledWith('/_api/privileges')
+  })
+
+  it('throws a generic error when loading privileges fails', async () => {
+    fetchMock.mockResolvedValue(new Response(null, { status: 500 }))
+
+    await expect(getPrivileges()).rejects.toThrow('权限列表请求失败')
   })
 
   it('posts registration values as JSON', async () => {

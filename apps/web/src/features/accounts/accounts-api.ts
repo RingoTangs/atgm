@@ -1,6 +1,7 @@
 import type {
   AccountsQuery,
   AccountsResponse,
+  PrivilegesResponse,
   RegisterAccountRequest,
 } from '@atgm/contracts'
 
@@ -32,6 +33,16 @@ export async function getAccounts(
   }
 
   return (await response.json()) as AccountsResponse
+}
+
+export async function getPrivileges(): Promise<PrivilegesResponse> {
+  const response = await fetch(`${API_PREFIX}/privileges`)
+
+  if (!response.ok) {
+    throw new Error('权限列表请求失败')
+  }
+
+  return (await response.json()) as PrivilegesResponse
 }
 
 export async function registerAccount(
