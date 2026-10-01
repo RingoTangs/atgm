@@ -8,6 +8,7 @@ trustPolicyExclude:
 
 packages:
   - 'apps/*'
+  - 'packages/*'
 
 onlyBuiltDependencies:
   - esbuild
