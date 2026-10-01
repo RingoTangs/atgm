@@ -25,9 +25,9 @@ describe('get /privileges endpoint', () => {
     ).toEqual([0, 120, 130, 140, 150, 200, 300, 400, 1000])
     expect(privileges[0]).toEqual({
       privilege: 0,
-      grant: '',
-      constant: '',
-      type: '普通用户',
+      grant: 'USER',
+      constant: 'COMMON_USER',
+      type: '用户权限',
       description: '普通用户',
     })
     expect(privileges[1]).toEqual({

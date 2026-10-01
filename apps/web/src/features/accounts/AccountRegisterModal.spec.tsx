@@ -10,9 +10,9 @@ let queryClient: QueryClient
 const privileges = [
   {
     privilege: 0,
-    grant: '',
-    constant: '',
-    type: '普通用户',
+    grant: 'USER',
+    constant: 'COMMON_USER',
+    type: '用户权限',
     description: '普通用户',
   },
   {
@@ -136,7 +136,9 @@ describe('account register modal', () => {
 
     const user = userEvent.setup()
     await user.click(screen.getByLabelText('权限'))
-    expect(await screen.findByTitle('0 - 普通用户')).toBeInTheDocument()
+    expect(
+      await screen.findByTitle('0 - USER - COMMON_USER(普通用户)'),
+    ).toBeInTheDocument()
     expect(
       await screen.findByTitle('120 - GA - ADMINISTRATOR(管理员)'),
     ).toBeInTheDocument()
