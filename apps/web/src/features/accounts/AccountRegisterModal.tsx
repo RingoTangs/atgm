@@ -1,19 +1,12 @@
 import type { FormProps } from 'antd'
-import { Form, Input, InputNumber, Modal } from 'antd'
-
-export interface RegisterAccountValues {
-  account: string
-  rawPassword: string
-  goldCoin: number
-  silverCoin: number
-  privilege: number
-}
+import type { RegisterAccountValues } from './accounts-api'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Form, Input, InputNumber, message, Modal } from 'antd'
+import { AccountConflictError, registerAccount } from './accounts-api'
 
 interface AccountRegisterModalProps {
   open: boolean
-  existingAccounts: string[]
   onCancel: () => void
-  onRegister: (values: RegisterAccountValues) => void
 }
 
 const initialValues: Pick<
@@ -45,99 +38,126 @@ const integerRangeValidator = (label: string, min: number, max: number) => ({
 
 export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
   open,
-  existingAccounts,
   onCancel,
-  onRegister,
 }) => {
   const [form] = Form.useForm<RegisterAccountValues>()
+  const [messageApi, messageContext] = message.useMessage()
+  const queryClient = useQueryClient()
+  const registerMutation = useMutation({
+    mutationFn: registerAccount,
+    onSuccess: () => {
+      void queryClient
+        .invalidateQueries({ queryKey: ['accounts'] })
+        .catch(() => undefined)
+      void messageApi.success('账号注册成功')
+      form.resetFields()
+      registerMutation.reset()
+      onCancel()
+    },
+    onError: (error) => {
+      if (error instanceof AccountConflictError) {
+        form.setFields([{ name: 'account', errors: ['账号已存在'] }])
+        return
+      }
+
+      void messageApi.error('账号注册失败，请稍后重试')
+    },
+  })
 
   const handleCancel = () => {
+    if (registerMutation.isPending) return
+
     form.resetFields()
+    registerMutation.reset()
     onCancel()
   }
 
   const handleFinish: FormProps<RegisterAccountValues>['onFinish'] = (
     values,
   ) => {
-    onRegister(values)
-    form.resetFields()
+    if (!registerMutation.isPending) {
+      registerMutation.mutate(values)
+    }
   }
 
   return (
-    <Modal
-      afterClose={() => form.resetFields()}
-      cancelButtonProps={{ 'aria-label': '取消' }}
-      cancelText="取消"
-      okButtonProps={{ 'aria-label': '注册' }}
-      okText="注册"
-      onCancel={handleCancel}
-      onOk={() => form.submit()}
-      open={open}
-      title="注册账号"
-    >
-      <Form<RegisterAccountValues>
-        form={form}
-        initialValues={initialValues}
-        layout="vertical"
-        onFinish={handleFinish}
+    <>
+      {messageContext}
+      <Modal
+        afterClose={() => {
+          form.resetFields()
+          registerMutation.reset()
+        }}
+        cancelButtonProps={{
+          'aria-label': '取消',
+          disabled: registerMutation.isPending,
+        }}
+        cancelText="取消"
+        closable={!registerMutation.isPending}
+        confirmLoading={registerMutation.isPending}
+        mask={{ closable: !registerMutation.isPending }}
+        okButtonProps={{
+          'aria-label': '注册',
+          disabled: registerMutation.isPending,
+        }}
+        okText="注册"
+        onCancel={handleCancel}
+        onOk={() => {
+          if (!registerMutation.isPending) form.submit()
+        }}
+        open={open}
+        title="注册账号"
       >
-        <Form.Item
-          label="账号"
-          name="account"
-          rules={[
-            { required: true, message: '请输入账号' },
-            { max: 32, message: '账号不能超过 32 个字符' },
-            {
-              validator: (_rule, value: string | undefined) => {
-                if (
-                  value &&
-                  existingAccounts.some(
-                    (account) => account.toLowerCase() === value.toLowerCase(),
-                  )
-                ) {
-                  return Promise.reject(new Error('账号已存在'))
-                }
-
-                return Promise.resolve()
-              },
-            },
-          ]}
+        <Form<RegisterAccountValues>
+          form={form}
+          initialValues={initialValues}
+          layout="vertical"
+          onFinish={handleFinish}
         >
-          <Input autoComplete="off" />
-        </Form.Item>
+          <Form.Item
+            label="账号"
+            name="account"
+            rules={[
+              { required: true, message: '请输入账号' },
+              { max: 32, message: '账号不能超过 32 个字符' },
+            ]}
+          >
+            <Input autoComplete="off" />
+          </Form.Item>
 
-        <Form.Item
-          label="密码"
-          name="rawPassword"
-          rules={[{ required: true, message: '请输入密码' }]}
-        >
-          <Input.Password autoComplete="new-password" />
-        </Form.Item>
+          <Form.Item
+            label="密码"
+            name="rawPassword"
+            rules={[{ required: true, message: '请输入密码' }]}
+          >
+            <Input.Password autoComplete="new-password" />
+          </Form.Item>
 
-        <Form.Item
-          label="金币"
-          name="goldCoin"
-          rules={[integerRangeValidator('金币', 0, 2_000_000_000)]}
-        >
-          <InputNumber className="w-full" step={1} />
-        </Form.Item>
+          <Form.Item
+            label="金币"
+            name="goldCoin"
+            rules={[integerRangeValidator('金币', 0, 2_000_000_000)]}
+          >
+            <InputNumber className="w-full" step={1} />
+          </Form.Item>
 
-        <Form.Item
-          label="银币"
-          name="silverCoin"
-          rules={[integerRangeValidator('银币', 0, 2_000_000_000)]}
-        >
-          <InputNumber className="w-full" step={1} />
-        </Form.Item>
+          <Form.Item
+            label="银币"
+            name="silverCoin"
+            rules={[integerRangeValidator('银币', 0, 2_000_000_000)]}
+          >
+            <InputNumber className="w-full" step={1} />
+          </Form.Item>
 
-        <Form.Item
-          label="权限"
-          name="privilege"
-          rules={[integerRangeValidator('权限', 0, 1000)]}
-        >
-          <InputNumber className="w-full" step={1} />
-        </Form.Item>
-      </Form>
-    </Modal>
+          <Form.Item
+            label="权限"
+            name="privilege"
+            rules={[integerRangeValidator('权限', 0, 1000)]}
+          >
+            <InputNumber className="w-full" step={1} />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </>
   )
 }

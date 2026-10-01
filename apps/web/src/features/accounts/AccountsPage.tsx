@@ -1,44 +1,11 @@
 import type { TableProps } from 'antd'
-import type { RegisterAccountValues } from './AccountRegisterModal'
-import { Button, Input, message, Table } from 'antd'
-import { useMemo, useState } from 'react'
+import type { AccountListItem } from './accounts-api'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { Alert, Button, Input, Table } from 'antd'
+import { useState } from 'react'
 import { formatGameDateTime } from '@/lib/date'
 import { AccountRegisterModal } from './AccountRegisterModal'
-
-interface AccountListItem {
-  account: string
-  privilege: number
-  goldCoin: number
-  silverCoin: number
-  lastLoginTime: string
-  lastLoginIp: string
-  regDate: string
-}
-
-const initialAccounts: AccountListItem[] = Array.from(
-  { length: 30 },
-  (_, index) => {
-    const accountNumber = index + 1
-
-    return {
-      account: `test${String(accountNumber).padStart(2, '0')}`,
-      privilege: accountNumber % 10 === 0 ? 100 : 0,
-      goldCoin: accountNumber * 100_000,
-      silverCoin: accountNumber * 50_000,
-      lastLoginTime:
-        accountNumber % 6 === 0
-          ? ''
-          : accountNumber === 1
-            ? '20261001191200'
-            : `202609${String(accountNumber).padStart(2, '0')}120000`,
-      lastLoginIp: accountNumber % 6 === 0 ? '' : `192.0.2.${accountNumber}`,
-      regDate:
-        accountNumber % 6 === 0
-          ? ''
-          : `202608${String(accountNumber).padStart(2, '0')}100000`,
-    }
-  },
-)
+import { getAccounts } from './accounts-api'
 
 const columns: TableProps<AccountListItem>['columns'] = [
   {
@@ -84,44 +51,30 @@ const columns: TableProps<AccountListItem>['columns'] = [
 ]
 
 export const AccountsPage: React.FC = () => {
-  const [accounts, setAccounts] = useState(initialAccounts)
-  const [keyword, setKeyword] = useState('')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
+  const [searchText, setSearchText] = useState('')
+  const [account, setAccount] = useState('')
   const [registerOpen, setRegisterOpen] = useState(false)
-  const [messageApi, messageContext] = message.useMessage()
+  const accountsQuery = useQuery({
+    queryKey: ['accounts', { page, pageSize, account }],
+    queryFn: () =>
+      getAccounts({
+        page,
+        pageSize,
+        account: account || undefined,
+      }),
+    placeholderData: keepPreviousData,
+  })
 
-  const filteredAccounts = useMemo(() => {
-    const normalizedKeyword = keyword.trim().toLowerCase()
-
-    if (!normalizedKeyword) return accounts
-
-    return accounts.filter((account) =>
-      account.account.toLowerCase().includes(normalizedKeyword),
-    )
-  }, [accounts, keyword])
-
-  const handleRegister = (values: RegisterAccountValues) => {
-    setAccounts((current) => [
-      {
-        account: values.account,
-        privilege: values.privilege,
-        goldCoin: values.goldCoin,
-        silverCoin: values.silverCoin,
-        lastLoginTime: '',
-        lastLoginIp: '',
-        regDate: '',
-      },
-      ...current,
-    ])
+  const submitSearch = (value: string) => {
+    setSearchText(value)
+    setAccount(value.trim())
     setPage(1)
-    setRegisterOpen(false)
-    void messageApi.success('账号注册成功')
   }
 
   return (
     <>
-      {messageContext}
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-semibold">账号管理</h1>
@@ -134,11 +87,18 @@ export const AccountsPage: React.FC = () => {
               allowClear
               className="w-full sm:max-w-md"
               onChange={(event) => {
-                setKeyword(event.target.value)
-                setPage(1)
+                const value = event.target.value
+
+                setSearchText(value)
+
+                if (!value) {
+                  setAccount('')
+                  setPage(1)
+                }
               }}
+              onSearch={submitSearch}
               placeholder="搜索账号"
-              value={keyword}
+              value={searchText}
             />
             <Button
               className="w-full sm:w-auto"
@@ -149,25 +109,45 @@ export const AccountsPage: React.FC = () => {
             </Button>
           </div>
 
+          {accountsQuery.isError && (
+            <Alert
+              action={
+                <Button
+                  aria-label="重试"
+                  onClick={() => void accountsQuery.refetch()}
+                >
+                  重试
+                </Button>
+              }
+              className="mt-4"
+              showIcon
+              title="账号列表加载失败"
+              type="error"
+            />
+          )}
+
           <Table<AccountListItem>
             className="mt-4"
             columns={columns}
-            dataSource={filteredAccounts}
+            dataSource={accountsQuery.data?.items ?? []}
+            loading={accountsQuery.isPending || accountsQuery.isFetching}
             locale={{ emptyText: '暂无匹配账号' }}
             pagination={{
               current: page,
               onChange: (nextPage, nextPageSize) => {
-                const lastPage = Math.max(
-                  1,
-                  Math.ceil(filteredAccounts.length / nextPageSize),
-                )
-                setPage(Math.min(nextPage, lastPage))
+                if (nextPageSize !== pageSize) {
+                  setPage(1)
+                  setPageSize(nextPageSize)
+                  return
+                }
+
+                setPage(nextPage)
                 setPageSize(nextPageSize)
               },
               pageSize,
               pageSizeOptions: [10, 20, 50, 100],
               showSizeChanger: true,
-              total: filteredAccounts.length,
+              total: accountsQuery.data?.total ?? 0,
             }}
             rowKey="account"
             scroll={{ x: 'max-content' }}
@@ -176,9 +156,7 @@ export const AccountsPage: React.FC = () => {
       </div>
 
       <AccountRegisterModal
-        existingAccounts={accounts.map((account) => account.account)}
         onCancel={() => setRegisterOpen(false)}
-        onRegister={handleRegister}
         open={registerOpen}
       />
     </>

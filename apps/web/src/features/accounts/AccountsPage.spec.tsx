@@ -1,9 +1,50 @@
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AccountsPage } from './AccountsPage'
 
+const fetchMock = vi.fn<typeof fetch>()
+
+const accountItem = {
+  account: 'server-account',
+  privilege: 100,
+  gold_coin: 1_000_000,
+  silver_coin: 50_000,
+  last_login_time: '20261001191200',
+  last_login_ip: '192.0.2.1',
+  reg_date: '20260901100000',
+}
+
+const accountsResponse = (
+  items = [accountItem],
+  total = 21,
+  page = 1,
+  pageSize = 20,
+) =>
+  new Response(JSON.stringify({ page, pageSize, total, items }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  })
+
+let queryClient: QueryClient
+
 beforeEach(() => {
+  fetchMock.mockReset()
+  queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  })
+  fetchMock.mockResolvedValue(accountsResponse())
+  vi.stubGlobal('fetch', fetchMock)
   vi.stubGlobal(
     'ResizeObserver',
     class ResizeObserver {
@@ -29,139 +70,150 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup()
+  queryClient.clear()
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
 })
 
-const openRegisterModal = async () => {
-  const user = userEvent.setup()
-  await user.click(screen.getByRole('button', { name: '注册账号' }))
-  const dialog = await screen.findByRole('dialog')
-  expect(within(dialog).getByText('注册账号')).toBeInTheDocument()
-  return user
+const renderPage = () =>
+  render(
+    <QueryClientProvider client={queryClient}>
+      <AccountsPage />
+    </QueryClientProvider>,
+  )
+
+const getLastRequestedUrl = (): string => {
+  const call = fetchMock.mock.calls[fetchMock.mock.calls.length - 1]
+  if (!call) throw new Error('fetch was not called')
+  return String(call[0])
 }
 
 describe('accounts page', () => {
-  it('展示页面标题、七列和格式化后的 Mock 账号', () => {
-    render(<AccountsPage />)
+  it('renders the seven columns and mapped server account data', async () => {
+    renderPage()
 
     expect(
       screen.getByRole('heading', { name: '账号管理' }),
     ).toBeInTheDocument()
     expect(screen.getByText('查询和创建游戏账号')).toBeInTheDocument()
-    expect(
-      screen.getByRole('columnheader', { name: '账号' }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('columnheader', { name: '权限' }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('columnheader', { name: '金币' }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('columnheader', { name: '银币' }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('columnheader', { name: '最后登录' }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('columnheader', { name: '最后登录 IP' }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('columnheader', { name: '注册时间' }),
-    ).toBeInTheDocument()
 
-    const firstAccountRow = screen.getByText('test01').closest('tr')
-    if (!firstAccountRow) throw new Error('test01 row not found')
-    expect(within(firstAccountRow).getByText('0')).toBeInTheDocument()
-    expect(within(firstAccountRow).getByText('100,000')).toBeInTheDocument()
-    expect(within(firstAccountRow).getByText('50,000')).toBeInTheDocument()
-    expect(
-      within(firstAccountRow).getByText('2026-10-01 19:12:00'),
-    ).toBeInTheDocument()
-    expect(within(firstAccountRow).getByText('192.0.2.1')).toBeInTheDocument()
-    expect(
-      within(firstAccountRow).getByText('2026-08-01 10:00:00'),
-    ).toBeInTheDocument()
+    for (const column of [
+      '账号',
+      '权限',
+      '金币',
+      '银币',
+      '最后登录',
+      '最后登录 IP',
+      '注册时间',
+    ]) {
+      expect(
+        screen.getByRole('columnheader', { name: column }),
+      ).toBeInTheDocument()
+    }
+
+    const row = (await screen.findByText('server-account')).closest('tr')
+    if (!row) throw new Error('server account row not found')
+    expect(within(row).getByText('100')).toBeInTheDocument()
+    expect(within(row).getByText('1,000,000')).toBeInTheDocument()
+    expect(within(row).getByText('50,000')).toBeInTheDocument()
+    expect(within(row).getByText('2026-10-01 19:12:00')).toBeInTheDocument()
+    expect(within(row).getByText('192.0.2.1')).toBeInTheDocument()
+    expect(within(row).getByText('2026-09-01 10:00:00')).toBeInTheDocument()
+    expect(getLastRequestedUrl()).toBe('/accounts?page=1&pageSize=20')
   })
 
-  it('账号时间和 IP 为空时显示短横线', () => {
-    render(<AccountsPage />)
-
-    const emptyAccountRow = screen.getByText('test06').closest('tr')
-    if (!emptyAccountRow) throw new Error('test06 row not found')
-    expect(within(emptyAccountRow).getAllByText('-')).toHaveLength(3)
-  })
-
-  it('按账号执行本地搜索并处理空结果', async () => {
+  it('uses the server total and requests the selected page', async () => {
+    fetchMock.mockImplementation(async (input) => {
+      const url = new URL(String(input), 'http://localhost')
+      const page = Number(url.searchParams.get('page'))
+      return accountsResponse(
+        [{ ...accountItem, account: `page-${page}-account` }],
+        21,
+        page,
+      )
+    })
     const user = userEvent.setup()
-    render(<AccountsPage />)
+    renderPage()
+
+    await screen.findByText('page-1-account')
+    await user.click(screen.getByTitle('2'))
+
+    expect(await screen.findByText('page-2-account')).toBeInTheDocument()
+    expect(getLastRequestedUrl()).toBe('/accounts?page=2&pageSize=20')
+  })
+
+  it('returns to page one when page size changes', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('server-account')
+
+    await user.click(screen.getByRole('combobox'))
+    await user.click(await screen.findByTitle('50 / page'))
+
+    await waitFor(() => {
+      expect(getLastRequestedUrl()).toBe('/accounts?page=1&pageSize=50')
+    })
+  })
+
+  it('only sends account search after submit and clears the active filter', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('server-account')
     const search = screen.getByPlaceholderText('搜索账号')
 
-    await user.type(search, '  TEST01  ')
-    expect(screen.getByText('test01')).toBeInTheDocument()
-    expect(screen.queryByText('test02')).not.toBeInTheDocument()
+    await user.type(search, '  test_01  ')
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+
+    await user.keyboard('{Enter}')
+    await waitFor(() => {
+      expect(getLastRequestedUrl()).toBe(
+        '/accounts?page=1&pageSize=20&account=test_01',
+      )
+    })
 
     await user.clear(search)
-    await user.type(search, 'missing-account')
-    expect(screen.getByText('暂无匹配账号')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(getLastRequestedUrl()).toBe('/accounts?page=1&pageSize=20')
+    })
   })
 
-  it('默认每页 20 条并可查看第二页', async () => {
+  it('shows table loading while the first request is pending', async () => {
+    let resolveRequest: (response: Response) => void = () => undefined
+    fetchMock.mockReturnValue(
+      new Promise((resolve) => {
+        resolveRequest = resolve
+      }),
+    )
+    renderPage()
+
+    expect(document.querySelector('[aria-busy="true"]')).toBeInTheDocument()
+
+    resolveRequest(accountsResponse())
+    expect(await screen.findByText('server-account')).toBeInTheDocument()
+  })
+
+  it('shows a load error and retries the request', async () => {
+    fetchMock
+      .mockResolvedValueOnce(new Response(null, { status: 500 }))
+      .mockResolvedValueOnce(accountsResponse())
     const user = userEvent.setup()
-    render(<AccountsPage />)
+    renderPage()
 
-    expect(screen.getByText('test20')).toBeInTheDocument()
-    expect(screen.queryByText('test21')).not.toBeInTheDocument()
+    expect(await screen.findByText('账号列表加载失败')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '重试' }))
 
-    await user.click(screen.getByTitle('2'))
-    expect(await screen.findByText('test21')).toBeInTheDocument()
-    expect(screen.getByText('test30')).toBeInTheDocument()
+    expect(await screen.findByText('server-account')).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledTimes(2)
   })
 
-  it('点击注册账号打开 Modal', async () => {
-    render(<AccountsPage />)
+  it('opens the registration modal', async () => {
+    const user = userEvent.setup()
+    renderPage()
 
-    await openRegisterModal()
+    await user.click(screen.getByRole('button', { name: '注册账号' }))
 
-    expect(screen.getByRole('dialog')).toBeInTheDocument()
-    expect(screen.getByLabelText('账号')).toBeInTheDocument()
-  })
-
-  it('成功注册后将完整列表字段加入本地数据且不显示密码', async () => {
-    render(<AccountsPage />)
-    const user = await openRegisterModal()
-
-    await user.type(screen.getByLabelText('账号'), 'new-player')
-    await user.type(screen.getByLabelText('密码'), 'test-password')
-    await user.clear(screen.getByLabelText('金币'))
-    await user.type(screen.getByLabelText('金币'), '1234567')
-    await user.clear(screen.getByLabelText('银币'))
-    await user.type(screen.getByLabelText('银币'), '765432')
-    await user.clear(screen.getByLabelText('权限'))
-    await user.type(screen.getByLabelText('权限'), '100')
-    await user.click(screen.getByRole('button', { name: '注册' }))
-
-    expect(await screen.findByText('账号注册成功')).toBeInTheDocument()
-    const newAccountRow = screen.getByText('new-player').closest('tr')
-    if (!newAccountRow) throw new Error('new account row not found')
-    expect(within(newAccountRow).getByText('100')).toBeInTheDocument()
-    expect(within(newAccountRow).getByText('1,234,567')).toBeInTheDocument()
-    expect(within(newAccountRow).getByText('765,432')).toBeInTheDocument()
-    expect(within(newAccountRow).getAllByText('-')).toHaveLength(3)
-    expect(screen.queryByText('test-password')).not.toBeInTheDocument()
-  })
-
-  it('重复账号保留 Modal 且不会添加记录', async () => {
-    render(<AccountsPage />)
-    const user = await openRegisterModal()
-
-    await user.type(screen.getByLabelText('账号'), 'TEST01')
-    await user.type(screen.getByLabelText('密码'), 'test-password')
-    await user.click(screen.getByRole('button', { name: '注册' }))
-
-    expect(await screen.findByText('账号已存在')).toBeInTheDocument()
-    expect(screen.getByRole('dialog')).toBeInTheDocument()
-    expect(screen.getAllByText('test01')).toHaveLength(1)
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByText('注册账号')).toBeInTheDocument()
+    expect(within(dialog).getByLabelText('账号')).toBeInTheDocument()
   })
 })

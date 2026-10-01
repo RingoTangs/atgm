@@ -6,6 +6,11 @@ import { defineConfig, loadEnv } from 'vite'
 
 const PORT = 3000
 const PROJECT_ROOT = import.meta.dirname
+const API_TARGET = 'http://127.0.0.1:8080'
+const API_PROXY = {
+  '/accounts': API_TARGET,
+  '/account': API_TARGET,
+}
 
 type RequiredEnvKey =
   | 'VITE_BASE_PATH'
@@ -77,9 +82,11 @@ export default defineConfig(({ mode }) => {
     ],
     server: {
       port: PORT,
+      proxy: API_PROXY,
     },
     preview: {
       port: PORT,
+      proxy: API_PROXY,
     },
     resolve: {
       alias: {

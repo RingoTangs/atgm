@@ -1,9 +1,24 @@
-import { cleanup, render, screen } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AccountRegisterModal } from './AccountRegisterModal'
 
+const fetchMock = vi.fn<typeof fetch>()
+let queryClient: QueryClient
+
 beforeEach(() => {
+  fetchMock.mockReset()
+  queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  })
+  fetchMock.mockResolvedValue(
+    new Response(JSON.stringify({ account: 'new-account' }), { status: 201 }),
+  )
+  vi.stubGlobal('fetch', fetchMock)
   vi.stubGlobal(
     'ResizeObserver',
     class ResizeObserver {
@@ -29,24 +44,21 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup()
+  queryClient.clear()
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
 })
 
-const renderModal = (existingAccounts: string[] = []) => {
+const renderModal = () => {
   const onCancel = vi.fn()
-  const onRegister = vi.fn()
 
   render(
-    <AccountRegisterModal
-      existingAccounts={existingAccounts}
-      onCancel={onCancel}
-      onRegister={onRegister}
-      open
-    />,
+    <QueryClientProvider client={queryClient}>
+      <AccountRegisterModal onCancel={onCancel} open />
+    </QueryClientProvider>,
   )
 
-  return { onCancel, onRegister }
+  return { onCancel }
 }
 
 const fillRequiredFields = async (account = 'new-account') => {
@@ -57,7 +69,7 @@ const fillRequiredFields = async (account = 'new-account') => {
 }
 
 describe('account register modal', () => {
-  it('展示五个字段和数字默认值', () => {
+  it('shows five fields and numeric defaults', () => {
     renderModal()
 
     expect(screen.getByLabelText('账号')).toBeInTheDocument()
@@ -67,7 +79,7 @@ describe('account register modal', () => {
     expect(screen.getByLabelText('权限')).toHaveValue('0')
   })
 
-  it('校验账号和密码必填', async () => {
+  it('validates required account and password fields', async () => {
     const user = userEvent.setup()
     renderModal()
 
@@ -75,9 +87,10 @@ describe('account register modal', () => {
 
     expect(await screen.findByText('请输入账号')).toBeInTheDocument()
     expect(await screen.findByText('请输入密码')).toBeInTheDocument()
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  it('校验账号最大长度', async () => {
+  it('validates the maximum account length', async () => {
     const user = userEvent.setup()
     renderModal()
 
@@ -96,7 +109,7 @@ describe('account register modal', () => {
     ['权限', '-1', '权限必须是'],
     ['权限', '1001', '权限必须是'],
     ['权限', '1.5', '权限必须是'],
-  ])('校验%s的整数范围', async (label, value, errorText) => {
+  ])('validates the integer range for %s', async (label, value, errorText) => {
     renderModal()
     const user = await fillRequiredFields()
     const input = screen.getByLabelText(label)
@@ -105,10 +118,12 @@ describe('account register modal', () => {
     await user.click(screen.getByRole('button', { name: '注册' }))
 
     expect(await screen.findByText(new RegExp(errorText))).toBeInTheDocument()
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  it('提交正确的注册值', async () => {
-    const { onRegister } = renderModal()
+  it('posts correct values, invalidates accounts, resets, and closes', async () => {
+    const invalidateQueries = vi.spyOn(queryClient, 'invalidateQueries')
+    const { onCancel } = renderModal()
     const user = await fillRequiredFields()
 
     await user.clear(screen.getByLabelText('金币'))
@@ -119,27 +134,81 @@ describe('account register modal', () => {
     await user.type(screen.getByLabelText('权限'), '1000')
     await user.click(screen.getByRole('button', { name: '注册' }))
 
-    expect(onRegister).toHaveBeenCalledWith({
-      account: 'new-account',
-      rawPassword: 'test-password',
-      goldCoin: 2_000_000_000,
-      silverCoin: 15,
-      privilege: 1000,
+    expect(await screen.findByText('账号注册成功')).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledWith('/account', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        account: 'new-account',
+        rawPassword: 'test-password',
+        goldCoin: 2_000_000_000,
+        silverCoin: 15,
+        privilege: 1000,
+      }),
     })
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ['accounts'],
+    })
+    expect(onCancel).toHaveBeenCalledOnce()
+    expect(screen.getByLabelText('账号')).toHaveValue('')
+    expect(screen.getByLabelText('密码')).toHaveValue('')
+    expect(screen.getByLabelText('金币')).toHaveValue('0')
   })
 
-  it('重复账号显示字段错误且不提交', async () => {
-    const { onRegister } = renderModal(['test01'])
-    const user = await fillRequiredFields('TEST01')
+  it('shows a field error for HTTP 409 and preserves the form', async () => {
+    fetchMock.mockResolvedValue(new Response(null, { status: 409 }))
+    const { onCancel } = renderModal()
+    const user = await fillRequiredFields('existing-account')
 
     await user.click(screen.getByRole('button', { name: '注册' }))
 
     expect(await screen.findByText('账号已存在')).toBeInTheDocument()
-    expect(onRegister).not.toHaveBeenCalled()
     expect(screen.getByLabelText('密码')).toHaveValue('test-password')
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(onCancel).not.toHaveBeenCalled()
   })
 
-  it('取消时关闭并重置表单', async () => {
+  it.each([
+    ['HTTP 500', () => Promise.resolve(new Response(null, { status: 500 }))],
+    ['network error', () => Promise.reject(new Error('network unavailable'))],
+  ])('shows a generic error for %s', async (_case, responseFactory) => {
+    fetchMock.mockImplementation(responseFactory)
+    const { onCancel } = renderModal()
+    const user = await fillRequiredFields()
+
+    await user.click(screen.getByRole('button', { name: '注册' }))
+
+    expect(
+      await screen.findByText('账号注册失败，请稍后重试'),
+    ).toBeInTheDocument()
+    expect(screen.getByLabelText('密码')).toHaveValue('test-password')
+    expect(onCancel).not.toHaveBeenCalled()
+  })
+
+  it('prevents duplicate submissions while the mutation is pending', async () => {
+    let resolveRequest: (response: Response) => void = () => undefined
+    fetchMock.mockReturnValue(
+      new Promise((resolve) => {
+        resolveRequest = resolve
+      }),
+    )
+    renderModal()
+    const user = await fillRequiredFields()
+    const registerButton = screen.getByRole('button', { name: '注册' })
+
+    await user.click(registerButton)
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledOnce())
+    expect(registerButton).toBeDisabled()
+    await user.click(registerButton)
+    expect(fetchMock).toHaveBeenCalledOnce()
+
+    resolveRequest(
+      new Response(JSON.stringify({ account: 'new-account' }), { status: 201 }),
+    )
+    expect(await screen.findByText('账号注册成功')).toBeInTheDocument()
+  })
+
+  it('resets the form when cancelled', async () => {
     const { onCancel } = renderModal()
     const user = await fillRequiredFields()
     await user.clear(screen.getByLabelText('金币'))
