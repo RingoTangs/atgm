@@ -1,5 +1,5 @@
+import type { RegisterAccountRequest } from '@atgm/contracts'
 import type { FormProps } from 'antd'
-import type { RegisterAccountValues } from './accounts-api'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Form, Input, InputNumber, message, Modal } from 'antd'
 import { AccountConflictError, registerAccount } from './accounts-api'
@@ -10,7 +10,7 @@ interface AccountRegisterModalProps {
 }
 
 const initialValues: Pick<
-  RegisterAccountValues,
+  RegisterAccountRequest,
   'goldCoin' | 'silverCoin' | 'privilege'
 > = {
   goldCoin: 0,
@@ -40,7 +40,7 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
   open,
   onCancel,
 }) => {
-  const [form] = Form.useForm<RegisterAccountValues>()
+  const [form] = Form.useForm<RegisterAccountRequest>()
   const [messageApi, messageContext] = message.useMessage()
   const queryClient = useQueryClient()
   const registerMutation = useMutation({
@@ -72,7 +72,7 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
     onCancel()
   }
 
-  const handleFinish: FormProps<RegisterAccountValues>['onFinish'] = (
+  const handleFinish: FormProps<RegisterAccountRequest>['onFinish'] = (
     values,
   ) => {
     if (!registerMutation.isPending) {
@@ -108,7 +108,7 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
         open={open}
         title="注册账号"
       >
-        <Form<RegisterAccountValues>
+        <Form<RegisterAccountRequest>
           form={form}
           initialValues={initialValues}
           layout="vertical"

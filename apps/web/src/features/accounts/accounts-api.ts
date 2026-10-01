@@ -1,27 +1,11 @@
-export interface GetAccountsParams {
-  page: number
-  pageSize: number
-  account?: string
-}
+import type {
+  AccountListItemDto,
+  AccountsQuery,
+  AccountsResponse,
+  RegisterAccountRequest,
+} from '@atgm/contracts'
 
 const API_PREFIX = '/_api'
-
-interface AccountApiItem {
-  account: string
-  privilege: number
-  gold_coin: number
-  silver_coin: number
-  last_login_time: string
-  last_login_ip: string
-  reg_date: string
-}
-
-interface AccountsApiResponse {
-  page: number
-  pageSize: number
-  total: number
-  items: AccountApiItem[]
-}
 
 export interface AccountListItem {
   account: string
@@ -40,14 +24,6 @@ export interface AccountsResult {
   items: AccountListItem[]
 }
 
-export interface RegisterAccountValues {
-  account: string
-  rawPassword: string
-  goldCoin: number
-  silverCoin: number
-  privilege: number
-}
-
 export class AccountConflictError extends Error {
   constructor() {
     super('账号已存在')
@@ -55,7 +31,7 @@ export class AccountConflictError extends Error {
   }
 }
 
-const toAccountListItem = (item: AccountApiItem): AccountListItem => ({
+const toAccountListItem = (item: AccountListItemDto): AccountListItem => ({
   account: item.account,
   privilege: item.privilege,
   goldCoin: item.gold_coin,
@@ -66,7 +42,7 @@ const toAccountListItem = (item: AccountApiItem): AccountListItem => ({
 })
 
 export async function getAccounts(
-  params: GetAccountsParams,
+  params: AccountsQuery,
 ): Promise<AccountsResult> {
   const searchParams = new URLSearchParams({
     page: String(params.page),
@@ -83,7 +59,7 @@ export async function getAccounts(
     throw new Error('账号列表请求失败')
   }
 
-  const data = (await response.json()) as AccountsApiResponse
+  const data = (await response.json()) as AccountsResponse
 
   return {
     page: data.page,
@@ -94,7 +70,7 @@ export async function getAccounts(
 }
 
 export async function registerAccount(
-  values: RegisterAccountValues,
+  values: RegisterAccountRequest,
 ): Promise<void> {
   const response = await fetch(`${API_PREFIX}/account`, {
     method: 'POST',

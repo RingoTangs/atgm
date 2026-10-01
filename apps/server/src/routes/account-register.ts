@@ -1,25 +1,11 @@
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
-import { z } from 'zod'
+import {
+  accountConflictResponseSchema,
+  registerAccountBodySchema,
+  registerAccountResponseSchema,
+} from '@atgm/contracts'
 import { createAccountChecksum, createAccountPassword } from './account-crypto'
-
-const registerAccountBodySchema = z
-  .object({
-    account: z.string().min(1).max(32),
-    rawPassword: z.string().min(1),
-    goldCoin: z.number().int().min(0).max(2_000_000_000),
-    silverCoin: z.number().int().min(0).max(2_000_000_000),
-    privilege: z.number().int().min(0).max(1000),
-  })
-  .strict()
-
-const registerAccountResponseSchema = z.object({
-  account: z.string(),
-})
-
-const accountConflictResponseSchema = z.object({
-  message: z.literal('账号已存在'),
-})
 
 function isDuplicateEntryError(error: unknown): boolean {
   return (

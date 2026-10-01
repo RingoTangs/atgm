@@ -1,30 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
+import { accountsQuerySchema, accountsResponseSchema } from '@atgm/contracts'
 import { sql } from 'kysely'
-import { z } from 'zod'
-
-const accountsQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).default(1),
-  pageSize: z.coerce.number().int().min(1).max(100).default(20),
-  account: z.string().trim().optional(),
-})
-
-const accountsResponseSchema = z.object({
-  page: z.number().int(),
-  pageSize: z.number().int(),
-  total: z.number().int().min(0),
-  items: z.array(
-    z.object({
-      account: z.string(),
-      privilege: z.number().int(),
-      gold_coin: z.number().int(),
-      silver_coin: z.number().int(),
-      last_login_time: z.string(),
-      last_login_ip: z.string(),
-      reg_date: z.string(),
-    }),
-  ),
-})
 
 const escapeLikePattern = (value: string): string =>
   value.replace(/[!%_]/g, (character) => `!${character}`)

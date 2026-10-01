@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@ant-design/cssinjs": "^2.1.2",
+    "@atgm/contracts": "workspace:*",
     "@tanstack/react-query": "^5.103.2",
     "@tanstack/react-router": "^1.170.38",
     "antd": "^6.6.5",

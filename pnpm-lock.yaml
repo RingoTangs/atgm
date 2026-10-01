@@ -47,6 +47,9 @@ importers:
 
   apps/server:
     dependencies:
+      '@atgm/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@fastify/swagger':
         specifier: ^9.9.0
         version: 9.9.0
@@ -81,6 +84,9 @@ importers:
       '@ant-design/cssinjs':
         specifier: ^2.1.2
         version: 2.1.2(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@atgm/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@tanstack/react-query':
         specifier: ^5.103.2
         version: 5.103.2(react@19.3.0)

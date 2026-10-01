@@ -12,6 +12,9 @@ export default defineConfig({
     '@': path.resolve(import.meta.dirname, './src'),
   },
   clean: true,
+  deps: {
+    alwaysBundle: ['@atgm/contracts'],
+  },
   dts: false,
   format: 'esm',
   banner: `/*! ${pkg.name} v${pkg.version} */`,
