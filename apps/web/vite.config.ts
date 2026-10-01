@@ -8,8 +8,11 @@ const PORT = 3000
 const PROJECT_ROOT = import.meta.dirname
 const API_TARGET = 'http://127.0.0.1:8080'
 const API_PROXY = {
-  '/accounts': API_TARGET,
-  '/account': API_TARGET,
+  '/_api': {
+    target: API_TARGET,
+    changeOrigin: true,
+    rewrite: (requestPath: string) => requestPath.replace(/^\/_api/, ''),
+  },
 }
 
 type RequiredEnvKey =

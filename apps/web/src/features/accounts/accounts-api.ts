@@ -4,6 +4,8 @@ export interface GetAccountsParams {
   account?: string
 }
 
+const API_PREFIX = '/_api'
+
 interface AccountApiItem {
   account: string
   privilege: number
@@ -75,7 +77,7 @@ export async function getAccounts(
     searchParams.set('account', params.account)
   }
 
-  const response = await fetch(`/accounts?${searchParams}`)
+  const response = await fetch(`${API_PREFIX}/accounts?${searchParams}`)
 
   if (!response.ok) {
     throw new Error('账号列表请求失败')
@@ -94,7 +96,7 @@ export async function getAccounts(
 export async function registerAccount(
   values: RegisterAccountValues,
 ): Promise<void> {
-  const response = await fetch('/account', {
+  const response = await fetch(`${API_PREFIX}/account`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

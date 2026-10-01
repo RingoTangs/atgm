@@ -135,7 +135,7 @@ describe('account register modal', () => {
     await user.click(screen.getByRole('button', { name: '注册' }))
 
     expect(await screen.findByText('账号注册成功')).toBeInTheDocument()
-    expect(fetchMock).toHaveBeenCalledWith('/account', {
+    expect(fetchMock).toHaveBeenCalledWith('/_api/account', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

@@ -119,7 +119,7 @@ describe('accounts page', () => {
     expect(within(row).getByText('2026-10-01 19:12:00')).toBeInTheDocument()
     expect(within(row).getByText('192.0.2.1')).toBeInTheDocument()
     expect(within(row).getByText('2026-09-01 10:00:00')).toBeInTheDocument()
-    expect(getLastRequestedUrl()).toBe('/accounts?page=1&pageSize=20')
+    expect(getLastRequestedUrl()).toBe('/_api/accounts?page=1&pageSize=20')
   })
 
   it('uses the server total and requests the selected page', async () => {
@@ -139,7 +139,7 @@ describe('accounts page', () => {
     await user.click(screen.getByTitle('2'))
 
     expect(await screen.findByText('page-2-account')).toBeInTheDocument()
-    expect(getLastRequestedUrl()).toBe('/accounts?page=2&pageSize=20')
+    expect(getLastRequestedUrl()).toBe('/_api/accounts?page=2&pageSize=20')
   })
 
   it('returns to page one when page size changes', async () => {
@@ -151,7 +151,7 @@ describe('accounts page', () => {
     await user.click(await screen.findByTitle('50 / page'))
 
     await waitFor(() => {
-      expect(getLastRequestedUrl()).toBe('/accounts?page=1&pageSize=50')
+      expect(getLastRequestedUrl()).toBe('/_api/accounts?page=1&pageSize=50')
     })
   })
 
@@ -167,13 +167,13 @@ describe('accounts page', () => {
     await user.keyboard('{Enter}')
     await waitFor(() => {
       expect(getLastRequestedUrl()).toBe(
-        '/accounts?page=1&pageSize=20&account=test_01',
+        '/_api/accounts?page=1&pageSize=20&account=test_01',
       )
     })
 
     await user.clear(search)
     await waitFor(() => {
-      expect(getLastRequestedUrl()).toBe('/accounts?page=1&pageSize=20')
+      expect(getLastRequestedUrl()).toBe('/_api/accounts?page=1&pageSize=20')
     })
   })
 

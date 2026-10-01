@@ -64,7 +64,7 @@ describe('accounts API', () => {
     })
 
     const [url, init] = fetchMock.mock.calls[0]
-    expect(url).toBe('/accounts?page=2&pageSize=10&account=test_01')
+    expect(url).toBe('/_api/accounts?page=2&pageSize=10&account=test_01')
     expect(init).toBeUndefined()
   })
 
@@ -76,7 +76,7 @@ describe('accounts API', () => {
     await getAccounts({ page: 1, pageSize: 20, account: '100% & test' })
 
     expect(fetchMock).toHaveBeenCalledWith(
-      '/accounts?page=1&pageSize=20&account=100%25+%26+test',
+      '/_api/accounts?page=1&pageSize=20&account=100%25+%26+test',
     )
   })
 
@@ -87,7 +87,7 @@ describe('accounts API', () => {
 
     await getAccounts({ page: 1, pageSize: 20 })
 
-    expect(fetchMock).toHaveBeenCalledWith('/accounts?page=1&pageSize=20')
+    expect(fetchMock).toHaveBeenCalledWith('/_api/accounts?page=1&pageSize=20')
   })
 
   it('throws a generic error when loading accounts fails', async () => {
@@ -109,7 +109,7 @@ describe('accounts API', () => {
     }
 
     await expect(registerAccount(values)).resolves.toBeUndefined()
-    expect(fetchMock).toHaveBeenCalledWith('/account', {
+    expect(fetchMock).toHaveBeenCalledWith('/_api/account', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(values),
