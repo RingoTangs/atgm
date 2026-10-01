@@ -1,6 +1,6 @@
 import type { TableProps } from 'antd'
 import type { RegisterAccountValues } from './AccountRegisterModal'
-import { Button, Card, Input, message, Table } from 'antd'
+import { Button, Input, message, Table } from 'antd'
 import { useMemo, useState } from 'react'
 import { formatGameDateTime } from '@/lib/date'
 import { AccountRegisterModal } from './AccountRegisterModal'
@@ -128,7 +128,7 @@ export const AccountsPage: React.FC = () => {
           <p className="text-muted-foreground mt-1">查询和创建游戏账号</p>
         </div>
 
-        <Card>
+        <div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <Input.Search
               allowClear
@@ -172,7 +172,7 @@ export const AccountsPage: React.FC = () => {
             rowKey="account"
             scroll={{ x: 'max-content' }}
           />
-        </Card>
+        </div>
       </div>
 
       <AccountRegisterModal
