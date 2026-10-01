@@ -11,6 +11,9 @@ export default antfu(
     formatters: false,
     gitignore: true,
     ignores: ['**/pnpm-lock.yaml', '**/routeTree.gen.ts'],
+    pnpm: {
+      catalogs: false,
+    },
   },
 
   // Web-specific rules
