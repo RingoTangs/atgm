@@ -15,11 +15,11 @@ const fetchMock = vi.fn<typeof fetch>()
 const accountItem = {
   account: 'server-account',
   privilege: 100,
-  gold_coin: 1_000_000,
-  silver_coin: 50_000,
-  last_login_time: '20261001191200',
-  last_login_ip: '192.0.2.1',
-  reg_date: '20260901100000',
+  goldCoin: 1_000_000,
+  silverCoin: 50_000,
+  lastLoginTime: '20261001191200',
+  lastLoginIp: '192.0.2.1',
+  regDate: '20260901100000',
 }
 
 const accountsResponse = (
@@ -89,7 +89,7 @@ const getLastRequestedUrl = (): string => {
 }
 
 describe('accounts page', () => {
-  it('renders the seven columns and mapped server account data', async () => {
+  it('renders the seven columns and server account data', async () => {
     renderPage()
 
     expect(

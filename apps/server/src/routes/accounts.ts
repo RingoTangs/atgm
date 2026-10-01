@@ -68,7 +68,15 @@ export async function accountRoutes(app: FastifyInstance) {
         page,
         pageSize,
         total,
-        items,
+        items: items.map((item) => ({
+          account: item.account,
+          privilege: item.privilege,
+          goldCoin: item.gold_coin,
+          silverCoin: item.silver_coin,
+          lastLoginTime: item.last_login_time,
+          lastLoginIp: item.last_login_ip,
+          regDate: item.reg_date,
+        })),
       }
     },
   )

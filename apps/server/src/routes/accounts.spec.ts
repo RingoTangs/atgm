@@ -88,6 +88,16 @@ const accountItem = {
   reg_date: '20260901100000',
 }
 
+const accountResponseItem = {
+  account: 'example_user',
+  privilege: 100,
+  goldCoin: 1_000_000,
+  silverCoin: 50_000,
+  lastLoginTime: '20260928120000',
+  lastLoginIp: '192.0.2.1',
+  regDate: '20260901100000',
+}
+
 interface LikeTestDatabase {
   account: {
     account: string
@@ -128,7 +138,7 @@ describe('get /accounts endpoint', () => {
       page: 1,
       pageSize: 20,
       total: 125,
-      items: [accountItem],
+      items: [accountResponseItem],
     })
     expect(mocks.selectFrom).toHaveBeenCalledTimes(2)
     expect(mocks.selectFrom).toHaveBeenCalledWith('account')

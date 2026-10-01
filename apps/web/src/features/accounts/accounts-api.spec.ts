@@ -24,7 +24,7 @@ afterEach(() => {
 })
 
 describe('accounts API', () => {
-  it('requests an account page and maps snake_case fields', async () => {
+  it('requests an account page and returns the shared camelCase response', async () => {
     fetchMock.mockResolvedValue(
       jsonResponse({
         page: 2,
@@ -34,11 +34,11 @@ describe('accounts API', () => {
           {
             account: 'test_01',
             privilege: 100,
-            gold_coin: 1_000_000,
-            silver_coin: 50_000,
-            last_login_time: '20261001191200',
-            last_login_ip: '192.0.2.1',
-            reg_date: '20260901100000',
+            goldCoin: 1_000_000,
+            silverCoin: 50_000,
+            lastLoginTime: '20261001191200',
+            lastLoginIp: '192.0.2.1',
+            regDate: '20260901100000',
           },
         ],
       }),

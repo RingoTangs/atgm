@@ -1,28 +1,10 @@
 import type {
-  AccountListItemDto,
   AccountsQuery,
   AccountsResponse,
   RegisterAccountRequest,
 } from '@atgm/contracts'
 
 const API_PREFIX = '/_api'
-
-export interface AccountListItem {
-  account: string
-  privilege: number
-  goldCoin: number
-  silverCoin: number
-  lastLoginTime: string
-  lastLoginIp: string
-  regDate: string
-}
-
-export interface AccountsResult {
-  page: number
-  pageSize: number
-  total: number
-  items: AccountListItem[]
-}
 
 export class AccountConflictError extends Error {
   constructor() {
@@ -31,19 +13,9 @@ export class AccountConflictError extends Error {
   }
 }
 
-const toAccountListItem = (item: AccountListItemDto): AccountListItem => ({
-  account: item.account,
-  privilege: item.privilege,
-  goldCoin: item.gold_coin,
-  silverCoin: item.silver_coin,
-  lastLoginTime: item.last_login_time,
-  lastLoginIp: item.last_login_ip,
-  regDate: item.reg_date,
-})
-
 export async function getAccounts(
   params: AccountsQuery,
-): Promise<AccountsResult> {
+): Promise<AccountsResponse> {
   const searchParams = new URLSearchParams({
     page: String(params.page),
     pageSize: String(params.pageSize),
@@ -59,14 +31,7 @@ export async function getAccounts(
     throw new Error('账号列表请求失败')
   }
 
-  const data = (await response.json()) as AccountsResponse
-
-  return {
-    page: data.page,
-    pageSize: data.pageSize,
-    total: data.total,
-    items: data.items.map(toAccountListItem),
-  }
+  return (await response.json()) as AccountsResponse
 }
 
 export async function registerAccount(

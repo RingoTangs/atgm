@@ -11,14 +11,14 @@ export type AccountsQuery = z.infer<typeof accountsQuerySchema>
 export const accountListItemSchema = z.object({
   account: z.string(),
   privilege: z.number().int(),
-  gold_coin: z.number().int(),
-  silver_coin: z.number().int(),
-  last_login_time: z.string(),
-  last_login_ip: z.string(),
-  reg_date: z.string(),
+  goldCoin: z.number().int(),
+  silverCoin: z.number().int(),
+  lastLoginTime: z.string(),
+  lastLoginIp: z.string(),
+  regDate: z.string(),
 })
 
-export type AccountListItemDto = z.infer<typeof accountListItemSchema>
+export type AccountListItem = z.infer<typeof accountListItemSchema>
 
 export const accountsResponseSchema = z.object({
   page: z.number().int(),

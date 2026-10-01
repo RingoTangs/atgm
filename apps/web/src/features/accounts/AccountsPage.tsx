@@ -1,5 +1,5 @@
+import type { AccountListItem } from '@atgm/contracts'
 import type { TableProps } from 'antd'
-import type { AccountListItem } from './accounts-api'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Alert, Button, Input, Table } from 'antd'
 import { useState } from 'react'
