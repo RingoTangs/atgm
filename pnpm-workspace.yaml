@@ -11,6 +11,7 @@ packages:
   - 'packages/*'
 
 catalog:
+  dayjs: ^1.11.23
   zod: ^4.6.5
 
 onlyBuiltDependencies:
