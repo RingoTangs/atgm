@@ -100,6 +100,9 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
           collapsedWidth={72}
           width={240}
           theme="light"
+          classNames={{
+            root: 'border-r-1 border-r-muted px-2'
+          }}
         >
           <div
             aria-label="ATGM"
