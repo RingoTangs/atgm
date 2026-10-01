@@ -82,12 +82,13 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   const navigationMenu = (
     <Menu
       classNames={{
-        root: 'bg-background border-e-0',
+        root: 'border-e-0',
       }}
       items={navigationItems}
       mode="inline"
       onClick={handleNavigation}
       selectedKeys={dashboardSelected ? ['/'] : []}
+      theme={resolvedTheme}
     />
   )
 
@@ -98,9 +99,7 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
           collapsed={collapsed}
           collapsedWidth={72}
           width={240}
-          classNames={{
-            root: 'bg-background',
-          }}
+          theme="light"
         >
           <div
             aria-label="ATGM"
@@ -109,7 +108,7 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
             <Gamepad2 aria-hidden="true" className="shrink-0" size={24} />
             {!collapsed && (
               <div className="min-w-0 leading-tight">
-                <div className="font-semibold text-base">Asktao GM</div>
+                <div className="text-base font-semibold">Asktao GM</div>
               </div>
             )}
           </div>
