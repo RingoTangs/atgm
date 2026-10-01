@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
+import { sql } from 'kysely'
 import { z } from 'zod'
 
 const accountsQuerySchema = z.object({
@@ -26,7 +27,7 @@ const accountsResponseSchema = z.object({
 })
 
 const escapeLikePattern = (value: string): string =>
-  value.replace(/[\\%_]/g, (character) => `\\${character}`)
+  value.replace(/[!%_]/g, (character) => `!${character}`)
 
 export async function accountRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().get(
@@ -65,8 +66,10 @@ export async function accountRoutes(app: FastifyInstance) {
 
       if (account) {
         const pattern = `%${escapeLikePattern(account)}%`
-        itemsQuery = itemsQuery.where('account', 'like', pattern)
-        countQuery = countQuery.where('account', 'like', pattern)
+        const accountPredicate = sql<boolean>`${sql.ref('account')} like ${pattern} escape '!'`
+
+        itemsQuery = itemsQuery.where(accountPredicate)
+        countQuery = countQuery.where(accountPredicate)
       }
 
       const [countResult, items] = await Promise.all([

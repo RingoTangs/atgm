@@ -1,3 +1,11 @@
+import type { Dialect, RawBuilder } from 'kysely'
+import {
+  DummyDriver,
+  Kysely,
+  MysqlAdapter,
+  MysqlIntrospector,
+  MysqlQueryCompiler,
+} from 'kysely'
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { buildApp } from '../app'
 import { registerDatabase } from '../db'
@@ -19,8 +27,8 @@ const mocks = vi.hoisted(() => {
   const offset = vi.fn(() => ({ execute: itemsExecute }))
   const limit = vi.fn(() => ({ offset }))
   const orderBy = vi.fn(() => ({ limit }))
-  const itemsWhere = vi.fn(() => ({ orderBy }))
-  const countWhere = vi.fn(() => ({
+  const itemsWhere = vi.fn((_predicate: RawBuilder<boolean>) => ({ orderBy }))
+  const countWhere = vi.fn((_predicate: RawBuilder<boolean>) => ({
     executeTakeFirstOrThrow: countExecuteTakeFirstOrThrow,
   }))
   const select = vi.fn((selection: unknown) =>
@@ -80,6 +88,23 @@ const accountItem = {
   reg_date: '20260901100000',
 }
 
+interface LikeTestDatabase {
+  account: {
+    account: string
+  }
+}
+
+const mysqlCompileDialect: Dialect = {
+  createAdapter: () => new MysqlAdapter(),
+  createDriver: () => new DummyDriver(),
+  createIntrospector: (database) => new MysqlIntrospector(database),
+  createQueryCompiler: () => new MysqlQueryCompiler(),
+}
+
+const compileDatabase = new Kysely<LikeTestDatabase>({
+  dialect: mysqlCompileDialect,
+})
+
 beforeEach(() => {
   vi.clearAllMocks()
   mocks.countExecuteTakeFirstOrThrow.mockResolvedValue({ total: '125' })
@@ -88,6 +113,7 @@ beforeEach(() => {
 
 afterAll(async () => {
   await app.close()
+  await compileDatabase.destroy()
 })
 
 describe('get /accounts endpoint', () => {
@@ -141,9 +167,10 @@ describe('get /accounts endpoint', () => {
 
   it.each([
     ['普通文本', '%20test%20', '%test%'],
-    ['下划线', 'test_01', '%test\\_01%'],
-    ['百分号', '100%25', '%100\\%%'],
-    ['反斜杠', 'abc%5Cdef', '%abc\\\\def%'],
+    ['下划线', 'test_01', '%test!_01%'],
+    ['百分号', '100%25', '%100!%%'],
+    ['感叹号', 'abc!def', '%abc!!def%'],
+    ['反斜杠', 'abc%5Cdef', '%abc\\def%'],
   ])(
     'escapes LIKE special characters for %s searches',
     async (_case, account, expectedPattern) => {
@@ -153,16 +180,19 @@ describe('get /accounts endpoint', () => {
       })
 
       expect(response.statusCode).toBe(200)
-      expect(mocks.itemsWhere).toHaveBeenCalledWith(
-        'account',
-        'like',
-        expectedPattern,
-      )
-      expect(mocks.countWhere).toHaveBeenCalledWith(
-        'account',
-        'like',
-        expectedPattern,
-      )
+      const itemsPredicate = mocks.itemsWhere.mock.calls[0]?.[0]
+
+      expect(itemsPredicate).toBeDefined()
+      expect(mocks.countWhere).toHaveBeenCalledWith(itemsPredicate)
+
+      const compiledQuery = compileDatabase
+        .selectFrom('account')
+        .select('account')
+        .where(itemsPredicate)
+        .compile()
+
+      expect(compiledQuery.sql).toContain("where `account` like ? escape '!'")
+      expect(compiledQuery.parameters).toEqual([expectedPattern])
     },
   )
 
