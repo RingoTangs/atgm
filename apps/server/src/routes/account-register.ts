@@ -7,6 +7,19 @@ import {
 } from '@atgm/contracts'
 import { createAccountChecksum, createAccountPassword } from './account-crypto'
 
+function formatGameDateTime(date: Date): string {
+  const pad = (value: number) => String(value).padStart(2, '0')
+
+  return [
+    date.getFullYear(),
+    pad(date.getMonth() + 1),
+    pad(date.getDate()),
+    pad(date.getHours()),
+    pad(date.getMinutes()),
+    pad(date.getSeconds()),
+  ].join('')
+}
+
 function isDuplicateEntryError(error: unknown): boolean {
   return (
     error instanceof Error &&
@@ -33,6 +46,7 @@ export async function accountRegisterRoutes(app: FastifyInstance) {
     async (request, reply) => {
       const { account, rawPassword, goldCoin, silverCoin, privilege } =
         request.body
+      const regDate = formatGameDateTime(new Date())
       const password = createAccountPassword(account, rawPassword)
       const checksum = createAccountChecksum({
         account,
@@ -51,6 +65,7 @@ export async function accountRegisterRoutes(app: FastifyInstance) {
             gold_coin: goldCoin,
             silver_coin: silverCoin,
             privilege,
+            reg_date: regDate,
             checksum,
           })
           .executeTakeFirst()

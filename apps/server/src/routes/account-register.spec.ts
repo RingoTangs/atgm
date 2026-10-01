@@ -57,7 +57,7 @@ afterAll(async () => {
 })
 
 describe('post /account endpoint', () => {
-  it('creates an account using only the six supported database fields', async () => {
+  it('creates an account with server-generated reg_date', async () => {
     const response = await app.inject({
       method: 'POST',
       url: '/account',
@@ -73,6 +73,7 @@ describe('post /account endpoint', () => {
       gold_coin: 0,
       silver_coin: 0,
       privilege: 0,
+      reg_date: expect.stringMatching(/^\d{14}$/),
       checksum: '5780D0EDB96323E1BB6FB2F33614A8B7',
     })
     expect(mocks.executeTakeFirst).toHaveBeenCalledOnce()
