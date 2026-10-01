@@ -108,7 +108,7 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   )
 
   return (
-    <Layout className="min-h-screen bg-transparent">
+    <Layout className="h-dvh overflow-hidden bg-transparent">
       {isDesktop && (
         <Sider
           collapsed={collapsed}
@@ -116,7 +116,7 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
           width={240}
           theme={resolvedTheme}
           classNames={{
-            root: 'border-r-1 border-r-muted px-1 bg-transparent',
+            root: 'h-full overflow-hidden border-r-1 border-r-muted px-1 bg-transparent',
           }}
         >
           <div
@@ -134,9 +134,9 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
         </Sider>
       )}
 
-      <Layout className="bg-transparent">
+      <Layout className="min-h-0 min-w-0 overflow-hidden bg-transparent">
         <Header
-          className="bg-background sticky top-0 z-10 flex items-center justify-between"
+          className="bg-background z-10 flex shrink-0 items-center justify-between"
           style={{
             paddingInline: isDesktop ? 24 : 16,
           }}
@@ -185,7 +185,7 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
           </Dropdown>
         </Header>
 
-        <Content className="p-4 md:p-6">
+        <Content className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6">
           <div className="mx-auto max-w-[1600px]">{children}</div>
         </Content>
       </Layout>
