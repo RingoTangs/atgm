@@ -176,7 +176,7 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
               disabled={privilegesQuery.isPending || privilegesQuery.isError}
               loading={privilegesQuery.isPending}
               options={(privilegesQuery.data ?? []).map((privilege) => ({
-                label: `${privilege.privilege} - ${privilege.description}`,
+                label: `${privilege.privilege} - ${privilege.grant} - ${privilege.constant}(${privilege.description})`,
                 value: privilege.privilege,
               }))}
               placeholder="请选择权限"
