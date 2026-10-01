@@ -2,6 +2,13 @@ import type { Privilege } from '@atgm/contracts'
 
 export const ACCOUNT_PRIVILEGES = [
   {
+    privilege: 0,
+    grant: '',
+    constant: '',
+    type: '普通用户',
+    description: '普通用户',
+  },
+  {
     privilege: 120,
     grant: 'GA',
     constant: 'ADMINISTRATOR',

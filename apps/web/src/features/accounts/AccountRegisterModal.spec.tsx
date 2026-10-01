@@ -9,6 +9,13 @@ let queryClient: QueryClient
 
 const privileges = [
   {
+    privilege: 0,
+    grant: '',
+    constant: '',
+    type: '普通用户',
+    description: '普通用户',
+  },
+  {
     privilege: 120,
     grant: 'GA',
     constant: 'ADMINISTRATOR',
@@ -106,7 +113,7 @@ const fillRequiredFields = async (account = 'new-account') => {
 
 const selectPrivilege = async (
   user: ReturnType<typeof userEvent.setup>,
-  option = '120 - 管理员',
+  option = '120 - GA - ADMINISTRATOR(管理员)',
 ) => {
   await user.click(screen.getByLabelText('权限'))
   await user.click(await screen.findByTitle(option))
@@ -129,8 +136,13 @@ describe('account register modal', () => {
 
     const user = userEvent.setup()
     await user.click(screen.getByLabelText('权限'))
-    expect(await screen.findByTitle('120 - 管理员')).toBeInTheDocument()
-    expect(screen.getByTitle('1000 - 调试器权限')).toBeInTheDocument()
+    expect(await screen.findByTitle('0 - 普通用户')).toBeInTheDocument()
+    expect(
+      await screen.findByTitle('120 - GA - ADMINISTRATOR(管理员)'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByTitle('1000 - GD - DEBUGGER(调试器权限)'),
+    ).toBeInTheDocument()
   })
 
   it('validates required account, password, and privilege fields', async () => {
@@ -190,7 +202,7 @@ describe('account register modal', () => {
     await user.type(screen.getByLabelText('金币'), '2000000000')
     await user.clear(screen.getByLabelText('银币'))
     await user.type(screen.getByLabelText('银币'), '15')
-    await selectPrivilege(user, '1000 - 调试器权限')
+    await selectPrivilege(user, '1000 - GD - DEBUGGER(调试器权限)')
     await user.click(screen.getByRole('button', { name: '注册' }))
 
     expect(await screen.findByText('账号注册成功')).toBeInTheDocument()

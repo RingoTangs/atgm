@@ -19,18 +19,25 @@ describe('get /privileges endpoint', () => {
     const privileges = response.json()
 
     expect(Array.isArray(privileges)).toBe(true)
-    expect(privileges).toHaveLength(8)
+    expect(privileges).toHaveLength(9)
     expect(
       privileges.map((item: { privilege: number }) => item.privilege),
-    ).toEqual([120, 130, 140, 150, 200, 300, 400, 1000])
+    ).toEqual([0, 120, 130, 140, 150, 200, 300, 400, 1000])
     expect(privileges[0]).toEqual({
+      privilege: 0,
+      grant: '',
+      constant: '',
+      type: '普通用户',
+      description: '普通用户',
+    })
+    expect(privileges[1]).toEqual({
       privilege: 120,
       grant: 'GA',
       constant: 'ADMINISTRATOR',
       type: '管理特权',
       description: '管理员',
     })
-    expect(privileges[7]).toEqual({
+    expect(privileges[8]).toEqual({
       privilege: 1000,
       grant: 'GD',
       constant: 'DEBUGGER',
