@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './../../routes/__root'
 import { Route as SplatRouteImport } from './../../routes/$'
 import { Route as AppRouteImport } from './../../routes/_app'
 import { Route as AppIndexRouteImport } from './../../routes/_app/index'
+import { Route as AppAccountsRouteImport } from './../../routes/_app/accounts'
 
 const SplatRoute = SplatRouteImport.update({
   id: '/$',
@@ -27,27 +28,35 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAccountsRoute = AppAccountsRouteImport.update({
+  id: '/accounts',
+  path: '/accounts',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/$': typeof SplatRoute
   '/': typeof AppIndexRoute
+  '/accounts': typeof AppAccountsRoute
 }
 export interface FileRoutesByTo {
   '/$': typeof SplatRoute
+  '/accounts': typeof AppAccountsRoute
   '/': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/$': typeof SplatRoute
   '/_app': typeof AppRouteWithChildren
+  '/_app/accounts': typeof AppAccountsRoute
   '/_app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/$' | '/'
+  fullPaths: '/$' | '/' | '/accounts'
   fileRoutesByTo: FileRoutesByTo
-  to: '/$' | '/'
-  id: '__root__' | '/$' | '/_app' | '/_app/'
+  to: '/$' | '/accounts' | '/'
+  id: '__root__' | '/$' | '/_app' | '/_app/accounts' | '/_app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -78,14 +87,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/accounts': {
+      id: '/_app/accounts'
+      path: '/accounts'
+      fullPath: '/accounts'
+      preLoaderRoute: typeof AppAccountsRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppAccountsRoute: typeof AppAccountsRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAccountsRoute: AppAccountsRoute,
   AppIndexRoute: AppIndexRoute,
 }
 

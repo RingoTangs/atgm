@@ -22,6 +22,8 @@ const DashboardPage: React.FC = () => (
   </div>
 )
 
+const AccountsPage: React.FC = () => <h1>账号管理页面</h1>
+
 const installMatchMedia = (width: number, dark = false) => {
   vi.stubGlobal(
     'matchMedia',
@@ -71,6 +73,11 @@ const renderApplication = (initialEntry = '/') => {
     path: '/',
     component: DashboardPage,
   })
+  const accountsRoute = createRoute({
+    getParentRoute: () => appRoute,
+    path: '/accounts',
+    component: AccountsPage,
+  })
   const brokenRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/broken',
@@ -79,7 +86,7 @@ const renderApplication = (initialEntry = '/') => {
   const router = createRouter({
     history: createMemoryHistory({ initialEntries: [initialEntry] }),
     routeTree: rootRoute.addChildren([
-      appRoute.addChildren([dashboardRoute]),
+      appRoute.addChildren([dashboardRoute, accountsRoute]),
       brokenRoute,
     ]),
   })
@@ -128,7 +135,28 @@ describe('app layout', () => {
     const dashboardItem = screen.getByRole('menuitem', {
       name: 'Dashboard',
     })
+    expect(
+      screen.getByRole('menuitem', { name: '账号管理' }),
+    ).toBeInTheDocument()
     expect(within(dashboardItem).getByText('Dashboard')).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+  })
+
+  it('可以导航到账号管理并高亮当前菜单', async () => {
+    const user = userEvent.setup()
+    installMatchMedia(1280)
+    renderApplication()
+
+    await screen.findByRole('heading', { name: 'Dashboard' })
+    await user.click(screen.getByRole('menuitem', { name: '账号管理' }))
+
+    expect(
+      await screen.findByRole('heading', { name: '账号管理页面' }),
+    ).toBeInTheDocument()
+    const accountsItem = screen.getByRole('menuitem', { name: '账号管理' })
+    expect(within(accountsItem).getByText('账号管理')).toHaveAttribute(
       'aria-current',
       'page',
     )
@@ -198,6 +226,9 @@ describe('app layout', () => {
     expect(
       within(drawer).getByRole('menuitem', { name: 'Dashboard' }),
     ).toBeVisible()
+    expect(
+      within(drawer).getByRole('menuitem', { name: '账号管理' }),
+    ).toBeVisible()
 
     await user.click(within(drawer).getByRole('button', { name: '关闭导航' }))
     expect(
@@ -207,11 +238,14 @@ describe('app layout', () => {
     await user.click(screen.getByRole('button', { name: '打开导航' }))
     const reopenedDrawer = await screen.findByRole('dialog', { name: '导航' })
     await user.click(
-      within(reopenedDrawer).getByRole('menuitem', { name: 'Dashboard' }),
+      within(reopenedDrawer).getByRole('menuitem', { name: '账号管理' }),
     )
     expect(
       screen.queryByRole('dialog', { name: '导航' }),
     ).not.toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: '账号管理页面' }),
+    ).toBeInTheDocument()
   })
 
   it('保持根路由的 404 行为且不包裹后台布局', async () => {

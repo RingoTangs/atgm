@@ -9,6 +9,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Sun,
+  Users,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useTheme } from '@/theme'
@@ -44,15 +45,25 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   const pathname = useLocation({ select: (location) => location.pathname })
   const navigate = useNavigate()
   const { theme, resolvedTheme, setTheme } = useTheme()
-  const dashboardSelected = pathname === '/'
+  const selectedNavigationKey =
+    pathname === '/' || pathname === '/accounts' ? pathname : undefined
 
   const navigationItems: MenuProps['items'] = [
     {
       key: '/',
       icon: <LayoutDashboard aria-hidden="true" size={18} />,
       label: (
-        <span aria-current={dashboardSelected ? 'page' : undefined}>
+        <span aria-current={pathname === '/' ? 'page' : undefined}>
           Dashboard
+        </span>
+      ),
+    },
+    {
+      key: '/accounts',
+      icon: <Users aria-hidden="true" size={18} />,
+      label: (
+        <span aria-current={pathname === '/accounts' ? 'page' : undefined}>
+          账号管理
         </span>
       ),
     },
@@ -63,6 +74,10 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
 
     if (key === '/') {
       void navigate({ to: '/' })
+    }
+
+    if (key === '/accounts') {
+      void navigate({ to: '/accounts' })
     }
   }
 
@@ -87,7 +102,7 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
       items={navigationItems}
       mode="inline"
       onClick={handleNavigation}
-      selectedKeys={dashboardSelected ? ['/'] : []}
+      selectedKeys={selectedNavigationKey ? [selectedNavigationKey] : []}
       theme={resolvedTheme}
     />
   )
