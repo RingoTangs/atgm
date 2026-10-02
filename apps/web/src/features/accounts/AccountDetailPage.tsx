@@ -2,7 +2,7 @@ import type { Privilege } from '@atgm/contracts'
 import type { DescriptionsProps } from 'antd'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { Alert, Badge, Button, Descriptions, Skeleton } from 'antd'
+import { Alert, Badge, Button, Descriptions, Skeleton, Tooltip } from 'antd'
 import { useState } from 'react'
 import { AccountEditModal } from './AccountEditModal'
 import { AccountNotFoundError } from './accounts-api'
@@ -190,13 +190,18 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = ({
           <Link to="/accounts">返回账号列表</Link>
           <h1 className="mt-2 text-2xl font-semibold">账号详情</h1>
         </div>
-        <Button
-          aria-label="编辑"
-          onClick={() => setEditOpen(true)}
-          type="primary"
-        >
-          编辑
-        </Button>
+        <Tooltip title={detail.online ? '账号在线时无法修改' : undefined}>
+          <span>
+            <Button
+              aria-label="编辑"
+              disabled={detail.online}
+              onClick={() => setEditOpen(true)}
+              type="primary"
+            >
+              编辑
+            </Button>
+          </span>
+        </Tooltip>
       </div>
 
       <Descriptions

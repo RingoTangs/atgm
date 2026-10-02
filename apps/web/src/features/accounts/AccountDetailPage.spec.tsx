@@ -61,6 +61,14 @@ beforeEach(() => {
   })
   vi.stubGlobal('fetch', fetchMock)
   vi.stubGlobal(
+    'ResizeObserver',
+    class ResizeObserver {
+      observe = vi.fn()
+      unobserve = vi.fn()
+      disconnect = vi.fn()
+    },
+  )
+  vi.stubGlobal(
     'matchMedia',
     vi.fn((query: string) => ({
       matches: false,
@@ -138,9 +146,26 @@ describe('account detail page', () => {
     renderPage()
 
     expect(await screen.findByText('离线')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '编辑' })).toBeEnabled()
+  })
+
+  it('disables editing for an online account and explains why', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    const editButton = await screen.findByRole('button', { name: '编辑' })
+
+    expect(editButton).toBeDisabled()
+    await user.hover(editButton.parentElement as HTMLElement)
+    expect(await screen.findByText('账号在线时无法修改')).toBeInTheDocument()
   })
 
   it('opens the core account edit modal', async () => {
+    fetchMock.mockImplementation(async (input) =>
+      String(input) === '/_api/privileges'
+        ? jsonResponse([privilege])
+        : jsonResponse({ ...accountDetail, online: false }),
+    )
     const user = userEvent.setup()
     renderPage()
 
