@@ -63,11 +63,11 @@ export const AccountsPage: React.FC = () => {
           return (
             <Tooltip
               title={
-                <div>
-                  <div>常量：{privilege.constant}</div>
-                  <div>类型：{privilege.type}</div>
-                  <div>描述：{privilege.description}</div>
-                </div>
+                <ul>
+                  <li>常量：{privilege.constant}</li>
+                  <li>类型：{privilege.type}</li>
+                  <li>描述：{privilege.description}</li>
+                </ul>
               }
             >
               <div className="whitespace-nowrap">
