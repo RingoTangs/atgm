@@ -15,6 +15,7 @@ const fetchMock = vi.fn<typeof fetch>()
 
 const accountDetail = {
   account: 'server-account',
+  online: true,
   privilege: 120,
   goldCoin: 1_000_000,
   silverCoin: 50_000,
@@ -117,13 +118,26 @@ describe('account detail page', () => {
     expect(fetchMock).toHaveBeenCalledWith('/_api/accounts/server-account')
     expect(fetchMock).toHaveBeenCalledWith('/_api/privileges')
     expect(await screen.findByText('server-account')).toBeInTheDocument()
+    expect(screen.getByText('在线')).toBeInTheDocument()
     expect(screen.getByText('1,000,000')).toBeInTheDocument()
     expect(screen.getByText('50,000')).toBeInTheDocument()
     expect(screen.getByText('2026-09-01 11:00:00')).toBeInTheDocument()
     expect(screen.getByText('2026-10-01 19:12:00')).toBeInTheDocument()
-    expect(screen.getByText('120 - GA')).toBeInTheDocument()
-    expect(screen.getByText('管理员')).toBeInTheDocument()
+    expect(
+      screen.getByText('120 - GA - ADMINISTRATOR(管理员)'),
+    ).toBeInTheDocument()
     expect(screen.getAllByText('-').length).toBeGreaterThan(0)
+  })
+
+  it('renders the offline account status', async () => {
+    fetchMock.mockImplementation(async (input) =>
+      String(input) === '/_api/privileges'
+        ? jsonResponse([privilege])
+        : jsonResponse({ ...accountDetail, online: false }),
+    )
+    renderPage()
+
+    expect(await screen.findByText('离线')).toBeInTheDocument()
   })
 
   it('opens the core account edit modal', async () => {

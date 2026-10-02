@@ -1,7 +1,7 @@
 import type { Privilege } from '@atgm/contracts'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { Alert, Button, Descriptions, Skeleton } from 'antd'
+import { Alert, Badge, Button, Descriptions, Skeleton } from 'antd'
 import { useState } from 'react'
 import { AccountEditModal } from './AccountEditModal'
 import { AccountNotFoundError } from './accounts-api'
@@ -99,8 +99,15 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = ({
         </Button>
       </div>
 
-      <Descriptions bordered title="基本信息">
+      <Descriptions bordered column={2}  title="基本信息">
         <Descriptions.Item label="账号">{detail.account}</Descriptions.Item>
+        <Descriptions.Item label="状态">
+          {detail.online ? (
+            <Badge status="success" text="在线" />
+          ) : (
+            <Badge status="default" text="离线" />
+          )}
+        </Descriptions.Item>
         <Descriptions.Item label="权限">
           {renderPrivilege(detail.privilege, privilege)}
         </Descriptions.Item>
