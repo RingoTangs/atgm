@@ -4,7 +4,11 @@ import { Link } from '@tanstack/react-router'
 import { Alert, Button, Descriptions, Skeleton } from 'antd'
 import { useState } from 'react'
 import { AccountEditModal } from './AccountEditModal'
-import { AccountNotFoundError, getAccount, getPrivileges } from './accounts-api'
+import { AccountNotFoundError } from './accounts-api'
+import {
+  accountDetailQueryOptions,
+  privilegesQueryOptions,
+} from './accounts-queries'
 
 interface AccountDetailPageProps {
   account: string
@@ -38,15 +42,8 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = ({
   account,
 }) => {
   const [editOpen, setEditOpen] = useState(false)
-  const accountQuery = useQuery({
-    queryKey: ['account', account],
-    queryFn: () => getAccount(account),
-  })
-  const privilegesQuery = useQuery({
-    queryKey: ['privileges'],
-    queryFn: getPrivileges,
-    staleTime: Infinity,
-  })
+  const accountQuery = useQuery(accountDetailQueryOptions(account))
+  const privilegesQuery = useQuery(privilegesQueryOptions())
 
   if (accountQuery.isPending) {
     return (

@@ -9,9 +9,9 @@ import { useEffect, useMemo } from 'react'
 import {
   AccountNotFoundError,
   AccountUpdateConflictError,
-  getPrivileges,
   updateAccount,
 } from './accounts-api'
+import { accountQueryKeys, privilegesQueryOptions } from './accounts-queries'
 
 interface AccountEditModalProps {
   account: AccountDetailResponse
@@ -46,10 +46,8 @@ export const AccountEditModal: React.FC<AccountEditModalProps> = ({
   const [messageApi, messageContext] = message.useMessage()
   const queryClient = useQueryClient()
   const privilegesQuery = useQuery({
-    queryKey: ['privileges'],
-    queryFn: getPrivileges,
+    ...privilegesQueryOptions(),
     enabled: open,
-    staleTime: Infinity,
   })
   const privilegeOptions = useMemo(() => {
     const options = (privilegesQuery.data ?? []).map((privilege) => ({
@@ -74,10 +72,12 @@ export const AccountEditModal: React.FC<AccountEditModalProps> = ({
       updateAccount(account.account, values),
     onSuccess: () => {
       void queryClient
-        .invalidateQueries({ queryKey: ['account', account.account] })
+        .invalidateQueries({
+          queryKey: accountQueryKeys.detail(account.account),
+        })
         .catch(() => undefined)
       void queryClient
-        .invalidateQueries({ queryKey: ['accounts'] })
+        .invalidateQueries({ queryKey: accountQueryKeys.all })
         .catch(() => undefined)
       void messageApi.success('账号修改成功')
       onCancel()

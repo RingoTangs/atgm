@@ -2,11 +2,8 @@ import type { RegisterAccountRequest } from '@atgm/contracts'
 import type { FormProps } from 'antd'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Alert, Form, Input, InputNumber, message, Modal, Select } from 'antd'
-import {
-  AccountConflictError,
-  getPrivileges,
-  registerAccount,
-} from './accounts-api'
+import { AccountConflictError, registerAccount } from './accounts-api'
+import { accountQueryKeys, privilegesQueryOptions } from './accounts-queries'
 
 interface AccountRegisterModalProps {
   open: boolean
@@ -44,16 +41,14 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
   const [messageApi, messageContext] = message.useMessage()
   const queryClient = useQueryClient()
   const privilegesQuery = useQuery({
-    queryKey: ['privileges'],
-    queryFn: getPrivileges,
+    ...privilegesQueryOptions(),
     enabled: open,
-    staleTime: Infinity,
   })
   const registerMutation = useMutation({
     mutationFn: registerAccount,
     onSuccess: () => {
       void queryClient
-        .invalidateQueries({ queryKey: ['accounts'] })
+        .invalidateQueries({ queryKey: accountQueryKeys.all })
         .catch(() => undefined)
       void messageApi.success('账号注册成功')
       form.resetFields()

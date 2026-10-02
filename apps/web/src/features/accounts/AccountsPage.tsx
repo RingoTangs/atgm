@@ -1,11 +1,14 @@
 import type { AccountListItem, Privilege } from '@atgm/contracts'
 import type { TableProps } from 'antd'
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Alert, Button, Input, Table, Tooltip } from 'antd'
 import { useMemo, useState } from 'react'
 import { AccountRegisterModal } from './AccountRegisterModal'
-import { getAccounts, getPrivileges } from './accounts-api'
+import {
+  accountsQueryOptions,
+  privilegesQueryOptions,
+} from './accounts-queries'
 
 const useAccountColumns = (privileges?: Privilege[]) =>
   useMemo<TableProps<AccountListItem>['columns']>(() => {
@@ -113,21 +116,14 @@ export const AccountsPage: React.FC = () => {
   const [searchText, setSearchText] = useState('')
   const [account, setAccount] = useState('')
   const [registerOpen, setRegisterOpen] = useState(false)
-  const accountsQuery = useQuery({
-    queryKey: ['accounts', { page, pageSize, account }],
-    queryFn: () =>
-      getAccounts({
-        page,
-        pageSize,
-        account: account || undefined,
-      }),
-    placeholderData: keepPreviousData,
-  })
-  const privilegesQuery = useQuery({
-    queryKey: ['privileges'],
-    queryFn: getPrivileges,
-    staleTime: Infinity,
-  })
+  const accountsQuery = useQuery(
+    accountsQueryOptions({
+      page,
+      pageSize,
+      account: account || undefined,
+    }),
+  )
+  const privilegesQuery = useQuery(privilegesQueryOptions())
   const columns = useAccountColumns(privilegesQuery.data)
 
   const submitSearch = (value: string) => {
