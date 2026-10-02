@@ -193,22 +193,70 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = ({
         column={2}
         items={basicInfoItems}
         title="基本信息"
+        styles={{
+          label: {
+            width: 120,
+            textAlign: 'center',
+          },
+          content: {
+            minWidth: 0,
+            textAlign: 'center',
+          },
+        }}
       />
-
-      <Descriptions bordered size="small" items={assetItems} title="资产" />
 
       <Descriptions
         bordered
+        size="small"
+        items={assetItems}
+        title="资产"
+        column={2}
+        styles={{
+          label: {
+            width: 120,
+            textAlign: 'center',
+          },
+          content: {
+            minWidth: 0,
+            textAlign: 'center',
+          },
+        }}
+      />
+
+      <Descriptions
+        bordered
+        column={3}
         size="small"
         items={loginInfoItems}
         title="登录信息"
+        styles={{
+          label: {
+            width: 130,
+            textAlign: 'center',
+          },
+          content: {
+            minWidth: 0,
+            textAlign: 'center',
+          },
+        }}
       />
 
       <Descriptions
         bordered
+        column={2}
         size="small"
         items={blockInfoItems}
         title="封禁信息"
+        styles={{
+          label: {
+            width: 130,
+            textAlign: 'center',
+          },
+          content: {
+            minWidth: 0,
+            textAlign: 'center',
+          },
+        }}
       />
 
       <AccountEditModal

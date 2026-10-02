@@ -22,3 +22,9 @@
     @apply h-full w-full;
   }
 }
+
+@layer antd {
+  .ant-descriptions-view > table {
+    @apply w-full table-fixed!;
+  }
+}
