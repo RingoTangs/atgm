@@ -151,7 +151,7 @@ const getPrivilegeRequestUrls = (): string[] =>
     .filter((url) => url === '/_api/privileges')
 
 describe('accounts page', () => {
-  it('renders the seven columns and server account data', async () => {
+  it('renders the eight columns and server account data', async () => {
     renderPage()
 
     expect(
@@ -167,14 +167,22 @@ describe('accounts page', () => {
       '最后登录',
       '最后登录 IP',
       '注册时间',
+      '操作',
     ]) {
       expect(
         screen.getByRole('columnheader', { name: column }),
       ).toBeInTheDocument()
     }
+    expect(screen.getAllByRole('columnheader')).toHaveLength(8)
 
     const row = (await screen.findByText('server-account')).closest('tr')
     if (!row) throw new Error('server account row not found')
+    expect(
+      within(row).queryByRole('link', { name: 'server-account' }),
+    ).not.toBeInTheDocument()
+    expect(
+      within(row).getByRole('link', { name: '查看详情' }),
+    ).toBeInTheDocument()
     expect(within(row).getByText('100')).toBeInTheDocument()
     expect(within(row).getByText('未知权限')).toBeInTheDocument()
     expect(within(row).getByText('1,000,000')).toBeInTheDocument()
@@ -188,13 +196,13 @@ describe('accounts page', () => {
     expect(getPrivilegeRequestUrls()).toEqual(['/_api/privileges'])
   })
 
-  it('navigates to account details when the account link is clicked', async () => {
+  it('navigates to account details from the action column', async () => {
     const user = userEvent.setup()
     renderPage()
 
-    await user.click(
-      await screen.findByRole('link', { name: 'server-account' }),
-    )
+    const row = (await screen.findByText('server-account')).closest('tr')
+    if (!row) throw new Error('server account row not found')
+    await user.click(within(row).getByRole('link', { name: '查看详情' }))
 
     expect(
       await screen.findByRole('heading', { name: '账号详情测试页' }),

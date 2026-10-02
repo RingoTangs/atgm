@@ -44,11 +44,6 @@ export const AccountsPage: React.FC = () => {
         title: '账号',
         dataIndex: 'account',
         key: 'account',
-        render: (value: string) => (
-          <Link params={{ account: value }} to="/accounts/$account">
-            {value}
-          </Link>
-        ),
       },
       {
         title: '权限',
@@ -117,6 +112,17 @@ export const AccountsPage: React.FC = () => {
         key: 'regDate',
         className: 'whitespace-nowrap',
         render: (value: string) => value || '-',
+      },
+      {
+        title: '操作',
+        key: 'action',
+        fixed: 'right',
+        width: 100,
+        render: (_, record) => (
+          <Link params={{ account: record.account }} to="/accounts/$account">
+            查看详情
+          </Link>
+        ),
       },
     ],
     [privilegeMap],
