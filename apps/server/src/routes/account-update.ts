@@ -80,6 +80,17 @@ export async function accountUpdateRoutes(app: FastifyInstance) {
         return { account: item.account }
       }
 
+      const onlineRow = await app.db.ddb
+        .selectFrom('data')
+        .select('name')
+        .where('path', '=', 'runtime')
+        .where('name', '=', item.account)
+        .executeTakeFirst()
+
+      if (onlineRow) {
+        return reply.code(409).send({ message: '账号当前在线，无法修改' })
+      }
+
       const nextChecksum = createAccountChecksum({
         account: item.account,
         password: item.password,

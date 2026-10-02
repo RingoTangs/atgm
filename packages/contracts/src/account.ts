@@ -81,7 +81,11 @@ export const updateAccountResponseSchema = z.object({
 export type UpdateAccountResponse = z.infer<typeof updateAccountResponseSchema>
 
 export const accountUpdateConflictResponseSchema = z.object({
-  message: z.enum(['账号数据校验失败', '账号数据已发生变化，请重试']),
+  message: z.enum([
+    '账号数据校验失败',
+    '账号数据已发生变化，请重试',
+    '账号当前在线，无法修改',
+  ]),
 })
 
 export type AccountUpdateConflictResponse = z.infer<
