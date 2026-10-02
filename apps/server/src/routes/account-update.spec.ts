@@ -2,7 +2,7 @@ import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { buildApp } from '../app'
 import { registerDatabase } from '../db'
 import { parseServerEnv } from '../env'
-import { createAccountChecksum } from './account-crypto'
+import { createAccountChecksum } from '../lib/account-crypto'
 
 const checksumFields = [
   'account',

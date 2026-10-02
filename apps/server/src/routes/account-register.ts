@@ -5,8 +5,11 @@ import {
   registerAccountBodySchema,
   registerAccountResponseSchema,
 } from '@atgm/contracts'
+import {
+  createAccountChecksum,
+  createAccountPassword,
+} from '../lib/account-crypto'
 import { formatGameTime } from '../lib/game-time'
-import { createAccountChecksum, createAccountPassword } from './account-crypto'
 
 function isDuplicateEntryError(error: unknown): boolean {
   return (

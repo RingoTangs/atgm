@@ -7,7 +7,7 @@ import {
   updateAccountBodySchema,
   updateAccountResponseSchema,
 } from '@atgm/contracts'
-import { createAccountChecksum } from './account-crypto'
+import { createAccountChecksum } from '../lib/account-crypto'
 
 const checksumFields = [
   'account',
