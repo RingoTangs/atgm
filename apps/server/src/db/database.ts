@@ -11,11 +11,17 @@ export function createDatabases(env: ServerEnv) {
     user: env.MYSQL_USER,
     password: env.MYSQL_PASSWORD,
     database: env.MYSQL_DL_ADB_ALL,
+    // 连接达到上限时等待可用连接
     waitForConnections: true,
+    // 连接池最多创建 10 个连接
     connectionLimit: 10,
+    // 最多保留 2 个空闲连接
     maxIdle: 2,
+    // 空闲连接 30 秒后回收
     idleTimeout: 30_000,
+    // 启用 TCP 保活，帮助发现失效连接
     enableKeepAlive: true,
+    // 10 秒后开始发送保活探测
     keepAliveInitialDelay: 10_000,
   })
 
