@@ -32,7 +32,7 @@ const useAccountColumns = (privileges?: Privilege[]) =>
           record.online ? (
             <Badge status="success" text="在线" />
           ) : (
-            <Badge status="error" text="离线" />
+            <Badge status="default" text="离线" />
           ),
       },
       {
