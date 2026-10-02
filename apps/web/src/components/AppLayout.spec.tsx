@@ -23,6 +23,7 @@ const DashboardPage: React.FC = () => (
 )
 
 const AccountsPage: React.FC = () => <h1>账号管理页面</h1>
+const AccountDetailPage: React.FC = () => <h1>账号详情页面</h1>
 
 const installMatchMedia = (width: number, dark = false) => {
   vi.stubGlobal(
@@ -78,6 +79,11 @@ const renderApplication = (initialEntry = '/') => {
     path: '/accounts',
     component: AccountsPage,
   })
+  const accountDetailRoute = createRoute({
+    getParentRoute: () => appRoute,
+    path: '/accounts/$account',
+    component: AccountDetailPage,
+  })
   const brokenRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/broken',
@@ -86,7 +92,7 @@ const renderApplication = (initialEntry = '/') => {
   const router = createRouter({
     history: createMemoryHistory({ initialEntries: [initialEntry] }),
     routeTree: rootRoute.addChildren([
-      appRoute.addChildren([dashboardRoute, accountsRoute]),
+      appRoute.addChildren([dashboardRoute, accountsRoute, accountDetailRoute]),
       brokenRoute,
     ]),
   })
@@ -154,6 +160,20 @@ describe('app layout', () => {
 
     expect(
       await screen.findByRole('heading', { name: '账号管理页面' }),
+    ).toBeInTheDocument()
+    const accountsItem = screen.getByRole('menuitem', { name: '账号管理' })
+    expect(within(accountsItem).getByText('账号管理')).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+  })
+
+  it('账号详情路由保持账号管理菜单选中', async () => {
+    installMatchMedia(1280)
+    renderApplication('/accounts/server-account')
+
+    expect(
+      await screen.findByRole('heading', { name: '账号详情页面' }),
     ).toBeInTheDocument()
     const accountsItem = screen.getByRole('menuitem', { name: '账号管理' })
     expect(within(accountsItem).getByText('账号管理')).toHaveAttribute(

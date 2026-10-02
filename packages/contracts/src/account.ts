@@ -29,6 +29,39 @@ export const accountsResponseSchema = z.object({
 
 export type AccountsResponse = z.infer<typeof accountsResponseSchema>
 
+export const accountDetailParamsSchema = z.object({
+  account: z.string().min(1).max(32),
+})
+
+export type AccountDetailParams = z.infer<typeof accountDetailParamsSchema>
+
+export const accountDetailResponseSchema = z.object({
+  account: z.string(),
+  privilege: z.number().int(),
+  goldCoin: z.number().int(),
+  silverCoin: z.number().int(),
+  blockedTime: z.string(),
+  blockedReason: z.string(),
+  tempBlockedTime: z.string(),
+  tempBlockedReason: z.string(),
+  firstLoginTime: z.string(),
+  firstLoginMac: z.string(),
+  lastLoginTime: z.string(),
+  lastLoginIp: z.string(),
+  lastLoginId: z.string(),
+  regDate: z.string(),
+})
+
+export type AccountDetailResponse = z.infer<typeof accountDetailResponseSchema>
+
+export const accountNotFoundResponseSchema = z.object({
+  message: z.literal('账号不存在'),
+})
+
+export type AccountNotFoundResponse = z.infer<
+  typeof accountNotFoundResponseSchema
+>
+
 export const registerAccountBodySchema = z
   .object({
     account: z.string().min(1).max(32),

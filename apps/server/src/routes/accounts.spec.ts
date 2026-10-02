@@ -21,9 +21,38 @@ const accountFields = [
   'reg_date',
 ]
 
+const accountDetailFields = [
+  'account',
+  'privilege',
+  'gold_coin',
+  'silver_coin',
+  'blocked_time',
+  'blocked_reason',
+  'temp_blocked_time',
+  'temp_blocked_reason',
+  'first_login_time',
+  'first_login_mac',
+  'last_login_time',
+  'last_login_ip',
+  'last_login_id',
+  'reg_date',
+]
+
+const privateAccountFields = [
+  'password',
+  'org_password',
+  'coin_password',
+  'checksum',
+  'id_num',
+  'tel',
+  'mobile',
+  'email',
+]
+
 const mocks = vi.hoisted(() => {
   const itemsExecute = vi.fn()
   const countExecuteTakeFirstOrThrow = vi.fn()
+  const detailExecuteTakeFirst = vi.fn()
   const offset = vi.fn(() => ({ execute: itemsExecute }))
   const limit = vi.fn(() => ({ offset }))
   const orderBy = vi.fn(() => ({ limit }))
@@ -31,9 +60,14 @@ const mocks = vi.hoisted(() => {
   const countWhere = vi.fn((_predicate: RawBuilder<boolean>) => ({
     executeTakeFirstOrThrow: countExecuteTakeFirstOrThrow,
   }))
+  const detailWhere = vi.fn(() => ({
+    executeTakeFirst: detailExecuteTakeFirst,
+  }))
   const select = vi.fn((selection: unknown) =>
     Array.isArray(selection)
-      ? { orderBy, where: itemsWhere }
+      ? selection.includes('blocked_time')
+        ? { where: detailWhere }
+        : { orderBy, where: itemsWhere }
       : {
           executeTakeFirstOrThrow: countExecuteTakeFirstOrThrow,
           where: countWhere,
@@ -44,6 +78,8 @@ const mocks = vi.hoisted(() => {
   return {
     countExecuteTakeFirstOrThrow,
     countWhere,
+    detailExecuteTakeFirst,
+    detailWhere,
     itemsExecute,
     itemsWhere,
     limit,
@@ -98,6 +134,23 @@ const accountResponseItem = {
   regDate: '2026-09-01 10:00:00',
 }
 
+const accountDetailItem = {
+  account: 'example_user',
+  privilege: 120,
+  gold_coin: 1_000_000,
+  silver_coin: 50_000,
+  blocked_time: '20261002153045',
+  blocked_reason: '违规行为',
+  temp_blocked_time: '20261003120000',
+  temp_blocked_reason: '临时限制',
+  first_login_time: '20260901110000',
+  first_login_mac: '00:11:22:33:44:55',
+  last_login_time: '20261001191200',
+  last_login_ip: '192.0.2.1',
+  last_login_id: 'device-01',
+  reg_date: '20260901100000',
+}
+
 interface LikeTestDatabase {
   account: {
     account: string
@@ -119,6 +172,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   mocks.countExecuteTakeFirstOrThrow.mockResolvedValue({ total: '125' })
   mocks.itemsExecute.mockResolvedValue([accountItem])
+  mocks.detailExecuteTakeFirst.mockResolvedValue(accountDetailItem)
 })
 
 afterAll(async () => {
@@ -149,8 +203,9 @@ describe('get /accounts endpoint', () => {
     expect(mocks.offset).toHaveBeenCalledWith(0)
     expect(mocks.itemsExecute).toHaveBeenCalledOnce()
     expect(mocks.countExecuteTakeFirstOrThrow).toHaveBeenCalledOnce()
-    expect(response.payload).not.toContain('password')
-    expect(response.payload).not.toContain('checksum')
+    for (const privateField of privateAccountFields) {
+      expect(response.payload).not.toContain(privateField)
+    }
   })
 
   it('coerces valid pagination strings and calculates the offset', async () => {
@@ -262,4 +317,77 @@ describe('get /accounts endpoint', () => {
       expect(mocks.countExecuteTakeFirstOrThrow).not.toHaveBeenCalled()
     },
   )
+})
+
+describe('get /accounts/:account endpoint', () => {
+  it('returns the public account details with display-formatted times', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/accounts/example_user',
+    })
+
+    expect(response.statusCode).toBe(200)
+    expect(response.json()).toEqual({
+      account: 'example_user',
+      privilege: 120,
+      goldCoin: 1_000_000,
+      silverCoin: 50_000,
+      blockedTime: '2026-10-02 15:30:45',
+      blockedReason: '违规行为',
+      tempBlockedTime: '2026-10-03 12:00:00',
+      tempBlockedReason: '临时限制',
+      firstLoginTime: '2026-09-01 11:00:00',
+      firstLoginMac: '00:11:22:33:44:55',
+      lastLoginTime: '2026-10-01 19:12:00',
+      lastLoginIp: '192.0.2.1',
+      lastLoginId: 'device-01',
+      regDate: '2026-09-01 10:00:00',
+    })
+    expect(mocks.select).toHaveBeenCalledWith(accountDetailFields)
+    expect(mocks.detailWhere).toHaveBeenCalledWith(
+      'account',
+      '=',
+      'example_user',
+    )
+    for (const privateField of privateAccountFields) {
+      expect(response.payload).not.toContain(privateField)
+    }
+  })
+
+  it('preserves empty account detail times', async () => {
+    mocks.detailExecuteTakeFirst.mockResolvedValue({
+      ...accountDetailItem,
+      blocked_time: '',
+      temp_blocked_time: '',
+      first_login_time: '',
+      last_login_time: '',
+      reg_date: '',
+    })
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/accounts/example_user',
+    })
+
+    expect(response.statusCode).toBe(200)
+    expect(response.json()).toMatchObject({
+      blockedTime: '',
+      tempBlockedTime: '',
+      firstLoginTime: '',
+      lastLoginTime: '',
+      regDate: '',
+    })
+  })
+
+  it('returns 404 when the account does not exist', async () => {
+    mocks.detailExecuteTakeFirst.mockResolvedValue(undefined)
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/accounts/missing-account',
+    })
+
+    expect(response.statusCode).toBe(404)
+    expect(response.json()).toEqual({ message: '账号不存在' })
+  })
 })

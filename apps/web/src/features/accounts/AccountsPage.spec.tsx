@@ -1,5 +1,13 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import {
+  createMemoryHistory,
+  createRootRoute,
+  createRoute,
+  createRouter,
+  Outlet,
+  RouterProvider,
+} from '@tanstack/react-router'
+import {
   cleanup,
   render,
   screen,
@@ -100,12 +108,29 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-const renderPage = () =>
-  render(
+const renderPage = () => {
+  const rootRoute = createRootRoute({ component: Outlet })
+  const accountsRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/accounts',
+    component: AccountsPage,
+  })
+  const accountDetailRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/accounts/$account',
+    component: () => <h1>账号详情测试页</h1>,
+  })
+  const router = createRouter({
+    history: createMemoryHistory({ initialEntries: ['/accounts'] }),
+    routeTree: rootRoute.addChildren([accountsRoute, accountDetailRoute]),
+  })
+
+  return render(
     <QueryClientProvider client={queryClient}>
-      <AccountsPage />
+      <RouterProvider router={router} />
     </QueryClientProvider>,
   )
+}
 
 const getAccountRequestUrls = (): string[] =>
   fetchMock.mock.calls
@@ -130,7 +155,7 @@ describe('accounts page', () => {
     renderPage()
 
     expect(
-      screen.getByRole('heading', { name: '账号管理' }),
+      await screen.findByRole('heading', { name: '账号管理' }),
     ).toBeInTheDocument()
     expect(screen.getByText('查询和创建游戏账号')).toBeInTheDocument()
 
@@ -161,6 +186,19 @@ describe('accounts page', () => {
       '/_api/accounts?page=1&pageSize=20',
     )
     expect(getPrivilegeRequestUrls()).toEqual(['/_api/privileges'])
+  })
+
+  it('navigates to account details when the account link is clicked', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    await user.click(
+      await screen.findByRole('link', { name: 'server-account' }),
+    )
+
+    expect(
+      await screen.findByRole('heading', { name: '账号详情测试页' }),
+    ).toBeInTheDocument()
   })
 
   it('renders known privilege details and metadata in a tooltip', async () => {
@@ -274,7 +312,9 @@ describe('accounts page', () => {
     })
     renderPage()
 
-    expect(document.querySelector('[aria-busy="true"]')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(document.querySelector('[aria-busy="true"]')).toBeInTheDocument()
+    })
 
     resolveRequest(accountsResponse())
     expect(await screen.findByText('server-account')).toBeInTheDocument()
@@ -321,7 +361,7 @@ describe('accounts page', () => {
     const user = userEvent.setup()
     renderPage()
 
-    await user.click(screen.getByRole('button', { name: '注册账号' }))
+    await user.click(await screen.findByRole('button', { name: '注册账号' }))
 
     const dialog = await screen.findByRole('dialog')
     expect(within(dialog).getByText('注册账号')).toBeInTheDocument()

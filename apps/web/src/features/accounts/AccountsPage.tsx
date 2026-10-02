@@ -1,6 +1,7 @@
 import type { AccountListItem, Privilege } from '@atgm/contracts'
 import type { TableProps } from 'antd'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { Link } from '@tanstack/react-router'
 import { Alert, Button, Input, Table, Tooltip } from 'antd'
 import { useMemo, useState } from 'react'
 import { AccountRegisterModal } from './AccountRegisterModal'
@@ -43,6 +44,11 @@ export const AccountsPage: React.FC = () => {
         title: '账号',
         dataIndex: 'account',
         key: 'account',
+        render: (value: string) => (
+          <Link params={{ account: value }} to="/accounts/$account">
+            {value}
+          </Link>
+        ),
       },
       {
         title: '权限',

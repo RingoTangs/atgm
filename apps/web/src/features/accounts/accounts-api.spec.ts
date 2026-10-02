@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   AccountConflictError,
+  AccountNotFoundError,
+  getAccount,
   getAccounts,
   getPrivileges,
   registerAccount,
@@ -25,6 +27,43 @@ afterEach(() => {
 })
 
 describe('accounts API', () => {
+  it('requests an encoded account detail and returns the shared response', async () => {
+    const account = {
+      account: 'test/user',
+      privilege: 120,
+      goldCoin: 1_000_000,
+      silverCoin: 50_000,
+      blockedTime: '',
+      blockedReason: '',
+      tempBlockedTime: '',
+      tempBlockedReason: '',
+      firstLoginTime: '2026-09-01 11:00:00',
+      firstLoginMac: '00:11:22:33:44:55',
+      lastLoginTime: '2026-10-01 19:12:00',
+      lastLoginIp: '192.0.2.1',
+      lastLoginId: 'device-01',
+      regDate: '2026-09-01 10:00:00',
+    }
+    fetchMock.mockResolvedValue(jsonResponse(account))
+
+    await expect(getAccount('test/user')).resolves.toEqual(account)
+    expect(fetchMock).toHaveBeenCalledWith('/_api/accounts/test%2Fuser')
+  })
+
+  it('maps an account detail 404 to AccountNotFoundError', async () => {
+    fetchMock.mockResolvedValue(new Response(null, { status: 404 }))
+
+    await expect(getAccount('missing-account')).rejects.toBeInstanceOf(
+      AccountNotFoundError,
+    )
+  })
+
+  it('keeps other account detail failures as generic errors', async () => {
+    fetchMock.mockResolvedValue(new Response(null, { status: 500 }))
+
+    await expect(getAccount('test')).rejects.toThrow('账号详情请求失败')
+  })
+
   it('requests an account page and returns the shared camelCase response', async () => {
     fetchMock.mockResolvedValue(
       jsonResponse({

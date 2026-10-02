@@ -45,8 +45,10 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   const pathname = useLocation({ select: (location) => location.pathname })
   const navigate = useNavigate()
   const { theme, resolvedTheme, setTheme } = useTheme()
+  const isAccountsPath =
+    pathname === '/accounts' || pathname.startsWith('/accounts/')
   const selectedNavigationKey =
-    pathname === '/' || pathname === '/accounts' ? pathname : undefined
+    pathname === '/' ? pathname : isAccountsPath ? '/accounts' : undefined
 
   const navigationItems: MenuProps['items'] = [
     {
@@ -62,9 +64,7 @@ export const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
       key: '/accounts',
       icon: <Users aria-hidden="true" size={18} />,
       label: (
-        <span aria-current={pathname === '/accounts' ? 'page' : undefined}>
-          账号管理
-        </span>
+        <span aria-current={isAccountsPath ? 'page' : undefined}>账号管理</span>
       ),
     },
   ]

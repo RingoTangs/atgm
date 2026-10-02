@@ -1,4 +1,5 @@
 import type {
+  AccountDetailResponse,
   AccountsQuery,
   AccountsResponse,
   PrivilegesResponse,
@@ -12,6 +13,31 @@ export class AccountConflictError extends Error {
     super('账号已存在')
     this.name = 'AccountConflictError'
   }
+}
+
+export class AccountNotFoundError extends Error {
+  constructor() {
+    super('账号不存在')
+    this.name = 'AccountNotFoundError'
+  }
+}
+
+export async function getAccount(
+  account: string,
+): Promise<AccountDetailResponse> {
+  const response = await fetch(
+    `${API_PREFIX}/accounts/${encodeURIComponent(account)}`,
+  )
+
+  if (response.status === 404) {
+    throw new AccountNotFoundError()
+  }
+
+  if (!response.ok) {
+    throw new Error('账号详情请求失败')
+  }
+
+  return (await response.json()) as AccountDetailResponse
 }
 
 export async function getAccounts(

@@ -1,6 +1,12 @@
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
-import { accountsQuerySchema, accountsResponseSchema } from '@atgm/contracts'
+import {
+  accountDetailParamsSchema,
+  accountDetailResponseSchema,
+  accountNotFoundResponseSchema,
+  accountsQuerySchema,
+  accountsResponseSchema,
+} from '@atgm/contracts'
 import { sql } from 'kysely'
 import { formatDisplayTime } from '../lib/game-time'
 
@@ -78,6 +84,65 @@ export async function accountRoutes(app: FastifyInstance) {
           lastLoginIp: item.last_login_ip,
           regDate: formatDisplayTime(item.reg_date),
         })),
+      }
+    },
+  )
+
+  app.withTypeProvider<ZodTypeProvider>().get(
+    '/accounts/:account',
+    {
+      schema: {
+        tags: ['Account'],
+        summary: '查询账号详情',
+        description: '按账号查询 dl_adb_all.account',
+        params: accountDetailParamsSchema,
+        response: {
+          200: accountDetailResponseSchema,
+          404: accountNotFoundResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const item = await app.db.adb
+        .selectFrom('account')
+        .select([
+          'account',
+          'privilege',
+          'gold_coin',
+          'silver_coin',
+          'blocked_time',
+          'blocked_reason',
+          'temp_blocked_time',
+          'temp_blocked_reason',
+          'first_login_time',
+          'first_login_mac',
+          'last_login_time',
+          'last_login_ip',
+          'last_login_id',
+          'reg_date',
+        ])
+        .where('account', '=', request.params.account)
+        .executeTakeFirst()
+
+      if (!item) {
+        return reply.code(404).send({ message: '账号不存在' })
+      }
+
+      return {
+        account: item.account,
+        privilege: item.privilege,
+        goldCoin: item.gold_coin,
+        silverCoin: item.silver_coin,
+        blockedTime: formatDisplayTime(item.blocked_time),
+        blockedReason: item.blocked_reason,
+        tempBlockedTime: formatDisplayTime(item.temp_blocked_time),
+        tempBlockedReason: item.temp_blocked_reason,
+        firstLoginTime: formatDisplayTime(item.first_login_time),
+        firstLoginMac: item.first_login_mac,
+        lastLoginTime: formatDisplayTime(item.last_login_time),
+        lastLoginIp: item.last_login_ip,
+        lastLoginId: item.last_login_id,
+        regDate: formatDisplayTime(item.reg_date),
       }
     },
   )
