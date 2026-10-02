@@ -10,6 +10,7 @@ import {
   accountDetailQueryOptions,
   privilegesQueryOptions,
 } from './accounts-queries'
+import './AccountDetailPage.css'
 
 interface AccountDetailPageProps {
   account: string
@@ -172,7 +173,7 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = ({
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="account-detail-page space-y-6">
       <div className="flex items-end justify-between gap-4">
         <div>
           <Link to="/accounts">返回账号列表</Link>
