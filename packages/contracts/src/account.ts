@@ -62,6 +62,30 @@ export type AccountNotFoundResponse = z.infer<
   typeof accountNotFoundResponseSchema
 >
 
+export const updateAccountBodySchema = z
+  .object({
+    privilege: z.number().int().min(0).max(1000),
+    goldCoin: z.number().int().min(0).max(2_000_000_000),
+    silverCoin: z.number().int().min(0).max(2_000_000_000),
+  })
+  .strict()
+
+export type UpdateAccountRequest = z.infer<typeof updateAccountBodySchema>
+
+export const updateAccountResponseSchema = z.object({
+  account: z.string(),
+})
+
+export type UpdateAccountResponse = z.infer<typeof updateAccountResponseSchema>
+
+export const accountUpdateConflictResponseSchema = z.object({
+  message: z.enum(['账号数据校验失败', '账号数据已发生变化，请重试']),
+})
+
+export type AccountUpdateConflictResponse = z.infer<
+  typeof accountUpdateConflictResponseSchema
+>
+
 export const registerAccountBodySchema = z
   .object({
     account: z.string().min(1).max(32),

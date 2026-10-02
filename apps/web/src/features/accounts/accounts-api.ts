@@ -4,6 +4,8 @@ import type {
   AccountsResponse,
   PrivilegesResponse,
   RegisterAccountRequest,
+  UpdateAccountRequest,
+  UpdateAccountResponse,
 } from '@atgm/contracts'
 
 const API_PREFIX = '/_api'
@@ -20,6 +22,43 @@ export class AccountNotFoundError extends Error {
     super('账号不存在')
     this.name = 'AccountNotFoundError'
   }
+}
+
+export class AccountUpdateConflictError extends Error {
+  constructor() {
+    super('账号数据已发生变化，请刷新后重试')
+    this.name = 'AccountUpdateConflictError'
+  }
+}
+
+export async function updateAccount(
+  account: string,
+  values: UpdateAccountRequest,
+): Promise<UpdateAccountResponse> {
+  const response = await fetch(
+    `${API_PREFIX}/accounts/${encodeURIComponent(account)}`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(values),
+    },
+  )
+
+  if (response.status === 404) {
+    throw new AccountNotFoundError()
+  }
+
+  if (response.status === 409) {
+    throw new AccountUpdateConflictError()
+  }
+
+  if (!response.ok) {
+    throw new Error('账号修改请求失败')
+  }
+
+  return (await response.json()) as UpdateAccountResponse
 }
 
 export async function getAccount(

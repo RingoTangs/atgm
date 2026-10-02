@@ -2,6 +2,8 @@ import type { Privilege } from '@atgm/contracts'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Alert, Button, Descriptions, Skeleton } from 'antd'
+import { useState } from 'react'
+import { AccountEditModal } from './AccountEditModal'
 import { AccountNotFoundError, getAccount, getPrivileges } from './accounts-api'
 
 interface AccountDetailPageProps {
@@ -35,6 +37,7 @@ const renderPrivilege = (value: number, privilege?: Privilege) => {
 export const AccountDetailPage: React.FC<AccountDetailPageProps> = ({
   account,
 }) => {
+  const [editOpen, setEditOpen] = useState(false)
   const accountQuery = useQuery({
     queryKey: ['account', account],
     queryFn: () => getAccount(account),
@@ -88,9 +91,18 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = ({
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link to="/accounts">返回账号列表</Link>
-        <h1 className="mt-2 text-2xl font-semibold">账号详情</h1>
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <Link to="/accounts">返回账号列表</Link>
+          <h1 className="mt-2 text-2xl font-semibold">账号详情</h1>
+        </div>
+        <Button
+          aria-label="编辑"
+          onClick={() => setEditOpen(true)}
+          type="primary"
+        >
+          编辑
+        </Button>
       </div>
 
       <Descriptions bordered title="基本信息">
@@ -144,6 +156,12 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = ({
           {displayValue(detail.tempBlockedReason)}
         </Descriptions.Item>
       </Descriptions>
+
+      <AccountEditModal
+        account={detail}
+        onCancel={() => setEditOpen(false)}
+        open={editOpen}
+      />
     </div>
   )
 }

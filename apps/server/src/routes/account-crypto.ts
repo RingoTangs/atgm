@@ -3,21 +3,18 @@ import { createHash } from 'node:crypto'
 const PASSWORD_SALT = '20070201'
 const CHECKSUM_SALT = 'ABCDEF'
 
-const accountDefaults = {
-  blockedTime: '0',
-  coinPassword: '',
-  unlockCoinPasswordTime: '',
-  tradeLockTime: '',
-  permitIp: '',
-  permitId: '',
-} as const
-
 interface AccountChecksumInput {
   account: string
   password: string
+  privilege: number
+  blockedTime: string
   goldCoin: number
   silverCoin: number
-  privilege: number
+  coinPassword: string
+  unlockCoinPasswordTime: string
+  tradeLockTime: string
+  permitIp: string
+  permitId: string
 }
 
 export function md5Upper(value: string): string {
@@ -38,22 +35,28 @@ export function createAccountPassword(
 export function createAccountChecksum({
   account,
   password,
+  blockedTime,
   goldCoin,
   silverCoin,
   privilege,
+  coinPassword,
+  unlockCoinPasswordTime,
+  tradeLockTime,
+  permitIp,
+  permitId,
 }: AccountChecksumInput): string {
   const source =
     account +
     password +
     hex8(privilege) +
-    accountDefaults.blockedTime +
+    blockedTime +
     hex8(goldCoin) +
     hex8(silverCoin) +
-    accountDefaults.coinPassword +
-    accountDefaults.unlockCoinPasswordTime +
-    accountDefaults.tradeLockTime +
-    accountDefaults.permitIp +
-    accountDefaults.permitId +
+    coinPassword +
+    unlockCoinPasswordTime +
+    tradeLockTime +
+    permitIp +
+    permitId +
     CHECKSUM_SALT
 
   return md5Upper(source)

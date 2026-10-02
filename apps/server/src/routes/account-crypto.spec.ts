@@ -49,10 +49,52 @@ describe('account crypto', () => {
       createAccountChecksum({
         account: 'test',
         password,
+        blockedTime: '0',
         goldCoin: 1000,
         silverCoin: 2_000_000_000,
         privilege: 15,
+        coinPassword: '',
+        unlockCoinPasswordTime: '',
+        tradeLockTime: '',
+        permitIp: '',
+        permitId: '',
       }),
     ).toBe(independentlyCalculatedChecksum)
+  })
+
+  it('includes every database checksum field in legacy protocol order', () => {
+    const input = {
+      account: 'legacy-account',
+      password: 'PASSWORD_HASH',
+      privilege: 120,
+      blockedTime: '20261002153045',
+      goldCoin: 1_000_000,
+      silverCoin: 50_000,
+      coinPassword: 'COIN_HASH',
+      unlockCoinPasswordTime: '20261003120000',
+      tradeLockTime: '20261004120000',
+      permitIp: '192.0.2.1',
+      permitId: 'device-01',
+    }
+    const source = [
+      input.account,
+      input.password,
+      '00000078',
+      input.blockedTime,
+      '000F4240',
+      '0000C350',
+      input.coinPassword,
+      input.unlockCoinPasswordTime,
+      input.tradeLockTime,
+      input.permitIp,
+      input.permitId,
+      'ABCDEF',
+    ].join('')
+    const independentlyCalculatedChecksum = createHash('md5')
+      .update(source, 'utf8')
+      .digest('hex')
+      .toUpperCase()
+
+    expect(createAccountChecksum(input)).toBe(independentlyCalculatedChecksum)
   })
 })

@@ -2,10 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   AccountConflictError,
   AccountNotFoundError,
+  AccountUpdateConflictError,
   getAccount,
   getAccounts,
   getPrivileges,
   registerAccount,
+  updateAccount,
 } from './accounts-api'
 
 const fetchMock = vi.fn<typeof fetch>()
@@ -27,6 +29,48 @@ afterEach(() => {
 })
 
 describe('accounts API', () => {
+  it('patches encoded account core values as JSON', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ account: 'test/user' }))
+    const values = {
+      privilege: 120,
+      goldCoin: 1_000_000,
+      silverCoin: 50_000,
+    }
+
+    await expect(updateAccount('test/user', values)).resolves.toEqual({
+      account: 'test/user',
+    })
+    expect(fetchMock).toHaveBeenCalledWith('/_api/accounts/test%2Fuser', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(values),
+    })
+  })
+
+  it('maps an account update 409 to AccountUpdateConflictError', async () => {
+    fetchMock.mockResolvedValue(new Response(null, { status: 409 }))
+
+    await expect(
+      updateAccount('test', { privilege: 0, goldCoin: 0, silverCoin: 0 }),
+    ).rejects.toBeInstanceOf(AccountUpdateConflictError)
+  })
+
+  it('maps an account update 404 to AccountNotFoundError', async () => {
+    fetchMock.mockResolvedValue(new Response(null, { status: 404 }))
+
+    await expect(
+      updateAccount('missing', { privilege: 0, goldCoin: 0, silverCoin: 0 }),
+    ).rejects.toBeInstanceOf(AccountNotFoundError)
+  })
+
+  it('keeps other account update failures as generic errors', async () => {
+    fetchMock.mockResolvedValue(new Response(null, { status: 500 }))
+
+    await expect(
+      updateAccount('test', { privilege: 0, goldCoin: 0, silverCoin: 0 }),
+    ).rejects.toThrow('账号修改请求失败')
+  })
+
   it('requests an encoded account detail and returns the shared response', async () => {
     const account = {
       account: 'test/user',

@@ -39,9 +39,15 @@ export async function accountRegisterRoutes(app: FastifyInstance) {
       const checksum = createAccountChecksum({
         account,
         password,
+        blockedTime: '0',
         goldCoin,
         silverCoin,
         privilege,
+        coinPassword: '',
+        unlockCoinPasswordTime: '',
+        tradeLockTime: '',
+        permitIp: '',
+        permitId: '',
       })
 
       try {

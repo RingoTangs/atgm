@@ -9,6 +9,7 @@ import {
 import pkg from '../package.json' with { type: 'json' }
 import { isDevelopment } from './env'
 import { accountRegisterRoutes } from './routes/account-register'
+import { accountUpdateRoutes } from './routes/account-update'
 import { accountRoutes } from './routes/accounts'
 import { privilegeRoutes } from './routes/privileges'
 import { statusRoutes } from './routes/status'
@@ -37,6 +38,7 @@ export function buildApp() {
   app.register(statusRoutes)
   app.register(accountRoutes)
   app.register(accountRegisterRoutes)
+  app.register(accountUpdateRoutes)
   app.register(privilegeRoutes)
 
   return app

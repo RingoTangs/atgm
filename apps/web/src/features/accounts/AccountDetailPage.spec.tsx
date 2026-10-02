@@ -126,6 +126,22 @@ describe('account detail page', () => {
     expect(screen.getAllByText('-').length).toBeGreaterThan(0)
   })
 
+  it('opens the core account edit modal', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    await user.click(await screen.findByRole('button', { name: '编辑' }))
+
+    expect(
+      await screen.findByRole('dialog', {
+        name: '编辑账号：server-account',
+      }),
+    ).toBeInTheDocument()
+    expect(screen.getByLabelText('金币')).toHaveValue('1000000')
+    expect(screen.getByLabelText('银币')).toHaveValue('50000')
+    expect(screen.queryByLabelText('账号')).toBeNull()
+  })
+
   it('falls back safely for an unknown privilege', async () => {
     fetchMock.mockImplementation(async (input) =>
       String(input) === '/_api/privileges'
