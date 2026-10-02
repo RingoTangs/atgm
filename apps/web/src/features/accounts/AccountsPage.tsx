@@ -7,39 +7,13 @@ import { useMemo, useState } from 'react'
 import { AccountRegisterModal } from './AccountRegisterModal'
 import { getAccounts, getPrivileges } from './accounts-api'
 
-export const AccountsPage: React.FC = () => {
-  const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(20)
-  const [searchText, setSearchText] = useState('')
-  const [account, setAccount] = useState('')
-  const [registerOpen, setRegisterOpen] = useState(false)
-  const accountsQuery = useQuery({
-    queryKey: ['accounts', { page, pageSize, account }],
-    queryFn: () =>
-      getAccounts({
-        page,
-        pageSize,
-        account: account || undefined,
-      }),
-    placeholderData: keepPreviousData,
-  })
-  const privilegesQuery = useQuery({
-    queryKey: ['privileges'],
-    queryFn: getPrivileges,
-    staleTime: Infinity,
-  })
-  const privilegeMap = useMemo(
-    () =>
-      new Map<number, Privilege>(
-        (privilegesQuery.data ?? []).map((privilege) => [
-          privilege.privilege,
-          privilege,
-        ]),
-      ),
-    [privilegesQuery.data],
-  )
-  const columns = useMemo<TableProps<AccountListItem>['columns']>(
-    () => [
+const useAccountColumns = (privileges?: Privilege[]) =>
+  useMemo<TableProps<AccountListItem>['columns']>(() => {
+    const privilegeMap = new Map<number, Privilege>(
+      (privileges ?? []).map((privilege) => [privilege.privilege, privilege]),
+    )
+
+    return [
       {
         title: '账号',
         dataIndex: 'account',
@@ -130,9 +104,31 @@ export const AccountsPage: React.FC = () => {
           </Link>
         ),
       },
-    ],
-    [privilegeMap],
-  )
+    ]
+  }, [privileges])
+
+export const AccountsPage: React.FC = () => {
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
+  const [searchText, setSearchText] = useState('')
+  const [account, setAccount] = useState('')
+  const [registerOpen, setRegisterOpen] = useState(false)
+  const accountsQuery = useQuery({
+    queryKey: ['accounts', { page, pageSize, account }],
+    queryFn: () =>
+      getAccounts({
+        page,
+        pageSize,
+        account: account || undefined,
+      }),
+    placeholderData: keepPreviousData,
+  })
+  const privilegesQuery = useQuery({
+    queryKey: ['privileges'],
+    queryFn: getPrivileges,
+    staleTime: Infinity,
+  })
+  const columns = useAccountColumns(privilegesQuery.data)
 
   const submitSearch = (value: string) => {
     setSearchText(value)
