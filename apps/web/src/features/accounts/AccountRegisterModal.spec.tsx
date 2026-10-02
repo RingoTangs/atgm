@@ -1,5 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AccountRegisterModal } from './AccountRegisterModal'
@@ -177,23 +183,36 @@ describe('account register modal', () => {
     ).toBeInTheDocument()
   })
 
-  it.each([
-    ['金币', '-1', '金币必须是'],
-    ['金币', '2000000001', '金币必须是'],
-    ['银币', '-1', '银币必须是'],
-    ['银币', '2000000001', '银币必须是'],
-  ])('validates the integer range for %s', async (label, value, errorText) => {
+  it.each(['金币', '银币'])('limits the integer range for %s', (label) => {
     renderModal()
-    const user = await fillRequiredFields()
-    await selectPrivilege(user)
     const input = screen.getByLabelText(label)
-    await user.clear(input)
-    await user.type(input, value)
-    await user.click(screen.getByRole('button', { name: '注册' }))
 
-    expect(await screen.findByText(new RegExp(errorText))).toBeInTheDocument()
-    expect(registrationCalls()).toHaveLength(0)
+    expect(input).toHaveAttribute('aria-valuemin', '0')
+    expect(input).toHaveAttribute('aria-valuemax', '2000000000')
   })
+
+  it.each(['金币', '银币'])(
+    'sets %s to its minimum and maximum values',
+    async (label) => {
+      renderModal()
+      const user = userEvent.setup()
+      const input = screen.getByLabelText(label)
+      const formItem = input.closest('.ant-form-item')
+
+      expect(formItem).not.toBeNull()
+      await user.clear(input)
+      await user.type(input, '25')
+      await user.click(
+        within(formItem as HTMLElement).getByRole('button', { name: '最小值' }),
+      )
+      expect(input).toHaveValue('0')
+
+      await user.click(
+        within(formItem as HTMLElement).getByRole('button', { name: '最大值' }),
+      )
+      expect(input).toHaveValue('2000000000')
+    },
+  )
 
   it('posts correct values, invalidates accounts, resets, and closes', async () => {
     const invalidateQueries = vi.spyOn(queryClient, 'invalidateQueries')

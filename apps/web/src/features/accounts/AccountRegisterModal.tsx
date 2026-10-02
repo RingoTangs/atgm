@@ -1,7 +1,16 @@
 import type { RegisterAccountRequest } from '@atgm/contracts'
 import type { FormProps } from 'antd'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Alert, Form, Input, InputNumber, message, Modal, Select } from 'antd'
+import {
+  Alert,
+  Button,
+  Form,
+  Input,
+  InputNumber,
+  message,
+  Modal,
+  Select,
+} from 'antd'
 import { AccountConflictError, registerAccount } from './accounts-api'
 import { accountQueryKeys, privilegesQueryOptions } from './accounts-queries'
 
@@ -10,9 +19,12 @@ interface AccountRegisterModalProps {
   onCancel: () => void
 }
 
+const COIN_MIN = 0
+const COIN_MAX = 2_000_000_000
+
 const initialValues: Pick<RegisterAccountRequest, 'goldCoin' | 'silverCoin'> = {
-  goldCoin: 0,
-  silverCoin: 0,
+  goldCoin: COIN_MIN,
+  silverCoin: COIN_MIN,
 }
 
 const integerRangeValidator = (label: string, min: number, max: number) => ({
@@ -147,19 +159,67 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
           </Form.Item>
 
           <Form.Item
+            extra={
+              <div className="flex gap-2">
+                <Button
+                  size="small"
+                  type="link"
+                  onClick={() => form.setFieldValue('goldCoin', COIN_MIN)}
+                >
+                  最小值
+                </Button>
+                <Button
+                  size="small"
+                  type="link"
+                  onClick={() => form.setFieldValue('goldCoin', COIN_MAX)}
+                >
+                  最大值
+                </Button>
+              </div>
+            }
             label="金币"
             name="goldCoin"
-            rules={[integerRangeValidator('金币', 0, 2_000_000_000)]}
+            rules={[integerRangeValidator('金币', COIN_MIN, COIN_MAX)]}
           >
-            <InputNumber className="w-full" step={1} />
+            <InputNumber
+              className="w-full"
+              max={COIN_MAX}
+              min={COIN_MIN}
+              precision={0}
+              step={1}
+            />
           </Form.Item>
 
           <Form.Item
+            extra={
+              <div className="flex gap-2">
+                <Button
+                  size="small"
+                  type="link"
+                  onClick={() => form.setFieldValue('silverCoin', COIN_MIN)}
+                >
+                  最小值
+                </Button>
+                <Button
+                  size="small"
+                  type="link"
+                  onClick={() => form.setFieldValue('silverCoin', COIN_MAX)}
+                >
+                  最大值
+                </Button>
+              </div>
+            }
             label="银币"
             name="silverCoin"
-            rules={[integerRangeValidator('银币', 0, 2_000_000_000)]}
+            rules={[integerRangeValidator('银币', COIN_MIN, COIN_MAX)]}
           >
-            <InputNumber className="w-full" step={1} />
+            <InputNumber
+              className="w-full"
+              max={COIN_MAX}
+              min={COIN_MIN}
+              precision={0}
+              step={1}
+            />
           </Form.Item>
 
           <Form.Item
