@@ -16,6 +16,17 @@ interface AccountDetailPageProps {
   account: string
 }
 
+const descriptionStyles: DescriptionsProps['styles'] = {
+  label: {
+    width: 130,
+    textAlign: 'center',
+  },
+  content: {
+    minWidth: 0,
+    textAlign: 'center',
+  },
+}
+
 const displayValue = (value: string): string => value || '-'
 
 const renderPrivilege = (value: number, privilege?: Privilege) => {
@@ -194,16 +205,7 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = ({
         column={2}
         items={basicInfoItems}
         title="基本信息"
-        styles={{
-          label: {
-            width: 120,
-            textAlign: 'center',
-          },
-          content: {
-            minWidth: 0,
-            textAlign: 'center',
-          },
-        }}
+        styles={descriptionStyles}
       />
 
       <Descriptions
@@ -212,16 +214,7 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = ({
         items={assetItems}
         title="资产"
         column={2}
-        styles={{
-          label: {
-            width: 120,
-            textAlign: 'center',
-          },
-          content: {
-            minWidth: 0,
-            textAlign: 'center',
-          },
-        }}
+        styles={descriptionStyles}
       />
 
       <Descriptions
@@ -230,16 +223,7 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = ({
         size="small"
         items={loginInfoItems}
         title="登录信息"
-        styles={{
-          label: {
-            width: 130,
-            textAlign: 'center',
-          },
-          content: {
-            minWidth: 0,
-            textAlign: 'center',
-          },
-        }}
+        styles={descriptionStyles}
       />
 
       <Descriptions
@@ -248,16 +232,7 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = ({
         size="small"
         items={blockInfoItems}
         title="封禁信息"
-        styles={{
-          label: {
-            width: 130,
-            textAlign: 'center',
-          },
-          content: {
-            minWidth: 0,
-            textAlign: 'center',
-          },
-        }}
+        styles={descriptionStyles}
       />
 
       <AccountEditModal
