@@ -171,6 +171,23 @@ describe('patch /accounts/:account endpoint', () => {
     expect(response.payload).not.toContain('checksum')
   })
 
+  it('returns success without updating when core fields are unchanged', async () => {
+    const response = await app.inject({
+      method: 'PATCH',
+      url: '/accounts/example_user',
+      payload: {
+        privilege: accountRow.privilege,
+        goldCoin: accountRow.gold_coin,
+        silverCoin: accountRow.silver_coin,
+      },
+    })
+
+    expect(response.statusCode).toBe(200)
+    expect(response.json()).toEqual({ account: 'example_user' })
+    expect(mocks.updateTable).not.toHaveBeenCalled()
+    expect(mocks.updateExecuteTakeFirst).not.toHaveBeenCalled()
+  })
+
   it('returns 404 when the account does not exist', async () => {
     mocks.selectExecuteTakeFirst.mockResolvedValue(undefined)
 

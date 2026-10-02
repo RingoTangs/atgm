@@ -71,6 +71,15 @@ export async function accountUpdateRoutes(app: FastifyInstance) {
       }
 
       const { privilege, goldCoin, silverCoin } = request.body
+      const unchanged =
+        privilege === item.privilege &&
+        goldCoin === item.gold_coin &&
+        silverCoin === item.silver_coin
+
+      if (unchanged) {
+        return { account: item.account }
+      }
+
       const nextChecksum = createAccountChecksum({
         account: item.account,
         password: item.password,
