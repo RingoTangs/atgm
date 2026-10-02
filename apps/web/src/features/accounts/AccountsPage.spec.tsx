@@ -174,12 +174,13 @@ describe('accounts page', () => {
 
     const row = (await screen.findByText('server-account')).closest('tr')
     if (!row) throw new Error('server account row not found')
-    expect(await within(row).findByText('管理员')).toBeInTheDocument()
-    expect(within(row).getByText('120 · GA')).toBeInTheDocument()
+    const privilege = await within(row).findByText('120 - GA')
+    expect(privilege).toBeInTheDocument()
 
-    await user.hover(within(row).getByText('管理员'))
+    await user.hover(privilege)
     expect(await screen.findByText('常量：ADMINISTRATOR')).toBeInTheDocument()
     expect(screen.getByText('类型：管理特权')).toBeInTheDocument()
+    expect(screen.getByText('描述：管理员')).toBeInTheDocument()
   })
 
   it('renders placeholders for empty account times', async () => {
