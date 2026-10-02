@@ -197,18 +197,20 @@ describe('account register modal', () => {
       renderModal()
       const user = userEvent.setup()
       const input = screen.getByLabelText(label)
-      const formItem = input.closest('.ant-form-item')
+      const labelRow = screen.getByText(label, {
+        selector: 'label',
+      }).parentElement
 
-      expect(formItem).not.toBeNull()
+      expect(labelRow).not.toBeNull()
       await user.clear(input)
       await user.type(input, '25')
       await user.click(
-        within(formItem as HTMLElement).getByRole('button', { name: '最小值' }),
+        within(labelRow as HTMLElement).getByRole('button', { name: '最小' }),
       )
       expect(input).toHaveValue('0')
 
       await user.click(
-        within(formItem as HTMLElement).getByRole('button', { name: '最大值' }),
+        within(labelRow as HTMLElement).getByRole('button', { name: '最大' }),
       )
       expect(input).toHaveValue('2000000000')
     },

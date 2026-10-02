@@ -158,31 +158,34 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
             <Input.Password autoComplete="new-password" />
           </Form.Item>
 
+          <div className="mb-2 flex items-center justify-between">
+            <label htmlFor="goldCoin">金币</label>
+            <div className="flex gap-1">
+              <Button
+                size="small"
+                type="text"
+                className="text-muted-foreground"
+                onClick={() => form.setFieldValue('goldCoin', COIN_MIN)}
+              >
+                最小
+              </Button>
+              <Button
+                size="small"
+                type="text"
+                className="text-muted-foreground"
+                onClick={() => form.setFieldValue('goldCoin', COIN_MAX)}
+              >
+                最大
+              </Button>
+            </div>
+          </div>
           <Form.Item
-            extra={
-              <div className="flex gap-2">
-                <Button
-                  size="small"
-                  type="link"
-                  onClick={() => form.setFieldValue('goldCoin', COIN_MIN)}
-                >
-                  最小值
-                </Button>
-                <Button
-                  size="small"
-                  type="link"
-                  onClick={() => form.setFieldValue('goldCoin', COIN_MAX)}
-                >
-                  最大值
-                </Button>
-              </div>
-            }
-            label="金币"
             name="goldCoin"
             rules={[integerRangeValidator('金币', COIN_MIN, COIN_MAX)]}
           >
             <InputNumber
               className="w-full"
+              id="goldCoin"
               max={COIN_MAX}
               min={COIN_MIN}
               precision={0}
@@ -190,31 +193,34 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
             />
           </Form.Item>
 
+          <div className="mb-2 flex items-center justify-between">
+            <label htmlFor="silverCoin">银币</label>
+            <div className="flex gap-1">
+              <Button
+                size="small"
+                type="text"
+                className="text-muted-foreground"
+                onClick={() => form.setFieldValue('silverCoin', COIN_MIN)}
+              >
+                最小
+              </Button>
+              <Button
+                size="small"
+                type="text"
+                className="text-muted-foreground"
+                onClick={() => form.setFieldValue('silverCoin', COIN_MAX)}
+              >
+                最大
+              </Button>
+            </div>
+          </div>
           <Form.Item
-            extra={
-              <div className="flex gap-2">
-                <Button
-                  size="small"
-                  type="link"
-                  onClick={() => form.setFieldValue('silverCoin', COIN_MIN)}
-                >
-                  最小值
-                </Button>
-                <Button
-                  size="small"
-                  type="link"
-                  onClick={() => form.setFieldValue('silverCoin', COIN_MAX)}
-                >
-                  最大值
-                </Button>
-              </div>
-            }
-            label="银币"
             name="silverCoin"
             rules={[integerRangeValidator('银币', COIN_MIN, COIN_MAX)]}
           >
             <InputNumber
               className="w-full"
+              id="silverCoin"
               max={COIN_MAX}
               min={COIN_MIN}
               precision={0}
