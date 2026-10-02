@@ -53,6 +53,7 @@ const mocks = vi.hoisted(() => {
   const itemsExecute = vi.fn()
   const countExecuteTakeFirstOrThrow = vi.fn()
   const detailExecuteTakeFirst = vi.fn()
+  const onlineExecute = vi.fn()
   const offset = vi.fn(() => ({ execute: itemsExecute }))
   const limit = vi.fn(() => ({ offset }))
   const orderBy = vi.fn(() => ({ limit }))
@@ -74,16 +75,25 @@ const mocks = vi.hoisted(() => {
         },
   )
   const selectFrom = vi.fn(() => ({ select }))
+  const onlineNamesWhere = vi.fn(() => ({ execute: onlineExecute }))
+  const onlinePathWhere = vi.fn(() => ({ where: onlineNamesWhere }))
+  const onlineSelect = vi.fn(() => ({ where: onlinePathWhere }))
+  const ddbSelectFrom = vi.fn(() => ({ select: onlineSelect }))
 
   return {
     countExecuteTakeFirstOrThrow,
     countWhere,
     detailExecuteTakeFirst,
     detailWhere,
+    ddbSelectFrom,
     itemsExecute,
     itemsWhere,
     limit,
     offset,
+    onlineExecute,
+    onlineNamesWhere,
+    onlinePathWhere,
+    onlineSelect,
     orderBy,
     select,
     selectFrom,
@@ -96,7 +106,7 @@ vi.mock('../db', () => ({
   }) => {
     app.decorate('db', {
       adb: { selectFrom: mocks.selectFrom },
-      ddb: {},
+      ddb: { selectFrom: mocks.ddbSelectFrom },
     })
   },
 }))
@@ -126,6 +136,7 @@ const accountItem = {
 
 const accountResponseItem = {
   account: 'example_user',
+  online: true,
   privilege: 100,
   goldCoin: 1_000_000,
   silverCoin: 50_000,
@@ -173,6 +184,7 @@ beforeEach(() => {
   mocks.countExecuteTakeFirstOrThrow.mockResolvedValue({ total: '125' })
   mocks.itemsExecute.mockResolvedValue([accountItem])
   mocks.detailExecuteTakeFirst.mockResolvedValue(accountDetailItem)
+  mocks.onlineExecute.mockResolvedValue([{ name: accountItem.account }])
 })
 
 afterAll(async () => {
@@ -203,9 +215,82 @@ describe('get /accounts endpoint', () => {
     expect(mocks.offset).toHaveBeenCalledWith(0)
     expect(mocks.itemsExecute).toHaveBeenCalledOnce()
     expect(mocks.countExecuteTakeFirstOrThrow).toHaveBeenCalledOnce()
+    expect(mocks.ddbSelectFrom).toHaveBeenCalledOnce()
+    expect(mocks.ddbSelectFrom).toHaveBeenCalledWith('data')
+    expect(mocks.onlineSelect).toHaveBeenCalledWith('name')
+    expect(mocks.onlinePathWhere).toHaveBeenCalledWith('path', '=', 'runtime')
+    expect(mocks.onlineNamesWhere).toHaveBeenCalledWith('name', 'in', [
+      'example_user',
+    ])
+    expect(mocks.onlineExecute).toHaveBeenCalledOnce()
     for (const privateField of privateAccountFields) {
       expect(response.payload).not.toContain(privateField)
     }
+  })
+
+  it('returns offline when no runtime record exists', async () => {
+    mocks.onlineExecute.mockResolvedValue([])
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/accounts',
+    })
+
+    expect(response.statusCode).toBe(200)
+    expect(response.json().items[0]).toMatchObject({
+      account: 'example_user',
+      online: false,
+    })
+  })
+
+  it('queries online status once for all accounts on the current page', async () => {
+    const offlineAccount = {
+      ...accountItem,
+      account: 'offline_user',
+    }
+    mocks.itemsExecute.mockResolvedValue([accountItem, offlineAccount])
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/accounts',
+    })
+
+    expect(response.statusCode).toBe(200)
+    expect(response.json().items).toEqual([
+      accountResponseItem,
+      {
+        ...accountResponseItem,
+        account: 'offline_user',
+        online: false,
+      },
+    ])
+    expect(mocks.ddbSelectFrom).toHaveBeenCalledOnce()
+    expect(mocks.onlineNamesWhere).toHaveBeenCalledOnce()
+    expect(mocks.onlineNamesWhere).toHaveBeenCalledWith('name', 'in', [
+      'example_user',
+      'offline_user',
+    ])
+    expect(mocks.onlineExecute).toHaveBeenCalledOnce()
+  })
+
+  it('skips the DDB query when the current page is empty', async () => {
+    mocks.countExecuteTakeFirstOrThrow.mockResolvedValue({ total: '0' })
+    mocks.itemsExecute.mockResolvedValue([])
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/accounts',
+    })
+
+    expect(response.statusCode).toBe(200)
+    expect(response.json()).toEqual({
+      page: 1,
+      pageSize: 20,
+      total: 0,
+      items: [],
+    })
+    expect(mocks.ddbSelectFrom).not.toHaveBeenCalled()
+    expect(mocks.onlineExecute).not.toHaveBeenCalled()
   })
 
   it('coerces valid pagination strings and calculates the offset', async () => {
@@ -313,6 +398,7 @@ describe('get /accounts endpoint', () => {
 
       expect(response.statusCode).toBe(400)
       expect(mocks.selectFrom).not.toHaveBeenCalled()
+      expect(mocks.ddbSelectFrom).not.toHaveBeenCalled()
       expect(mocks.itemsExecute).not.toHaveBeenCalled()
       expect(mocks.countExecuteTakeFirstOrThrow).not.toHaveBeenCalled()
     },

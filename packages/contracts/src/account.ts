@@ -10,6 +10,7 @@ export type AccountsQuery = z.infer<typeof accountsQuerySchema>
 
 export const accountListItemSchema = z.object({
   account: z.string(),
+  online: z.boolean(),
   privilege: z.number().int(),
   goldCoin: z.number().int(),
   silverCoin: z.number().int(),

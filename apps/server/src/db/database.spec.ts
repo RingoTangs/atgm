@@ -36,10 +36,7 @@ describe('createDatabases', () => {
     databases.push(db)
 
     const accountQuery = adbDb.selectFrom('account').select('account').compile()
-    const ddbNamespaceProbe = ddbDb.schema
-      .createTable('__namespace_probe__')
-      .addColumn('id', 'integer')
-      .compile()
+    const dataQuery = ddbDb.selectFrom('data').select('name').compile()
 
     expect(db).toBeDefined()
     expect(adbDb).toBeDefined()
@@ -58,7 +55,7 @@ describe('createDatabases', () => {
       keepAliveInitialDelay: 10_000,
     })
     expect(accountQuery.sql).toContain('`dl_adb_all`.`account`')
-    expect(ddbNamespaceProbe.sql).toContain('`dl_ddb_1`.`__namespace_probe__`')
+    expect(dataQuery.sql).toContain('`dl_ddb_1`.`data`')
   })
 })
 
@@ -79,11 +76,8 @@ describe('registerDatabase', () => {
       app.db.adb.selectFrom('account').select('account').compile().sql,
     ).toContain('`dl_adb_all`.`account`')
     expect(
-      app.db.ddb.schema
-        .createTable('__namespace_probe__')
-        .addColumn('id', 'integer')
-        .compile().sql,
-    ).toContain('`dl_ddb_1`.`__namespace_probe__`')
+      app.db.ddb.selectFrom('data').select('name').compile().sql,
+    ).toContain('`dl_ddb_1`.`data`')
 
     await app.close()
   })

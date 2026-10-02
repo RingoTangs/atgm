@@ -71,12 +71,28 @@ export async function accountRoutes(app: FastifyInstance) {
         throw new Error('Invalid account count returned by database')
       }
 
+      const onlineRows =
+        items.length === 0
+          ? []
+          : await app.db.ddb
+              .selectFrom('data')
+              .select('name')
+              .where('path', '=', 'runtime')
+              .where(
+                'name',
+                'in',
+                items.map((item) => item.account),
+              )
+              .execute()
+      const onlineAccounts = new Set(onlineRows.map((item) => item.name))
+
       return {
         page,
         pageSize,
         total,
         items: items.map((item) => ({
           account: item.account,
+          online: onlineAccounts.has(item.account),
           privilege: item.privilege,
           goldCoin: item.gold_coin,
           silverCoin: item.silver_coin,
