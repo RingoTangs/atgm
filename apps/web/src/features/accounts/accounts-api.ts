@@ -2,6 +2,7 @@ import type {
   AccountDetailResponse,
   AccountsQuery,
   AccountsResponse,
+  AccountUpdateConflictResponse,
   PrivilegesResponse,
   RegisterAccountRequest,
   UpdateAccountRequest,
@@ -21,13 +22,6 @@ export class AccountNotFoundError extends Error {
   constructor() {
     super('账号不存在')
     this.name = 'AccountNotFoundError'
-  }
-}
-
-export class AccountUpdateConflictError extends Error {
-  constructor() {
-    super('账号数据已发生变化，请刷新后重试')
-    this.name = 'AccountUpdateConflictError'
   }
 }
 
@@ -51,7 +45,8 @@ export async function updateAccount(
   }
 
   if (response.status === 409) {
-    throw new AccountUpdateConflictError()
+    const body = (await response.json()) as AccountUpdateConflictResponse
+    throw new Error(body.message)
   }
 
   if (!response.ok) {

@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   AccountConflictError,
   AccountNotFoundError,
-  AccountUpdateConflictError,
   getAccount,
   getAccounts,
   getPrivileges,
@@ -47,13 +46,16 @@ describe('accounts API', () => {
     })
   })
 
-  it('maps an account update 409 to AccountUpdateConflictError', async () => {
-    fetchMock.mockResolvedValue(new Response(null, { status: 409 }))
+  it.each(['账号当前在线，无法修改', '账号数据校验失败'])(
+    'uses the account update 409 message: %s',
+    async (message) => {
+      fetchMock.mockResolvedValue(jsonResponse({ message }, 409))
 
-    await expect(
-      updateAccount('test', { privilege: 0, goldCoin: 0, silverCoin: 0 }),
-    ).rejects.toBeInstanceOf(AccountUpdateConflictError)
-  })
+      await expect(
+        updateAccount('test', { privilege: 0, goldCoin: 0, silverCoin: 0 }),
+      ).rejects.toThrow(message)
+    },
+  )
 
   it('maps an account update 404 to AccountNotFoundError', async () => {
     fetchMock.mockResolvedValue(new Response(null, { status: 404 }))

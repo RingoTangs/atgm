@@ -180,9 +180,27 @@ describe('account edit modal', () => {
     expect(onCancel).toHaveBeenCalledOnce()
   })
 
-  it('shows a conflict error and keeps the modal open', async () => {
+  it.each(['账号当前在线，无法修改', '账号数据校验失败'])(
+    'shows the server conflict message and keeps the modal open: %s',
+    async (message) => {
+      mockUpdateResponse(() => Promise.resolve(jsonResponse({ message }, 409)))
+      const { onCancel } = renderModal()
+      const user = userEvent.setup()
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: '保存' })).toBeEnabled()
+      })
+      await user.click(screen.getByRole('button', { name: '保存' }))
+
+      expect(await screen.findByText(message)).toBeInTheDocument()
+      expect(screen.getByRole('dialog')).toBeInTheDocument()
+      expect(onCancel).not.toHaveBeenCalled()
+    },
+  )
+
+  it('shows the not-found message and keeps the modal open', async () => {
     mockUpdateResponse(() =>
-      Promise.resolve(new Response(null, { status: 409 })),
+      Promise.resolve(new Response(null, { status: 404 })),
     )
     const { onCancel } = renderModal()
     const user = userEvent.setup()
@@ -192,8 +210,41 @@ describe('account edit modal', () => {
     })
     await user.click(screen.getByRole('button', { name: '保存' }))
 
+    expect(await screen.findByText('账号不存在')).toBeInTheDocument()
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(onCancel).not.toHaveBeenCalled()
+  })
+
+  it('shows the generic API error message and keeps the modal open', async () => {
+    mockUpdateResponse(() =>
+      Promise.resolve(new Response(null, { status: 500 })),
+    )
+    const { onCancel } = renderModal()
+    const user = userEvent.setup()
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '保存' })).toBeEnabled()
+    })
+    await user.click(screen.getByRole('button', { name: '保存' }))
+
+    expect(await screen.findByText('账号修改请求失败')).toBeInTheDocument()
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(onCancel).not.toHaveBeenCalled()
+  })
+
+  it('shows the fallback message for an unknown error', async () => {
+    const unknownError: unknown = undefined
+    mockUpdateResponse(() => Promise.reject(unknownError))
+    const { onCancel } = renderModal()
+    const user = userEvent.setup()
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '保存' })).toBeEnabled()
+    })
+    await user.click(screen.getByRole('button', { name: '保存' }))
+
     expect(
-      await screen.findByText('账号数据已发生变化，请刷新后重试'),
+      await screen.findByText('账号修改失败，请稍后重试'),
     ).toBeInTheDocument()
     expect(screen.getByRole('dialog')).toBeInTheDocument()
     expect(onCancel).not.toHaveBeenCalled()

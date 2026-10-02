@@ -6,11 +6,7 @@ import type { FormProps } from 'antd'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Alert, Form, InputNumber, message, Modal, Select } from 'antd'
 import { useEffect, useMemo } from 'react'
-import {
-  AccountNotFoundError,
-  AccountUpdateConflictError,
-  updateAccount,
-} from './accounts-api'
+import { AccountNotFoundError, updateAccount } from './accounts-api'
 import { accountQueryKeys, privilegesQueryOptions } from './accounts-queries'
 
 interface AccountEditModalProps {
@@ -83,13 +79,13 @@ export const AccountEditModal: React.FC<AccountEditModalProps> = ({
       onCancel()
     },
     onError: (error) => {
-      if (error instanceof AccountUpdateConflictError) {
-        void messageApi.error('账号数据已发生变化，请刷新后重试')
+      if (error instanceof AccountNotFoundError) {
+        void messageApi.error('账号不存在')
         return
       }
 
-      if (error instanceof AccountNotFoundError) {
-        void messageApi.error('账号不存在')
+      if (error instanceof Error) {
+        void messageApi.error(error.message)
         return
       }
 
