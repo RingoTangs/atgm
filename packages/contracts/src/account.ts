@@ -92,6 +92,43 @@ export type AccountUpdateConflictResponse = z.infer<
   typeof accountUpdateConflictResponseSchema
 >
 
+export const rechargeAccountBodySchema = z
+  .object({
+    goldCoinAmount: z.number().int().min(0).max(2_000_000_000),
+    silverCoinAmount: z.number().int().min(0).max(2_000_000_000),
+  })
+  .strict()
+  .refine(
+    ({ goldCoinAmount, silverCoinAmount }) =>
+      goldCoinAmount !== 0 || silverCoinAmount !== 0,
+    { message: '金币和银币充值数量不能同时为 0' },
+  )
+
+export type RechargeAccountRequest = z.infer<typeof rechargeAccountBodySchema>
+
+export const rechargeAccountResponseSchema = z.object({
+  account: z.string(),
+  goldCoin: z.number().int(),
+  silverCoin: z.number().int(),
+})
+
+export type RechargeAccountResponse = z.infer<
+  typeof rechargeAccountResponseSchema
+>
+
+export const accountRechargeConflictResponseSchema = z.object({
+  message: z.enum([
+    '账号数据校验失败',
+    '账号数据已发生变化，请重试',
+    '账号当前在线，无法修改',
+    '充值后金币或银币不能超过 20 亿',
+  ]),
+})
+
+export type AccountRechargeConflictResponse = z.infer<
+  typeof accountRechargeConflictResponseSchema
+>
+
 export const registerAccountBodySchema = z
   .object({
     account: z.string().min(1).max(32),

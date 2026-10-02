@@ -8,6 +8,7 @@ import {
 } from 'fastify-type-provider-zod'
 import pkg from '../package.json' with { type: 'json' }
 import { isDevelopment } from './env'
+import { accountRechargeRoutes } from './routes/account-recharge'
 import { accountRegisterRoutes } from './routes/account-register'
 import { accountUpdateRoutes } from './routes/account-update'
 import { accountRoutes } from './routes/accounts'
@@ -38,6 +39,7 @@ export function buildApp() {
   app.register(statusRoutes)
   app.register(accountRoutes)
   app.register(accountRegisterRoutes)
+  app.register(accountRechargeRoutes)
   app.register(accountUpdateRoutes)
   app.register(privilegeRoutes)
 
