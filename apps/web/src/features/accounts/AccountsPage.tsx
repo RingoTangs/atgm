@@ -44,11 +44,13 @@ export const AccountsPage: React.FC = () => {
         title: '账号',
         dataIndex: 'account',
         key: 'account',
+        align: 'center',
       },
       {
         title: '权限',
         dataIndex: 'privilege',
         key: 'privilege',
+        align: 'center',
         render: (value: number) => {
           const privilege = privilegeMap.get(value)
 
@@ -82,20 +84,21 @@ export const AccountsPage: React.FC = () => {
         title: '金币',
         dataIndex: 'goldCoin',
         key: 'goldCoin',
-        align: 'right',
+        align: 'center',
         render: (value: number) => value.toLocaleString(),
       },
       {
         title: '银币',
         dataIndex: 'silverCoin',
         key: 'silverCoin',
-        align: 'right',
+        align: 'center',
         render: (value: number) => value.toLocaleString(),
       },
       {
         title: '最后登录',
         dataIndex: 'lastLoginTime',
         key: 'lastLoginTime',
+        align: 'center',
         className: 'whitespace-nowrap',
         render: (value: string) => value || '-',
       },
@@ -103,6 +106,7 @@ export const AccountsPage: React.FC = () => {
         title: '最后登录 IP',
         dataIndex: 'lastLoginIp',
         key: 'lastLoginIp',
+        align: 'center',
         className: 'whitespace-nowrap',
         render: (value: string) => value || '-',
       },
@@ -110,12 +114,14 @@ export const AccountsPage: React.FC = () => {
         title: '注册时间',
         dataIndex: 'regDate',
         key: 'regDate',
+        align: 'center',
         className: 'whitespace-nowrap',
         render: (value: string) => value || '-',
       },
       {
         title: '操作',
         key: 'action',
+        align: 'center',
         fixed: 'right',
         width: 100,
         render: (_, record) => (
