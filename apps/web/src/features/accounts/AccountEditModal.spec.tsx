@@ -10,6 +10,7 @@ let queryClient: QueryClient
 
 const account: AccountDetailResponse = {
   account: 'server-account',
+  online: true,
   privilege: 120,
   goldCoin: 1_000_000,
   silverCoin: 50_000,

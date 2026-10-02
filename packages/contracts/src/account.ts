@@ -38,6 +38,7 @@ export type AccountDetailParams = z.infer<typeof accountDetailParamsSchema>
 
 export const accountDetailResponseSchema = z.object({
   account: z.string(),
+  online: z.boolean(),
   privilege: z.number().int(),
   goldCoin: z.number().int(),
   silverCoin: z.number().int(),

@@ -54,6 +54,7 @@ const mocks = vi.hoisted(() => {
   const countExecuteTakeFirstOrThrow = vi.fn()
   const detailExecuteTakeFirst = vi.fn()
   const onlineExecute = vi.fn()
+  const onlineExecuteTakeFirst = vi.fn()
   const offset = vi.fn(() => ({ execute: itemsExecute }))
   const limit = vi.fn(() => ({ offset }))
   const orderBy = vi.fn(() => ({ limit }))
@@ -75,7 +76,10 @@ const mocks = vi.hoisted(() => {
         },
   )
   const selectFrom = vi.fn(() => ({ select }))
-  const onlineNamesWhere = vi.fn(() => ({ execute: onlineExecute }))
+  const onlineNamesWhere = vi.fn(() => ({
+    execute: onlineExecute,
+    executeTakeFirst: onlineExecuteTakeFirst,
+  }))
   const onlinePathWhere = vi.fn(() => ({ where: onlineNamesWhere }))
   const onlineSelect = vi.fn(() => ({ where: onlinePathWhere }))
   const ddbSelectFrom = vi.fn(() => ({ select: onlineSelect }))
@@ -91,6 +95,7 @@ const mocks = vi.hoisted(() => {
     limit,
     offset,
     onlineExecute,
+    onlineExecuteTakeFirst,
     onlineNamesWhere,
     onlinePathWhere,
     onlineSelect,
@@ -185,6 +190,7 @@ beforeEach(() => {
   mocks.itemsExecute.mockResolvedValue([accountItem])
   mocks.detailExecuteTakeFirst.mockResolvedValue(accountDetailItem)
   mocks.onlineExecute.mockResolvedValue([{ name: accountItem.account }])
+  mocks.onlineExecuteTakeFirst.mockResolvedValue({ name: accountItem.account })
 })
 
 afterAll(async () => {
@@ -415,6 +421,7 @@ describe('get /accounts/:account endpoint', () => {
     expect(response.statusCode).toBe(200)
     expect(response.json()).toEqual({
       account: 'example_user',
+      online: true,
       privilege: 120,
       goldCoin: 1_000_000,
       silverCoin: 50_000,
@@ -435,9 +442,33 @@ describe('get /accounts/:account endpoint', () => {
       '=',
       'example_user',
     )
+    expect(mocks.ddbSelectFrom).toHaveBeenCalledWith('data')
+    expect(mocks.onlineSelect).toHaveBeenCalledWith('name')
+    expect(mocks.onlinePathWhere).toHaveBeenCalledWith('path', '=', 'runtime')
+    expect(mocks.onlineNamesWhere).toHaveBeenCalledWith(
+      'name',
+      '=',
+      'example_user',
+    )
+    expect(mocks.onlineExecuteTakeFirst).toHaveBeenCalledOnce()
     for (const privateField of privateAccountFields) {
       expect(response.payload).not.toContain(privateField)
     }
+  })
+
+  it('returns offline when no runtime record exists', async () => {
+    mocks.onlineExecuteTakeFirst.mockResolvedValue(undefined)
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/accounts/example_user',
+    })
+
+    expect(response.statusCode).toBe(200)
+    expect(response.json()).toMatchObject({
+      account: 'example_user',
+      online: false,
+    })
   })
 
   it('preserves empty account detail times', async () => {
@@ -475,5 +506,7 @@ describe('get /accounts/:account endpoint', () => {
 
     expect(response.statusCode).toBe(404)
     expect(response.json()).toEqual({ message: '账号不存在' })
+    expect(mocks.ddbSelectFrom).not.toHaveBeenCalled()
+    expect(mocks.onlineExecuteTakeFirst).not.toHaveBeenCalled()
   })
 })

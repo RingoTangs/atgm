@@ -144,8 +144,16 @@ export async function accountRoutes(app: FastifyInstance) {
         return reply.code(404).send({ message: '账号不存在' })
       }
 
+      const onlineRow = await app.db.ddb
+        .selectFrom('data')
+        .select('name')
+        .where('path', '=', 'runtime')
+        .where('name', '=', item.account)
+        .executeTakeFirst()
+
       return {
         account: item.account,
+        online: Boolean(onlineRow),
         privilege: item.privilege,
         goldCoin: item.gold_coin,
         silverCoin: item.silver_coin,
