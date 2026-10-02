@@ -28,12 +28,9 @@ const renderPrivilege = (value: number, privilege?: Privilege) => {
 
   return (
     <div>
-      <div>
-        {value} - {privilege.grant}
-      </div>
-      <div className="text-muted-foreground text-xs">
-        {privilege.description}
-      </div>
+      {privilege.grant && privilege.constant
+        ? `${privilege.privilege} - ${privilege.grant} - ${privilege.constant}(${privilege.description})`
+        : `${privilege.privilege} - ${privilege.description}`}
     </div>
   )
 }
