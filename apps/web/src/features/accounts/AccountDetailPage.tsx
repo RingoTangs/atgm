@@ -1,4 +1,5 @@
 import type { Privilege } from '@atgm/contracts'
+import type { DescriptionsProps } from 'antd'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Alert, Badge, Button, Descriptions, Skeleton } from 'antd'
@@ -82,6 +83,93 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = ({
   const privilege = privilegesQuery.data?.find(
     (item) => item.privilege === detail.privilege,
   )
+  const basicInfoItems: DescriptionsProps['items'] = [
+    {
+      key: 'account',
+      label: '账号',
+      children: detail.account,
+    },
+    {
+      key: 'status',
+      label: '状态',
+      children: detail.online ? (
+        <Badge status="success" text="在线" />
+      ) : (
+        <Badge status="default" text="离线" />
+      ),
+    },
+    {
+      key: 'privilege',
+      label: '权限',
+      children: renderPrivilege(detail.privilege, privilege),
+    },
+    {
+      key: 'regDate',
+      label: '注册时间',
+      children: displayValue(detail.regDate),
+    },
+  ]
+  const assetItems: DescriptionsProps['items'] = [
+    {
+      key: 'goldCoin',
+      label: '金币',
+      children: detail.goldCoin.toLocaleString(),
+    },
+    {
+      key: 'silverCoin',
+      label: '银币',
+      children: detail.silverCoin.toLocaleString(),
+    },
+  ]
+  const loginInfoItems: DescriptionsProps['items'] = [
+    {
+      key: 'firstLoginTime',
+      label: '首次登录',
+      children: displayValue(detail.firstLoginTime),
+    },
+    {
+      key: 'firstLoginMac',
+      label: '首次登录 MAC',
+      children: displayValue(detail.firstLoginMac),
+    },
+    {
+      key: 'lastLoginTime',
+      label: '最后登录',
+      children: displayValue(detail.lastLoginTime),
+    },
+    {
+      key: 'lastLoginIp',
+      label: '最后登录 IP',
+      children: displayValue(detail.lastLoginIp),
+    },
+    {
+      key: 'lastLoginId',
+      label: '最后登录 ID',
+      children: displayValue(detail.lastLoginId),
+    },
+  ]
+  const blockInfoItems: DescriptionsProps['items'] = [
+    {
+      key: 'blockedTime',
+      label: '永久封禁时间',
+      children: displayValue(detail.blockedTime),
+    },
+    {
+      key: 'blockedReason',
+      label: '永久封禁原因',
+      children: displayValue(detail.blockedReason),
+    },
+    {
+      key: 'tempBlockedTime',
+      label: '临时封禁时间',
+      children: displayValue(detail.tempBlockedTime),
+    },
+    {
+      key: 'tempBlockedReason',
+      label: '临时封禁原因',
+      children: displayValue(detail.tempBlockedReason),
+    },
+  ]
 
   return (
     <div className="space-y-6">
@@ -99,64 +187,29 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = ({
         </Button>
       </div>
 
-      <Descriptions bordered column={2}  title="基本信息">
-        <Descriptions.Item label="账号">{detail.account}</Descriptions.Item>
-        <Descriptions.Item label="状态">
-          {detail.online ? (
-            <Badge status="success" text="在线" />
-          ) : (
-            <Badge status="default" text="离线" />
-          )}
-        </Descriptions.Item>
-        <Descriptions.Item label="权限">
-          {renderPrivilege(detail.privilege, privilege)}
-        </Descriptions.Item>
-        <Descriptions.Item label="注册时间">
-          {displayValue(detail.regDate)}
-        </Descriptions.Item>
-      </Descriptions>
+      <Descriptions
+        bordered
+        size="small"
+        column={2}
+        items={basicInfoItems}
+        title="基本信息"
+      />
 
-      <Descriptions bordered title="资产">
-        <Descriptions.Item label="金币">
-          {detail.goldCoin.toLocaleString()}
-        </Descriptions.Item>
-        <Descriptions.Item label="银币">
-          {detail.silverCoin.toLocaleString()}
-        </Descriptions.Item>
-      </Descriptions>
+      <Descriptions bordered size="small" items={assetItems} title="资产" />
 
-      <Descriptions bordered title="登录信息">
-        <Descriptions.Item label="首次登录">
-          {displayValue(detail.firstLoginTime)}
-        </Descriptions.Item>
-        <Descriptions.Item label="首次登录 MAC">
-          {displayValue(detail.firstLoginMac)}
-        </Descriptions.Item>
-        <Descriptions.Item label="最后登录">
-          {displayValue(detail.lastLoginTime)}
-        </Descriptions.Item>
-        <Descriptions.Item label="最后登录 IP">
-          {displayValue(detail.lastLoginIp)}
-        </Descriptions.Item>
-        <Descriptions.Item label="最后登录 ID">
-          {displayValue(detail.lastLoginId)}
-        </Descriptions.Item>
-      </Descriptions>
+      <Descriptions
+        bordered
+        size="small"
+        items={loginInfoItems}
+        title="登录信息"
+      />
 
-      <Descriptions bordered title="封禁信息">
-        <Descriptions.Item label="永久封禁时间">
-          {displayValue(detail.blockedTime)}
-        </Descriptions.Item>
-        <Descriptions.Item label="永久封禁原因">
-          {displayValue(detail.blockedReason)}
-        </Descriptions.Item>
-        <Descriptions.Item label="临时封禁时间">
-          {displayValue(detail.tempBlockedTime)}
-        </Descriptions.Item>
-        <Descriptions.Item label="临时封禁原因">
-          {displayValue(detail.tempBlockedReason)}
-        </Descriptions.Item>
-      </Descriptions>
+      <Descriptions
+        bordered
+        size="small"
+        items={blockInfoItems}
+        title="封禁信息"
+      />
 
       <AccountEditModal
         account={detail}
