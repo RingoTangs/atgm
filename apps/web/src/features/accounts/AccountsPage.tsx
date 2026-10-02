@@ -1,53 +1,10 @@
-import type { AccountListItem } from '@atgm/contracts'
+import type { AccountListItem, Privilege } from '@atgm/contracts'
 import type { TableProps } from 'antd'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { Alert, Button, Input, Table } from 'antd'
-import { useState } from 'react'
+import { Alert, Button, Input, Table, Tooltip } from 'antd'
+import { useMemo, useState } from 'react'
 import { AccountRegisterModal } from './AccountRegisterModal'
-import { getAccounts } from './accounts-api'
-
-const columns: TableProps<AccountListItem>['columns'] = [
-  {
-    title: '账号',
-    dataIndex: 'account',
-    key: 'account',
-  },
-  {
-    title: '权限',
-    dataIndex: 'privilege',
-    key: 'privilege',
-  },
-  {
-    title: '金币',
-    dataIndex: 'goldCoin',
-    key: 'goldCoin',
-    render: (value: number) => value.toLocaleString(),
-  },
-  {
-    title: '银币',
-    dataIndex: 'silverCoin',
-    key: 'silverCoin',
-    render: (value: number) => value.toLocaleString(),
-  },
-  {
-    title: '最后登录',
-    dataIndex: 'lastLoginTime',
-    key: 'lastLoginTime',
-    render: (value: string) => value || '-',
-  },
-  {
-    title: '最后登录 IP',
-    dataIndex: 'lastLoginIp',
-    key: 'lastLoginIp',
-    render: (value: string) => value || '-',
-  },
-  {
-    title: '注册时间',
-    dataIndex: 'regDate',
-    key: 'regDate',
-    render: (value: string) => value || '-',
-  },
-]
+import { getAccounts, getPrivileges } from './accounts-api'
 
 export const AccountsPage: React.FC = () => {
   const [page, setPage] = useState(1)
@@ -65,6 +22,99 @@ export const AccountsPage: React.FC = () => {
       }),
     placeholderData: keepPreviousData,
   })
+  const privilegesQuery = useQuery({
+    queryKey: ['privileges'],
+    queryFn: getPrivileges,
+    staleTime: Infinity,
+  })
+  const privilegeMap = useMemo(
+    () =>
+      new Map<number, Privilege>(
+        (privilegesQuery.data ?? []).map((privilege) => [
+          privilege.privilege,
+          privilege,
+        ]),
+      ),
+    [privilegesQuery.data],
+  )
+  const columns = useMemo<TableProps<AccountListItem>['columns']>(
+    () => [
+      {
+        title: '账号',
+        dataIndex: 'account',
+        key: 'account',
+      },
+      {
+        title: '权限',
+        dataIndex: 'privilege',
+        key: 'privilege',
+        render: (value: number) => {
+          const privilege = privilegeMap.get(value)
+
+          if (!privilege) {
+            return (
+              <div className="whitespace-nowrap">
+                <div>{value}</div>
+                <div className="text-muted-foreground text-xs">未知权限</div>
+              </div>
+            )
+          }
+
+          return (
+            <Tooltip
+              title={
+                <div>
+                  <div>常量：{privilege.constant}</div>
+                  <div>类型：{privilege.type}</div>
+                  <div>描述：{privilege.description}</div>
+                </div>
+              }
+            >
+              <div className="whitespace-nowrap">
+                {value} - {privilege.grant}
+              </div>
+            </Tooltip>
+          )
+        },
+      },
+      {
+        title: '金币',
+        dataIndex: 'goldCoin',
+        key: 'goldCoin',
+        align: 'right',
+        render: (value: number) => value.toLocaleString(),
+      },
+      {
+        title: '银币',
+        dataIndex: 'silverCoin',
+        key: 'silverCoin',
+        align: 'right',
+        render: (value: number) => value.toLocaleString(),
+      },
+      {
+        title: '最后登录',
+        dataIndex: 'lastLoginTime',
+        key: 'lastLoginTime',
+        className: 'whitespace-nowrap',
+        render: (value: string) => value || '-',
+      },
+      {
+        title: '最后登录 IP',
+        dataIndex: 'lastLoginIp',
+        key: 'lastLoginIp',
+        className: 'whitespace-nowrap',
+        render: (value: string) => value || '-',
+      },
+      {
+        title: '注册时间',
+        dataIndex: 'regDate',
+        key: 'regDate',
+        className: 'whitespace-nowrap',
+        render: (value: string) => value || '-',
+      },
+    ],
+    [privilegeMap],
+  )
 
   const submitSearch = (value: string) => {
     setSearchText(value)
