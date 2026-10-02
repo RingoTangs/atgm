@@ -1,7 +1,21 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createDatabases, registerDatabase } from '.'
 import { buildApp } from '../app'
 import { parseServerEnv } from '../env'
+
+const mocks = vi.hoisted(() => ({
+  createPool: vi.fn(),
+}))
+
+vi.mock('mysql2', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('mysql2')>()
+  mocks.createPool.mockImplementation(actual.createPool)
+
+  return {
+    ...actual,
+    createPool: mocks.createPool,
+  }
+})
 
 const databases: Array<{ destroy: () => Promise<void> }> = []
 
@@ -30,6 +44,19 @@ describe('createDatabases', () => {
     expect(db).toBeDefined()
     expect(adbDb).toBeDefined()
     expect(ddbDb).toBeDefined()
+    expect(mocks.createPool).toHaveBeenCalledWith({
+      host: '127.0.0.1',
+      port: 3306,
+      user: 'atgm',
+      password: 'password',
+      database: 'dl_adb_all',
+      waitForConnections: true,
+      connectionLimit: 10,
+      maxIdle: 2,
+      idleTimeout: 30_000,
+      enableKeepAlive: true,
+      keepAliveInitialDelay: 10_000,
+    })
     expect(accountQuery.sql).toContain('`dl_adb_all`.`account`')
     expect(ddbNamespaceProbe.sql).toContain('`dl_ddb_1`.`__namespace_probe__`')
   })

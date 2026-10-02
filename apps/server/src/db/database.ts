@@ -13,6 +13,10 @@ export function createDatabases(env: ServerEnv) {
     database: env.MYSQL_DL_ADB_ALL,
     waitForConnections: true,
     connectionLimit: 10,
+    maxIdle: 2,
+    idleTimeout: 30_000,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 10_000,
   })
 
   const db = new Kysely<AdbDatabase>({
