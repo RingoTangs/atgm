@@ -2,7 +2,7 @@ import type { AccountListItem, Privilege } from '@atgm/contracts'
 import type { TableProps } from 'antd'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { Alert, Button, Input, Table, Tooltip } from 'antd'
+import { Alert, Badge, Button, Input, Table, Tooltip } from 'antd'
 import { useMemo, useState } from 'react'
 import { AccountRegisterModal } from './AccountRegisterModal'
 import {
@@ -22,6 +22,18 @@ const useAccountColumns = (privileges?: Privilege[]) =>
         dataIndex: 'account',
         key: 'account',
         align: 'center',
+      },
+      {
+        title: '状态',
+        key: 'online',
+        align: 'center',
+        width: 90,
+        render: (_, record) =>
+          record.online ? (
+            <Badge status="success" text="在线" />
+          ) : (
+            <Badge status="default" text="离线" />
+          ),
       },
       {
         title: '权限',

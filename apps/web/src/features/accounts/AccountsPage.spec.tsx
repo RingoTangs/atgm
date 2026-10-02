@@ -22,6 +22,7 @@ const fetchMock = vi.fn<typeof fetch>()
 
 const accountItem = {
   account: 'server-account',
+  online: true,
   privilege: 100,
   goldCoin: 1_000_000,
   silverCoin: 50_000,
@@ -151,7 +152,7 @@ const getPrivilegeRequestUrls = (): string[] =>
     .filter((url) => url === '/_api/privileges')
 
 describe('accounts page', () => {
-  it('renders the eight columns and server account data', async () => {
+  it('renders the nine columns and server account data', async () => {
     renderPage()
 
     expect(
@@ -161,6 +162,7 @@ describe('accounts page', () => {
 
     for (const column of [
       '账号',
+      '状态',
       '权限',
       '金币',
       '银币',
@@ -173,7 +175,7 @@ describe('accounts page', () => {
         screen.getByRole('columnheader', { name: column }),
       ).toBeInTheDocument()
     }
-    expect(screen.getAllByRole('columnheader')).toHaveLength(8)
+    expect(screen.getAllByRole('columnheader')).toHaveLength(9)
 
     const row = (await screen.findByText('server-account')).closest('tr')
     if (!row) throw new Error('server account row not found')
@@ -183,6 +185,7 @@ describe('accounts page', () => {
     expect(
       within(row).getByRole('link', { name: '查看详情' }),
     ).toBeInTheDocument()
+    expect(within(row).getByText('在线')).toBeInTheDocument()
     expect(within(row).getByText('100')).toBeInTheDocument()
     expect(within(row).getByText('未知权限')).toBeInTheDocument()
     expect(within(row).getByText('1,000,000')).toBeInTheDocument()
@@ -194,6 +197,20 @@ describe('accounts page', () => {
       '/_api/accounts?page=1&pageSize=20',
     )
     expect(getPrivilegeRequestUrls()).toEqual(['/_api/privileges'])
+  })
+
+  it('renders an offline badge for an offline account', async () => {
+    fetchMock.mockImplementation(async (input) => {
+      if (String(input) === '/_api/privileges') return privilegesResponse()
+
+      return accountsResponse([{ ...accountItem, online: false }])
+    })
+    renderPage()
+
+    const row = (await screen.findByText('server-account')).closest('tr')
+    if (!row) throw new Error('server account row not found')
+    expect(within(row).getByText('离线')).toBeInTheDocument()
+    expect(within(row).queryByText('在线')).not.toBeInTheDocument()
   })
 
   it('navigates to account details from the action column', async () => {
