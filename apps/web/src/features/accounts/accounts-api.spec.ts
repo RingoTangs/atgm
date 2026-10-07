@@ -4,8 +4,9 @@ import {
   getAccount,
   getAccounts,
   getPrivileges,
+  rechargeAccount,
   registerAccount,
-  updateAccount,
+  updateAccountPrivilege,
 } from './accounts-api'
 
 const fetchMock = vi.fn<typeof fetch>()
@@ -29,8 +30,12 @@ afterEach(() => {
 describe('accounts API', () => {
   it.each([
     [
-      'update',
-      () => updateAccount('test', { privilege: 0, goldCoin: 0, silverCoin: 0 }),
+      'privilege update',
+      () => updateAccountPrivilege('test', { privilege: 0 }),
+    ],
+    [
+      'recharge',
+      () => rechargeAccount('test', { goldCoinAmount: 1, silverCoinAmount: 0 }),
     ],
     ['detail', () => getAccount('test')],
     ['list', () => getAccounts({ page: 1, pageSize: 20 })],
@@ -107,53 +112,55 @@ describe('accounts API', () => {
     await expect(getAccount('test')).rejects.toBe(error)
   })
 
-  it('patches encoded account core values as JSON', async () => {
-    fetchMock.mockResolvedValue(jsonResponse({ account: 'test/user' }))
-    const values = {
-      privilege: 120,
-      goldCoin: 1_000_000,
-      silverCoin: 50_000,
-    }
-
-    await expect(updateAccount('test/user', values)).resolves.toEqual({
-      account: 'test/user',
-    })
-    expect(fetchMock).toHaveBeenCalledWith('/_api/accounts/test%2Fuser', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(values),
-    })
-  })
-
   it.each([
-    ['ACCOUNT_ONLINE', '账号当前在线，无法修改'],
-    ['ACCOUNT_CHECKSUM_INVALID', '账号数据校验失败'],
-    ['ACCOUNT_CONCURRENT_MODIFICATION', '账号数据已发生变化，请重试'],
-  ])('uses the account update 409 message: %s', async (code, message) => {
-    fetchMock.mockResolvedValue(jsonResponse({ code, message }, 409))
-
-    await expect(
-      updateAccount('test', { privilege: 0, goldCoin: 0, silverCoin: 0 }),
-    ).rejects.toThrow(message)
-  })
-
-  it('preserves the account-not-found code for an update', async () => {
-    fetchMock.mockResolvedValue(
-      jsonResponse({ code: 'ACCOUNT_NOT_FOUND', message: '账号不存在' }, 404),
-    )
-
-    await expect(
-      updateAccount('missing', { privilege: 0, goldCoin: 0, silverCoin: 0 }),
-    ).rejects.toMatchObject({ code: 'ACCOUNT_NOT_FOUND', status: 404 })
-  })
-
-  it('keeps other account update failures as generic errors', async () => {
-    fetchMock.mockResolvedValue(new Response(null, { status: 500 }))
-
-    await expect(
-      updateAccount('test', { privilege: 0, goldCoin: 0, silverCoin: 0 }),
-    ).rejects.toThrow('账号修改请求失败')
-  })
+    {
+      name: 'recharge',
+      request: () =>
+        rechargeAccount('test/user', {
+          goldCoinAmount: 10,
+          silverCoinAmount: 0,
+        }),
+      values: { goldCoinAmount: 10, silverCoinAmount: 0 },
+      response: { account: 'test/user', goldCoin: 20, silverCoin: 30 },
+      fallback: '账号充值请求失败',
+    },
+    {
+      name: 'privilege',
+      request: () => updateAccountPrivilege('test/user', { privilege: 120 }),
+      values: { privilege: 120 },
+      response: { account: 'test/user', privilege: 120 },
+      fallback: '权限变更请求失败',
+    },
+  ])(
+    'patches encoded $name values and preserves errors',
+    async ({ name, request, values, response, fallback }) => {
+      fetchMock.mockResolvedValue(jsonResponse(response))
+      await expect(request()).resolves.toEqual(response)
+      expect(fetchMock).toHaveBeenCalledWith(
+        `/_api/accounts/test%2Fuser/${name}`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(values),
+        },
+      )
+      for (const status of [404, 409, 500]) {
+        fetchMock.mockResolvedValue(
+          jsonResponse(
+            { code: 'ACCOUNT_NOT_FOUND', message: '服务端错误提示' },
+            status,
+          ),
+        )
+        await expect(request()).rejects.toMatchObject({
+          code: 'ACCOUNT_NOT_FOUND',
+          message: '服务端错误提示',
+          status,
+        })
+      }
+      fetchMock.mockResolvedValue(new Response(null, { status: 500 }))
+      await expect(request()).rejects.toThrow(fallback)
+    },
+  )
 
   it('requests an encoded account detail and returns the shared response', async () => {
     const account = {

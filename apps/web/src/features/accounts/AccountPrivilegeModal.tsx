@@ -1,46 +1,28 @@
 import type {
   AccountDetailResponse,
-  UpdateAccountRequest,
+  UpdateAccountPrivilegeRequest,
 } from '@atgm/contracts'
 import type { FormProps } from 'antd'
-import { ACCOUNT_COIN_MAX, ACCOUNT_COIN_MIN, errorCodes } from '@atgm/contracts'
+import { errorCodes } from '@atgm/contracts'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Alert, Form, InputNumber, message, Modal, Select } from 'antd'
+import { Alert, Form, message, Modal, Select } from 'antd'
 import { useEffect, useMemo } from 'react'
 import { ApiError } from '@/lib/apiError'
-import { updateAccount } from './accounts-api'
+import { updateAccountPrivilege } from './accounts-api'
 import { accountQueryKeys, privilegesQueryOptions } from './accounts-queries'
 
-interface AccountEditModalProps {
+interface AccountPrivilegeModalProps {
   account: AccountDetailResponse
   open: boolean
   onCancel: () => void
 }
 
-const integerRangeValidator = (label: string, min: number, max: number) => ({
-  validator: (_rule: unknown, value: number | null | undefined) => {
-    if (value === null || value === undefined) {
-      return Promise.reject(new Error(`请输入${label}`))
-    }
-
-    if (!Number.isInteger(value) || value < min || value > max) {
-      return Promise.reject(
-        new Error(
-          `${label}必须是 ${min.toLocaleString()}～${max.toLocaleString()} 的整数`,
-        ),
-      )
-    }
-
-    return Promise.resolve()
-  },
-})
-
-export const AccountEditModal: React.FC<AccountEditModalProps> = ({
+export const AccountPrivilegeModal: React.FC<AccountPrivilegeModalProps> = ({
   account,
   open,
   onCancel,
 }) => {
-  const [form] = Form.useForm<UpdateAccountRequest>()
+  const [form] = Form.useForm<UpdateAccountPrivilegeRequest>()
   const [messageApi, messageContext] = message.useMessage()
   const queryClient = useQueryClient()
   const privilegesQuery = useQuery({
@@ -66,8 +48,8 @@ export const AccountEditModal: React.FC<AccountEditModalProps> = ({
     return options
   }, [account.privilege, privilegesQuery.data])
   const updateMutation = useMutation({
-    mutationFn: (values: UpdateAccountRequest) =>
-      updateAccount(account.account, values),
+    mutationFn: (values: UpdateAccountPrivilegeRequest) =>
+      updateAccountPrivilege(account.account, values),
     onSuccess: () => {
       void queryClient
         .invalidateQueries({
@@ -77,7 +59,7 @@ export const AccountEditModal: React.FC<AccountEditModalProps> = ({
       void queryClient
         .invalidateQueries({ queryKey: accountQueryKeys.all })
         .catch(() => undefined)
-      void messageApi.success('账号修改成功')
+      void messageApi.success('权限变更成功')
       onCancel()
     },
     onError: (error) => {
@@ -85,7 +67,7 @@ export const AccountEditModal: React.FC<AccountEditModalProps> = ({
         error instanceof ApiError &&
         error.code === errorCodes.ACCOUNT_NOT_FOUND
       ) {
-        void messageApi.error('账号不存在')
+        void messageApi.error(error.message)
         return
       }
 
@@ -94,7 +76,7 @@ export const AccountEditModal: React.FC<AccountEditModalProps> = ({
         return
       }
 
-      void messageApi.error('账号修改失败，请稍后重试')
+      void messageApi.error('权限变更失败，请稍后重试')
     },
   })
 
@@ -103,10 +85,8 @@ export const AccountEditModal: React.FC<AccountEditModalProps> = ({
 
     form.setFieldsValue({
       privilege: account.privilege,
-      goldCoin: account.goldCoin,
-      silverCoin: account.silverCoin,
     })
-  }, [account.goldCoin, account.privilege, account.silverCoin, form, open])
+  }, [account.privilege, form, open])
 
   const handleCancel = () => {
     if (updateMutation.isPending) return
@@ -116,7 +96,7 @@ export const AccountEditModal: React.FC<AccountEditModalProps> = ({
     onCancel()
   }
 
-  const handleFinish: FormProps<UpdateAccountRequest>['onFinish'] = (
+  const handleFinish: FormProps<UpdateAccountPrivilegeRequest>['onFinish'] = (
     values,
   ) => {
     if (privilegesQuery.isSuccess && !updateMutation.isPending) {
@@ -152,7 +132,7 @@ export const AccountEditModal: React.FC<AccountEditModalProps> = ({
           if (!updateMutation.isPending) form.submit()
         }}
         open={open}
-        title={`编辑账号：${account.account}`}
+        title={`变更权限：${account.account}`}
       >
         {privilegesQuery.isError && (
           <Alert
@@ -163,7 +143,7 @@ export const AccountEditModal: React.FC<AccountEditModalProps> = ({
           />
         )}
 
-        <Form<UpdateAccountRequest>
+        <Form<UpdateAccountPrivilegeRequest>
           form={form}
           layout="vertical"
           onFinish={handleFinish}
@@ -179,26 +159,6 @@ export const AccountEditModal: React.FC<AccountEditModalProps> = ({
               options={privilegeOptions}
               placeholder="请选择权限"
             />
-          </Form.Item>
-
-          <Form.Item
-            label="金币"
-            name="goldCoin"
-            rules={[
-              integerRangeValidator('金币', ACCOUNT_COIN_MIN, ACCOUNT_COIN_MAX),
-            ]}
-          >
-            <InputNumber className="w-full" step={1} />
-          </Form.Item>
-
-          <Form.Item
-            label="银币"
-            name="silverCoin"
-            rules={[
-              integerRangeValidator('银币', ACCOUNT_COIN_MIN, ACCOUNT_COIN_MAX),
-            ]}
-          >
-            <InputNumber className="w-full" step={1} />
           </Form.Item>
         </Form>
       </Modal>

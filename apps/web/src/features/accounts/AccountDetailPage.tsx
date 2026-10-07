@@ -6,7 +6,8 @@ import { Link } from '@tanstack/react-router'
 import { Alert, Badge, Button, Descriptions, Skeleton, Tooltip } from 'antd'
 import { useState } from 'react'
 import { ApiError } from '@/lib/apiError'
-import { AccountEditModal } from './AccountEditModal'
+import { AccountPrivilegeModal } from './AccountPrivilegeModal'
+import { AccountRechargeModal } from './AccountRechargeModal'
 import {
   accountDetailQueryOptions,
   privilegesQueryOptions,
@@ -52,7 +53,8 @@ const renderPrivilege = (value: number, privilege?: Privilege) => {
 export const AccountDetailPage: React.FC<AccountDetailPageProps> = ({
   account,
 }) => {
-  const [editOpen, setEditOpen] = useState(false)
+  const [rechargeOpen, setRechargeOpen] = useState(false)
+  const [privilegeOpen, setPrivilegeOpen] = useState(false)
   const accountQuery = useQuery(accountDetailQueryOptions(account))
   const privilegesQuery = useQuery(privilegesQueryOptions())
 
@@ -193,18 +195,32 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = ({
           <Link to="/accounts">返回账号列表</Link>
           <h1 className="mt-2 text-2xl font-semibold">账号详情</h1>
         </div>
-        <Tooltip title={detail.online ? '账号在线时无法修改' : undefined}>
-          <span>
-            <Button
-              aria-label="编辑"
-              disabled={detail.online}
-              onClick={() => setEditOpen(true)}
-              type="primary"
-            >
-              编辑
-            </Button>
-          </span>
-        </Tooltip>
+        <div className="flex gap-2">
+          <Tooltip title={detail.online ? '账号在线时无法修改' : undefined}>
+            <span>
+              <Button
+                aria-label="充值"
+                disabled={detail.online}
+                onClick={() => setRechargeOpen(true)}
+                type="primary"
+              >
+                充值
+              </Button>
+            </span>
+          </Tooltip>
+          <Tooltip title={detail.online ? '账号在线时无法修改' : undefined}>
+            <span>
+              <Button
+                aria-label="变更权限"
+                disabled={detail.online}
+                onClick={() => setPrivilegeOpen(true)}
+                type="primary"
+              >
+                变更权限
+              </Button>
+            </span>
+          </Tooltip>
+        </div>
       </div>
 
       <Descriptions
@@ -243,10 +259,15 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = ({
         styles={descriptionStyles}
       />
 
-      <AccountEditModal
+      <AccountRechargeModal
         account={detail}
-        onCancel={() => setEditOpen(false)}
-        open={editOpen}
+        onCancel={() => setRechargeOpen(false)}
+        open={rechargeOpen}
+      />
+      <AccountPrivilegeModal
+        account={detail}
+        onCancel={() => setPrivilegeOpen(false)}
+        open={privilegeOpen}
       />
     </div>
   )

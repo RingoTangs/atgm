@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { AccountEditModal } from './AccountEditModal'
+import { AccountPrivilegeModal } from './AccountPrivilegeModal'
 
 const fetchMock = vi.fn<typeof fetch>()
 let queryClient: QueryClient
@@ -109,23 +109,21 @@ const renderModal = (accountValue = account) => {
 
   render(
     <QueryClientProvider client={queryClient}>
-      <AccountEditModal account={accountValue} onCancel={onCancel} open />
+      <AccountPrivilegeModal account={accountValue} onCancel={onCancel} open />
     </QueryClientProvider>,
   )
 
   return { onCancel }
 }
 
-describe('account edit modal', () => {
+describe('account privilege modal', () => {
   it('fills the form with current account values', async () => {
     renderModal()
 
     expect(
-      screen.getByRole('dialog', { name: '编辑账号：server-account' }),
+      screen.getByRole('dialog', { name: '变更权限：server-account' }),
     ).toBeInTheDocument()
     expect(screen.queryByLabelText('账号')).toBeNull()
-    expect(screen.getByLabelText('金币')).toHaveValue('1000000')
-    expect(screen.getByLabelText('银币')).toHaveValue('50000')
     expect(
       await screen.findByTitle('120 - GA - ADMINISTRATOR(管理员)'),
     ).toBeInTheDocument()
@@ -155,22 +153,19 @@ describe('account edit modal', () => {
     await user.click(
       await screen.findByTitle('1000 - GD - DEBUGGER(调试器权限)'),
     )
-    await user.clear(screen.getByLabelText('金币'))
-    await user.type(screen.getByLabelText('金币'), '2000000000')
-    await user.clear(screen.getByLabelText('银币'))
-    await user.type(screen.getByLabelText('银币'), '15')
     await user.click(screen.getByRole('button', { name: '保存' }))
 
-    expect(await screen.findByText('账号修改成功')).toBeInTheDocument()
-    expect(fetchMock).toHaveBeenCalledWith('/_api/accounts/server-account', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        privilege: 1000,
-        goldCoin: 2_000_000_000,
-        silverCoin: 15,
-      }),
-    })
+    expect(await screen.findByText('权限变更成功')).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/_api/accounts/server-account/privilege',
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          privilege: 1000,
+        }),
+      },
+    )
     expect(invalidateQueries).toHaveBeenCalledWith({
       queryKey: ['account', 'server-account'],
     })
@@ -235,7 +230,7 @@ describe('account edit modal', () => {
     })
     await user.click(screen.getByRole('button', { name: '保存' }))
 
-    expect(await screen.findByText('账号修改请求失败')).toBeInTheDocument()
+    expect(await screen.findByText('权限变更请求失败')).toBeInTheDocument()
     expect(screen.getByRole('dialog')).toBeInTheDocument()
     expect(onCancel).not.toHaveBeenCalled()
   })
@@ -252,7 +247,7 @@ describe('account edit modal', () => {
     await user.click(screen.getByRole('button', { name: '保存' }))
 
     expect(
-      await screen.findByText('账号修改失败，请稍后重试'),
+      await screen.findByText('权限变更失败，请稍后重试'),
     ).toBeInTheDocument()
     expect(screen.getByRole('dialog')).toBeInTheDocument()
     expect(onCancel).not.toHaveBeenCalled()
@@ -280,15 +275,13 @@ describe('account edit modal', () => {
     expect(updateCalls()).toHaveLength(1)
 
     resolveRequest(jsonResponse({ account: 'server-account' }))
-    expect(await screen.findByText('账号修改成功')).toBeInTheDocument()
+    expect(await screen.findByText('权限变更成功')).toBeInTheDocument()
   })
 
   it('cancels without sending an update', async () => {
     const { onCancel } = renderModal()
     const user = userEvent.setup()
 
-    await user.clear(screen.getByLabelText('金币'))
-    await user.type(screen.getByLabelText('金币'), '10')
     await user.click(screen.getByRole('button', { name: '取消' }))
 
     expect(onCancel).toHaveBeenCalledOnce()

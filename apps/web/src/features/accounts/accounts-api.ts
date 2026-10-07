@@ -3,32 +3,48 @@ import type {
   AccountsQuery,
   AccountsResponse,
   PrivilegesResponse,
+  RechargeAccountRequest,
+  RechargeAccountResponse,
   RegisterAccountRequest,
-  UpdateAccountRequest,
-  UpdateAccountResponse,
+  UpdateAccountPrivilegeRequest,
+  UpdateAccountPrivilegeResponse,
 } from '@atgm/contracts'
 import { checkApiResponse } from '@/lib/apiError'
 
 const API_PREFIX = '/_api'
 
-export async function updateAccount(
+export async function rechargeAccount(
   account: string,
-  values: UpdateAccountRequest,
-): Promise<UpdateAccountResponse> {
+  values: RechargeAccountRequest,
+): Promise<RechargeAccountResponse> {
   const response = await fetch(
-    `${API_PREFIX}/accounts/${encodeURIComponent(account)}`,
+    `${API_PREFIX}/accounts/${encodeURIComponent(account)}/recharge`,
     {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(values),
     },
   )
 
-  await checkApiResponse(response, '账号修改请求失败')
+  await checkApiResponse(response, '账号充值请求失败')
+  return (await response.json()) as RechargeAccountResponse
+}
 
-  return (await response.json()) as UpdateAccountResponse
+export async function updateAccountPrivilege(
+  account: string,
+  values: UpdateAccountPrivilegeRequest,
+): Promise<UpdateAccountPrivilegeResponse> {
+  const response = await fetch(
+    `${API_PREFIX}/accounts/${encodeURIComponent(account)}/privilege`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(values),
+    },
+  )
+
+  await checkApiResponse(response, '权限变更请求失败')
+  return (await response.json()) as UpdateAccountPrivilegeResponse
 }
 
 export async function getAccount(
