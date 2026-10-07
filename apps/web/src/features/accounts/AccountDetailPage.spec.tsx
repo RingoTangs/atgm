@@ -176,8 +176,8 @@ describe('account detail page', () => {
       await screen.findByRole('dialog', { name: title }),
     ).toBeInTheDocument()
     if (action === '充值') {
-      await user.clear(screen.getByLabelText('金币充值数量'))
-      await user.type(screen.getByLabelText('金币充值数量'), '10')
+      await user.clear(screen.getByLabelText('金元宝充值数量'))
+      await user.type(screen.getByLabelText('金元宝充值数量'), '10')
       const dialog = screen.getByRole('dialog')
       await user.click(within(dialog).getByRole('button', { name: '充值' }))
     } else {

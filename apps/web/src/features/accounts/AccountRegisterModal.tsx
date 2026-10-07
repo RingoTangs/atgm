@@ -143,7 +143,7 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
           </Form.Item>
 
           <div className="mb-2 flex items-center justify-between">
-            <label htmlFor="goldCoin">金币</label>
+            <label htmlFor="goldCoin">金元宝</label>
             <div className="flex gap-1">
               <Button
                 size="small"
@@ -166,7 +166,11 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
           <Form.Item
             name="goldCoin"
             rules={[
-              integerRangeValidator('金币', ACCOUNT_COIN_MIN, ACCOUNT_COIN_MAX),
+              integerRangeValidator(
+                '金元宝',
+                ACCOUNT_COIN_MIN,
+                ACCOUNT_COIN_MAX,
+              ),
             ]}
           >
             <InputNumber
@@ -180,7 +184,7 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
           </Form.Item>
 
           <div className="mb-2 flex items-center justify-between">
-            <label htmlFor="silverCoin">银币</label>
+            <label htmlFor="silverCoin">银元宝</label>
             <div className="flex gap-1">
               <Button
                 size="small"
@@ -207,7 +211,11 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
           <Form.Item
             name="silverCoin"
             rules={[
-              integerRangeValidator('银币', ACCOUNT_COIN_MIN, ACCOUNT_COIN_MAX),
+              integerRangeValidator(
+                '银元宝',
+                ACCOUNT_COIN_MIN,
+                ACCOUNT_COIN_MAX,
+              ),
             ]}
           >
             <InputNumber

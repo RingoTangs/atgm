@@ -124,8 +124,8 @@ describe('account register modal', () => {
 
     expect(screen.getByLabelText('账号')).toBeInTheDocument()
     expect(screen.getByLabelText('密码')).toBeInTheDocument()
-    expect(screen.getByLabelText('金币')).toHaveValue('0')
-    expect(screen.getByLabelText('银币')).toHaveValue('0')
+    expect(screen.getByLabelText('金元宝')).toHaveValue('0')
+    expect(screen.getByLabelText('银元宝')).toHaveValue('0')
     expect(screen.getByLabelText('权限')).toHaveAttribute('role', 'combobox')
     expect(screen.getByLabelText('权限')).toHaveValue('')
 
@@ -174,7 +174,7 @@ describe('account register modal', () => {
     ).toBeInTheDocument()
   })
 
-  it.each(['金币', '银币'])('limits the integer range for %s', (label) => {
+  it.each(['金元宝', '银元宝'])('limits the integer range for %s', (label) => {
     renderModal()
     const input = screen.getByLabelText(label)
 
@@ -182,7 +182,7 @@ describe('account register modal', () => {
     expect(input).toHaveAttribute('aria-valuemax', '2000000000')
   })
 
-  it.each(['金币', '银币'])(
+  it.each(['金元宝', '银元宝'])(
     'sets %s to its minimum and maximum values',
     async (label) => {
       renderModal()
@@ -212,10 +212,10 @@ describe('account register modal', () => {
     const { onCancel } = renderModal()
     const user = await fillRequiredFields()
 
-    await user.clear(screen.getByLabelText('金币'))
-    await user.type(screen.getByLabelText('金币'), '2000000000')
-    await user.clear(screen.getByLabelText('银币'))
-    await user.type(screen.getByLabelText('银币'), '15')
+    await user.clear(screen.getByLabelText('金元宝'))
+    await user.type(screen.getByLabelText('金元宝'), '2000000000')
+    await user.clear(screen.getByLabelText('银元宝'))
+    await user.type(screen.getByLabelText('银元宝'), '15')
     await selectPrivilege(user, '1000 - GD - DEBUGGER(调试器权限)')
     await user.click(screen.getByRole('button', { name: '注册' }))
 
@@ -237,7 +237,7 @@ describe('account register modal', () => {
     expect(onCancel).toHaveBeenCalledOnce()
     expect(screen.getByLabelText('账号')).toHaveValue('')
     expect(screen.getByLabelText('密码')).toHaveValue('')
-    expect(screen.getByLabelText('金币')).toHaveValue('0')
+    expect(screen.getByLabelText('金元宝')).toHaveValue('0')
   })
 
   it('shows a field error for ACCOUNT_ALREADY_EXISTS and preserves the form', async () => {
@@ -318,14 +318,14 @@ describe('account register modal', () => {
   it('resets the form when cancelled', async () => {
     const { onCancel } = renderModal()
     const user = await fillRequiredFields()
-    await user.clear(screen.getByLabelText('金币'))
-    await user.type(screen.getByLabelText('金币'), '10')
+    await user.clear(screen.getByLabelText('金元宝'))
+    await user.type(screen.getByLabelText('金元宝'), '10')
 
     await user.click(screen.getByRole('button', { name: '取消' }))
 
     expect(onCancel).toHaveBeenCalledOnce()
     expect(screen.getByLabelText('账号')).toHaveValue('')
     expect(screen.getByLabelText('密码')).toHaveValue('')
-    expect(screen.getByLabelText('金币')).toHaveValue('0')
+    expect(screen.getByLabelText('金元宝')).toHaveValue('0')
   })
 })

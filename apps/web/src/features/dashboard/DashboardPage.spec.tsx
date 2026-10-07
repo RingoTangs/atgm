@@ -85,6 +85,6 @@ describe('dashboard page', () => {
     expect(screen.getByText('最近 GM 操作')).toBeInTheDocument()
     expect(screen.getAllByText(/admin/)).not.toHaveLength(0)
     expect(screen.getByText(/修改账号权限/)).toHaveTextContent('test01')
-    expect(screen.getByText(/增加金币/)).toHaveTextContent('test02')
+    expect(screen.getByText(/增加金元宝/)).toHaveTextContent('test02')
   })
 })

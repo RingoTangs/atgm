@@ -33,8 +33,8 @@ export async function accountRechargeRoutes(app: FastifyInstance) {
     {
       schema: {
         tags: ['Account'],
-        summary: '充值账号金币和银币',
-        description: '增加账号金币和银币，并重新计算 checksum',
+        summary: '充值账号金元宝和银元宝',
+        description: '增加账号金元宝和银元宝，并重新计算 checksum',
         params: accountDetailParamsSchema,
         body: rechargeAccountBodySchema,
         response: {
@@ -104,7 +104,7 @@ export async function accountRechargeRoutes(app: FastifyInstance) {
       ) {
         return reply.code(409).send({
           code: errorCodes.ACCOUNT_COIN_LIMIT_EXCEEDED,
-          message: '充值后金币或银币不能超过 20 亿',
+          message: '充值后金元宝或银元宝不能超过 20 亿',
         })
       }
 

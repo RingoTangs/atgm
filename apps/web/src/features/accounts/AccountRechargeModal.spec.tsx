@@ -98,16 +98,16 @@ const renderModal = (accountValue = account) => {
 describe('account recharge modal', () => {
   it('starts with zero amounts and shows current balances', () => {
     renderModal()
-    expect(screen.getByLabelText('金币充值数量')).toHaveValue('0')
-    expect(screen.getByLabelText('银币充值数量')).toHaveValue('0')
+    expect(screen.getByLabelText('金元宝充值数量')).toHaveValue('0')
+    expect(screen.getByLabelText('银元宝充值数量')).toHaveValue('0')
     expect(
-      screen.getByText('当前金币：1,000,000，当前银币：50,000'),
+      screen.getByText('当前金元宝：1,000,000，当前银元宝：50,000'),
     ).toBeInTheDocument()
-    expect(screen.getByLabelText('金币充值数量')).toHaveAttribute(
+    expect(screen.getByLabelText('金元宝充值数量')).toHaveAttribute(
       'aria-valuemin',
       '0',
     )
-    expect(screen.getByLabelText('金币充值数量')).toHaveAttribute(
+    expect(screen.getByLabelText('金元宝充值数量')).toHaveAttribute(
       'aria-valuemax',
       '2000000000',
     )
@@ -118,12 +118,12 @@ describe('account recharge modal', () => {
     const user = userEvent.setup()
     await user.click(screen.getByRole('button', { name: '充值' }))
     expect(
-      await screen.findByText('金币和银币充值数量不能同时为 0'),
+      await screen.findByText('金元宝和银元宝充值数量不能同时为 0'),
     ).toBeInTheDocument()
     expect(updateCalls()).toHaveLength(0)
   })
 
-  it.each(['金币充值数量', '银币充值数量'])(
+  it.each(['金元宝充值数量', '银元宝充值数量'])(
     'rejects fractional %s',
     async (label) => {
       renderModal()
@@ -142,8 +142,8 @@ describe('account recharge modal', () => {
     const invalidateQueries = vi.spyOn(queryClient, 'invalidateQueries')
     const { onCancel } = renderModal()
     const user = userEvent.setup()
-    await user.clear(screen.getByLabelText('金币充值数量'))
-    await user.type(screen.getByLabelText('金币充值数量'), '2000000000')
+    await user.clear(screen.getByLabelText('金元宝充值数量'))
+    await user.type(screen.getByLabelText('金元宝充值数量'), '2000000000')
     await user.click(screen.getByRole('button', { name: '充值' }))
     expect(await screen.findByText('充值成功')).toBeInTheDocument()
     expect(fetchMock).toHaveBeenCalledWith(
@@ -165,7 +165,7 @@ describe('account recharge modal', () => {
   })
 
   it.each([
-    ['ACCOUNT_COIN_LIMIT_EXCEEDED', '充值后金币或银币不能超过 20 亿', 409],
+    ['ACCOUNT_COIN_LIMIT_EXCEEDED', '充值后金元宝或银元宝不能超过 20 亿', 409],
     ['ACCOUNT_ONLINE', '账号当前在线，无法修改', 409],
     ['ACCOUNT_CHECKSUM_INVALID', '账号数据校验失败', 409],
     ['ACCOUNT_CONCURRENT_MODIFICATION', '账号数据已发生变化，请重试', 409],
@@ -179,11 +179,11 @@ describe('account recharge modal', () => {
       )
       const { onCancel } = renderModal()
       const user = userEvent.setup()
-      await user.clear(screen.getByLabelText('银币充值数量'))
-      await user.type(screen.getByLabelText('银币充值数量'), '10')
+      await user.clear(screen.getByLabelText('银元宝充值数量'))
+      await user.type(screen.getByLabelText('银元宝充值数量'), '10')
       await user.click(screen.getByRole('button', { name: '充值' }))
       expect(await screen.findByText(message)).toBeInTheDocument()
-      expect(screen.getByLabelText('银币充值数量')).toHaveValue('10')
+      expect(screen.getByLabelText('银元宝充值数量')).toHaveValue('10')
       expect(onCancel).not.toHaveBeenCalled()
     },
   )
@@ -198,8 +198,8 @@ describe('account recharge modal', () => {
     )
     const { onCancel } = renderModal()
     const user = userEvent.setup()
-    await user.clear(screen.getByLabelText('金币充值数量'))
-    await user.type(screen.getByLabelText('金币充值数量'), '10')
+    await user.clear(screen.getByLabelText('金元宝充值数量'))
+    await user.type(screen.getByLabelText('金元宝充值数量'), '10')
     const submit = screen.getByRole('button', { name: '充值' })
     await user.click(submit)
     await waitFor(() => expect(updateCalls()).toHaveLength(1))

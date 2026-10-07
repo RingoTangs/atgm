@@ -132,7 +132,7 @@ export const AccountRechargeModal: React.FC<AccountRechargeModalProps> = ({
         title={`充值账号：${account.account}`}
       >
         <p>
-          当前金币：{account.goldCoin.toLocaleString()}，当前银币：
+          当前金元宝：{account.goldCoin.toLocaleString()}，当前银元宝：
           {account.silverCoin.toLocaleString()}
         </p>
 
@@ -142,11 +142,11 @@ export const AccountRechargeModal: React.FC<AccountRechargeModalProps> = ({
           onFinish={handleFinish}
         >
           <Form.Item
-            label="金币充值数量"
+            label="金元宝充值数量"
             name="goldCoinAmount"
             rules={[
               integerRangeValidator(
-                '金币充值数量',
+                '金元宝充值数量',
                 ACCOUNT_COIN_MIN,
                 ACCOUNT_COIN_MAX,
               ),
@@ -161,12 +161,12 @@ export const AccountRechargeModal: React.FC<AccountRechargeModalProps> = ({
           </Form.Item>
 
           <Form.Item
-            label="银币充值数量"
+            label="银元宝充值数量"
             name="silverCoinAmount"
             dependencies={['goldCoinAmount']}
             rules={[
               integerRangeValidator(
-                '银币充值数量',
+                '银元宝充值数量',
                 ACCOUNT_COIN_MIN,
                 ACCOUNT_COIN_MAX,
               ),
@@ -174,7 +174,7 @@ export const AccountRechargeModal: React.FC<AccountRechargeModalProps> = ({
                 validator: (_rule, value: number | null | undefined) =>
                   value === 0 && getFieldValue('goldCoinAmount') === 0
                     ? Promise.reject(
-                        new Error('金币和银币充值数量不能同时为 0'),
+                        new Error('金元宝和银元宝充值数量不能同时为 0'),
                       )
                     : Promise.resolve(),
               }),

@@ -125,12 +125,12 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = ({
   const assetItems: DescriptionsProps['items'] = [
     {
       key: 'goldCoin',
-      label: '金币',
+      label: '金元宝',
       children: detail.goldCoin.toLocaleString(),
     },
     {
       key: 'silverCoin',
-      label: '银币',
+      label: '银元宝',
       children: detail.silverCoin.toLocaleString(),
     },
   ]

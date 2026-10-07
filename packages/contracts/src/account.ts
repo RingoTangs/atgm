@@ -117,7 +117,7 @@ export const rechargeAccountBodySchema = z
   .refine(
     ({ goldCoinAmount, silverCoinAmount }) =>
       goldCoinAmount !== 0 || silverCoinAmount !== 0,
-    { message: '金币和银币充值数量不能同时为 0' },
+    { message: '金元宝和银元宝充值数量不能同时为 0' },
   )
 
 export type RechargeAccountRequest = z.infer<typeof rechargeAccountBodySchema>

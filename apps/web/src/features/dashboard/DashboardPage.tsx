@@ -96,7 +96,7 @@ const recentOperations: RecentOperation[] = [
   {
     id: 'gold-test02',
     operator: 'admin',
-    action: '增加金币',
+    action: '增加金元宝',
     target: 'test02',
     time: '2026-10-01 19:10',
   },

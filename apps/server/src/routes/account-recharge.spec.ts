@@ -332,7 +332,7 @@ describe('patch /accounts/:account/recharge endpoint', () => {
       expect(response.statusCode).toBe(409)
       expect(response.json()).toEqual({
         code: 'ACCOUNT_COIN_LIMIT_EXCEEDED',
-        message: '充值后金币或银币不能超过 20 亿',
+        message: '充值后金元宝或银元宝不能超过 20 亿',
       })
       expect(mocks.updateTable).not.toHaveBeenCalled()
     },

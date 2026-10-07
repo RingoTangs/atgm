@@ -68,14 +68,14 @@ const useAccountColumns = (privileges?: Privilege[]) =>
         },
       },
       {
-        title: '金币',
+        title: '金元宝',
         dataIndex: 'goldCoin',
         key: 'goldCoin',
         align: 'center',
         render: (value: number) => value.toLocaleString(),
       },
       {
-        title: '银币',
+        title: '银元宝',
         dataIndex: 'silverCoin',
         key: 'silverCoin',
         align: 'center',
