@@ -5,6 +5,7 @@ import {
   charactersResponseSchema,
   errorResponseSchema,
 } from '@atgm/contracts'
+import { formatDisplayTime } from '../lib/game-time'
 
 export async function characterRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().get(
@@ -46,7 +47,15 @@ export async function characterRoutes(app: FastifyInstance) {
         throw new Error('Invalid character count returned by database')
       }
 
-      return { page, pageSize, total, items }
+      return {
+        page,
+        pageSize,
+        total,
+        items: items.map((item) => ({
+          ...item,
+          time: formatDisplayTime(item.time),
+        })),
+      }
     },
   )
 }

@@ -18,6 +18,7 @@ const character = {
   gender: 2,
   time: '20180413155302',
 }
+const characterResponse = { ...character, time: '2018-04-13 15:53:02' }
 const compiler = new MysqlQueryCompiler()
 const compileQuery = vi.spyOn(compiler, 'compileQuery')
 let total: number | string | bigint
@@ -68,7 +69,7 @@ describe('GET /characters', () => {
       page: 1,
       pageSize: 20,
       total: 125,
-      items: [character],
+      items: [characterResponse],
     })
     expect(transformResult).toHaveBeenCalledTimes(2)
     const queries = compileQuery.mock.results.map((result) => result.value)
@@ -93,7 +94,7 @@ describe('GET /characters', () => {
       page: 3,
       pageSize: 10,
       total: 125,
-      items: [character],
+      items: [characterResponse],
     })
     expect(compileQuery.mock.results.map((result) => result.value)).toEqual(
       expect.arrayContaining([
@@ -104,6 +105,16 @@ describe('GET /characters', () => {
       ]),
     )
   })
+
+  it.each(['', 'invalid', '20180230155302'])(
+    'preserves empty or invalid time: %s',
+    async (time) => {
+      items = [{ ...character, time }]
+      const response = await app.inject('/characters')
+      expect(response.statusCode).toBe(200)
+      expect(response.json().items).toEqual([{ ...character, time }])
+    },
+  )
 
   it('accepts the maximum page size', async () => {
     const response = await app.inject('/characters?pageSize=100')
