@@ -1,6 +1,6 @@
 import type { RegisterAccountRequest } from '@atgm/contracts'
 import type { FormProps } from 'antd'
-import { errorCodes } from '@atgm/contracts'
+import { ACCOUNT_COIN_MAX, ACCOUNT_COIN_MIN, errorCodes } from '@atgm/contracts'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Alert,
@@ -21,12 +21,9 @@ interface AccountRegisterModalProps {
   onCancel: () => void
 }
 
-const COIN_MIN = 0
-const COIN_MAX = 2_000_000_000
-
 const initialValues: Pick<RegisterAccountRequest, 'goldCoin' | 'silverCoin'> = {
-  goldCoin: COIN_MIN,
-  silverCoin: COIN_MIN,
+  goldCoin: ACCOUNT_COIN_MIN,
+  silverCoin: ACCOUNT_COIN_MIN,
 }
 
 const integerRangeValidator = (label: string, min: number, max: number) => ({
@@ -170,7 +167,7 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
                 size="small"
                 type="text"
                 className="text-muted-foreground"
-                onClick={() => form.setFieldValue('goldCoin', COIN_MIN)}
+                onClick={() => form.setFieldValue('goldCoin', ACCOUNT_COIN_MIN)}
               >
                 最小
               </Button>
@@ -178,7 +175,7 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
                 size="small"
                 type="text"
                 className="text-muted-foreground"
-                onClick={() => form.setFieldValue('goldCoin', COIN_MAX)}
+                onClick={() => form.setFieldValue('goldCoin', ACCOUNT_COIN_MAX)}
               >
                 最大
               </Button>
@@ -186,13 +183,15 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
           </div>
           <Form.Item
             name="goldCoin"
-            rules={[integerRangeValidator('金币', COIN_MIN, COIN_MAX)]}
+            rules={[
+              integerRangeValidator('金币', ACCOUNT_COIN_MIN, ACCOUNT_COIN_MAX),
+            ]}
           >
             <InputNumber
               className="w-full"
               id="goldCoin"
-              max={COIN_MAX}
-              min={COIN_MIN}
+              max={ACCOUNT_COIN_MAX}
+              min={ACCOUNT_COIN_MIN}
               precision={0}
               step={1}
             />
@@ -205,7 +204,9 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
                 size="small"
                 type="text"
                 className="text-muted-foreground"
-                onClick={() => form.setFieldValue('silverCoin', COIN_MIN)}
+                onClick={() =>
+                  form.setFieldValue('silverCoin', ACCOUNT_COIN_MIN)
+                }
               >
                 最小
               </Button>
@@ -213,7 +214,9 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
                 size="small"
                 type="text"
                 className="text-muted-foreground"
-                onClick={() => form.setFieldValue('silverCoin', COIN_MAX)}
+                onClick={() =>
+                  form.setFieldValue('silverCoin', ACCOUNT_COIN_MAX)
+                }
               >
                 最大
               </Button>
@@ -221,13 +224,15 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
           </div>
           <Form.Item
             name="silverCoin"
-            rules={[integerRangeValidator('银币', COIN_MIN, COIN_MAX)]}
+            rules={[
+              integerRangeValidator('银币', ACCOUNT_COIN_MIN, ACCOUNT_COIN_MAX),
+            ]}
           >
             <InputNumber
               className="w-full"
               id="silverCoin"
-              max={COIN_MAX}
-              min={COIN_MIN}
+              max={ACCOUNT_COIN_MAX}
+              min={ACCOUNT_COIN_MIN}
               precision={0}
               step={1}
             />

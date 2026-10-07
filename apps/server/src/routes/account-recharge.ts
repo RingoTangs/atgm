@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import {
+  ACCOUNT_COIN_MAX,
   accountDetailParamsSchema,
   accountNotFoundResponseSchema,
   accountRechargeConflictResponseSchema,
@@ -10,8 +11,6 @@ import {
   rechargeAccountResponseSchema,
 } from '@atgm/contracts'
 import { createAccountChecksum } from '../lib/account-crypto'
-
-const COIN_MAX = 2_000_000_000
 
 const checksumFields = [
   'account',
@@ -99,7 +98,10 @@ export async function accountRechargeRoutes(app: FastifyInstance) {
       const nextGoldCoin = item.gold_coin + request.body.goldCoinAmount
       const nextSilverCoin = item.silver_coin + request.body.silverCoinAmount
 
-      if (nextGoldCoin > COIN_MAX || nextSilverCoin > COIN_MAX) {
+      if (
+        nextGoldCoin > ACCOUNT_COIN_MAX ||
+        nextSilverCoin > ACCOUNT_COIN_MAX
+      ) {
         return reply.code(409).send({
           code: errorCodes.ACCOUNT_COIN_LIMIT_EXCEEDED,
           message: '充值后金币或银币不能超过 20 亿',

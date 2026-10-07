@@ -3,7 +3,7 @@ import type {
   UpdateAccountRequest,
 } from '@atgm/contracts'
 import type { FormProps } from 'antd'
-import { errorCodes } from '@atgm/contracts'
+import { ACCOUNT_COIN_MAX, ACCOUNT_COIN_MIN, errorCodes } from '@atgm/contracts'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Alert, Form, InputNumber, message, Modal, Select } from 'antd'
 import { useEffect, useMemo } from 'react'
@@ -184,7 +184,9 @@ export const AccountEditModal: React.FC<AccountEditModalProps> = ({
           <Form.Item
             label="金币"
             name="goldCoin"
-            rules={[integerRangeValidator('金币', 0, 2_000_000_000)]}
+            rules={[
+              integerRangeValidator('金币', ACCOUNT_COIN_MIN, ACCOUNT_COIN_MAX),
+            ]}
           >
             <InputNumber className="w-full" step={1} />
           </Form.Item>
@@ -192,7 +194,9 @@ export const AccountEditModal: React.FC<AccountEditModalProps> = ({
           <Form.Item
             label="银币"
             name="silverCoin"
-            rules={[integerRangeValidator('银币', 0, 2_000_000_000)]}
+            rules={[
+              integerRangeValidator('银币', ACCOUNT_COIN_MIN, ACCOUNT_COIN_MAX),
+            ]}
           >
             <InputNumber className="w-full" step={1} />
           </Form.Item>

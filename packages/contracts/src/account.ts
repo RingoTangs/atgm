@@ -1,6 +1,9 @@
 import { z } from 'zod'
 import { errorCodes, errorResponseSchema } from './error'
 
+export const ACCOUNT_COIN_MIN = 0
+export const ACCOUNT_COIN_MAX = 2_000_000_000
+
 export const accountsQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
@@ -68,8 +71,8 @@ export type AccountNotFoundResponse = z.infer<
 export const updateAccountBodySchema = z
   .object({
     privilege: z.number().int().min(0).max(1000),
-    goldCoin: z.number().int().min(0).max(2_000_000_000),
-    silverCoin: z.number().int().min(0).max(2_000_000_000),
+    goldCoin: z.number().int().min(ACCOUNT_COIN_MIN).max(ACCOUNT_COIN_MAX),
+    silverCoin: z.number().int().min(ACCOUNT_COIN_MIN).max(ACCOUNT_COIN_MAX),
   })
   .strict()
 
@@ -95,8 +98,16 @@ export type AccountUpdateConflictResponse = z.infer<
 
 export const rechargeAccountBodySchema = z
   .object({
-    goldCoinAmount: z.number().int().min(0).max(2_000_000_000),
-    silverCoinAmount: z.number().int().min(0).max(2_000_000_000),
+    goldCoinAmount: z
+      .number()
+      .int()
+      .min(ACCOUNT_COIN_MIN)
+      .max(ACCOUNT_COIN_MAX),
+    silverCoinAmount: z
+      .number()
+      .int()
+      .min(ACCOUNT_COIN_MIN)
+      .max(ACCOUNT_COIN_MAX),
   })
   .strict()
   .refine(
@@ -136,8 +147,8 @@ export const registerAccountBodySchema = z
   .object({
     account: z.string().min(1).max(32),
     rawPassword: z.string().min(1),
-    goldCoin: z.number().int().min(0).max(2_000_000_000),
-    silverCoin: z.number().int().min(0).max(2_000_000_000),
+    goldCoin: z.number().int().min(ACCOUNT_COIN_MIN).max(ACCOUNT_COIN_MAX),
+    silverCoin: z.number().int().min(ACCOUNT_COIN_MIN).max(ACCOUNT_COIN_MAX),
     privilege: z.number().int().min(0).max(1000),
   })
   .strict()
