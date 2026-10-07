@@ -1,6 +1,10 @@
 import type { AccountListItem, Privilege } from '@atgm/contracts'
 import type { TableProps } from 'antd'
-import { ACCOUNT_PRIVILEGES } from '@atgm/contracts'
+import {
+  ACCOUNT_PRIVILEGES,
+  PAGINATION_DEFAULT_PAGE,
+  PAGINATION_DEFAULT_PAGE_SIZE,
+} from '@atgm/contracts'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Alert, Badge, Button, Input, Table, Tooltip } from 'antd'
@@ -121,8 +125,8 @@ const useAccountColumns = (privileges?: Privilege[]) =>
   }, [privileges])
 
 export const AccountsPage: React.FC = () => {
-  const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(20)
+  const [page, setPage] = useState(PAGINATION_DEFAULT_PAGE)
+  const [pageSize, setPageSize] = useState(PAGINATION_DEFAULT_PAGE_SIZE)
   const [searchText, setSearchText] = useState('')
   const [account, setAccount] = useState('')
   const [registerOpen, setRegisterOpen] = useState(false)
@@ -138,7 +142,7 @@ export const AccountsPage: React.FC = () => {
   const submitSearch = (value: string) => {
     setSearchText(value)
     setAccount(value.trim())
-    setPage(1)
+    setPage(PAGINATION_DEFAULT_PAGE)
   }
 
   return (
@@ -161,7 +165,7 @@ export const AccountsPage: React.FC = () => {
 
                 if (!value) {
                   setAccount('')
-                  setPage(1)
+                  setPage(PAGINATION_DEFAULT_PAGE)
                 }
               }}
               onSearch={submitSearch}
@@ -204,7 +208,7 @@ export const AccountsPage: React.FC = () => {
               current: page,
               onChange: (nextPage, nextPageSize) => {
                 if (nextPageSize !== pageSize) {
-                  setPage(1)
+                  setPage(PAGINATION_DEFAULT_PAGE)
                   setPageSize(nextPageSize)
                   return
                 }

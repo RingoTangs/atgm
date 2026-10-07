@@ -1,5 +1,9 @@
 import type { CharacterListItem } from '@atgm/contracts'
 import type { TableProps } from 'antd'
+import {
+  PAGINATION_DEFAULT_PAGE,
+  PAGINATION_DEFAULT_PAGE_SIZE,
+} from '@atgm/contracts'
 import { useQuery } from '@tanstack/react-query'
 import { Alert, Button, Table } from 'antd'
 import { useState } from 'react'
@@ -21,8 +25,8 @@ const columns: TableProps<CharacterListItem>['columns'] = [
 ]
 
 export const CharactersPage: React.FC = () => {
-  const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(20)
+  const [page, setPage] = useState(PAGINATION_DEFAULT_PAGE)
+  const [pageSize, setPageSize] = useState(PAGINATION_DEFAULT_PAGE_SIZE)
   const charactersQuery = useQuery(charactersQueryOptions({ page, pageSize }))
 
   return (
@@ -57,7 +61,7 @@ export const CharactersPage: React.FC = () => {
             current: page,
             onChange: (nextPage, nextPageSize) => {
               if (nextPageSize !== pageSize) {
-                setPage(1)
+                setPage(PAGINATION_DEFAULT_PAGE)
                 setPageSize(nextPageSize)
                 return
               }
