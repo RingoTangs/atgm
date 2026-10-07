@@ -30,7 +30,9 @@ export function createDatabases(env: ServerEnv) {
   })
 
   const adbDb = db.$pickTables<'account'>().withSchema(env.MYSQL_DL_ADB_ALL)
-  const ddbDb = db.$pickTables<'data'>().withSchema(env.MYSQL_DL_DDB_1)
+  const ddbDb = db
+    .$pickTables<'data' | 'basic_char_info'>()
+    .withSchema(env.MYSQL_DL_DDB_1)
 
   return { db, adbDb, ddbDb }
 }

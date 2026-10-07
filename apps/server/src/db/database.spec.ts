@@ -37,6 +37,10 @@ describe('createDatabases', () => {
 
     const accountQuery = adbDb.selectFrom('account').select('account').compile()
     const dataQuery = ddbDb.selectFrom('data').select('name').compile()
+    const basicCharInfoQuery = ddbDb
+      .selectFrom('basic_char_info')
+      .select('gid')
+      .compile()
 
     expect(db).toBeDefined()
     expect(adbDb).toBeDefined()
@@ -56,6 +60,7 @@ describe('createDatabases', () => {
     })
     expect(accountQuery.sql).toContain('`dl_adb_all`.`account`')
     expect(dataQuery.sql).toContain('`dl_ddb_1`.`data`')
+    expect(basicCharInfoQuery.sql).toContain('`dl_ddb_1`.`basic_char_info`')
   })
 })
 
@@ -78,6 +83,9 @@ describe('registerDatabase', () => {
     expect(
       app.db.ddb.selectFrom('data').select('name').compile().sql,
     ).toContain('`dl_ddb_1`.`data`')
+    expect(
+      app.db.ddb.selectFrom('basic_char_info').select('gid').compile().sql,
+    ).toContain('`dl_ddb_1`.`basic_char_info`')
 
     await app.close()
   })
