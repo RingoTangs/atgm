@@ -131,7 +131,7 @@ export const AccountRechargeModal: React.FC<AccountRechargeModalProps> = ({
         open={open}
         title={`充值账号：${account.account}`}
       >
-        <p>
+        <p className="text-muted-foreground pb-2">
           当前金元宝：{account.goldCoin.toLocaleString()}，当前银元宝：
           {account.silverCoin.toLocaleString()}
         </p>
