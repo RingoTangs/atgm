@@ -18,7 +18,11 @@ interface AccountRegisterModalProps {
   onCancel: () => void
 }
 
-const initialValues: Pick<RegisterAccountRequest, 'goldCoin' | 'silverCoin'> = {
+const initialValues: Pick<
+  RegisterAccountRequest,
+  'privilege' | 'goldCoin' | 'silverCoin'
+> = {
+  privilege: 0,
   goldCoin: ACCOUNT_COIN_MIN,
   silverCoin: ACCOUNT_COIN_MIN,
 }

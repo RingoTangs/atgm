@@ -8,6 +8,7 @@ import {
   within,
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { ConfigProvider } from 'antd'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AccountRegisterModal } from './AccountRegisterModal'
 
@@ -119,7 +120,7 @@ describe('account register modal', () => {
     })
   })
 
-  it('uses shared privileges without a request or default selection', async () => {
+  it('uses shared privileges without a request and selects the default user', async () => {
     renderModal()
 
     expect(screen.getByLabelText('账号')).toBeInTheDocument()
@@ -127,14 +128,16 @@ describe('account register modal', () => {
     expect(screen.getByLabelText('金元宝')).toHaveValue('0')
     expect(screen.getByLabelText('银元宝')).toHaveValue('0')
     expect(screen.getByLabelText('权限')).toHaveAttribute('role', 'combobox')
-    expect(screen.getByLabelText('权限')).toHaveValue('')
+    expect(
+      screen.getByTitle('0 - USER - COMMON_USER(普通用户)'),
+    ).toBeInTheDocument()
 
     expect(fetchMock).not.toHaveBeenCalled()
 
     const user = userEvent.setup()
     await user.click(screen.getByLabelText('权限'))
     expect(
-      await screen.findByTitle('0 - USER - COMMON_USER(普通用户)'),
+      (await screen.findAllByTitle('0 - USER - COMMON_USER(普通用户)'))[0],
     ).toBeInTheDocument()
     expect(
       await screen.findByTitle('120 - GA - ADMINISTRATOR(管理员)'),
@@ -144,7 +147,50 @@ describe('account register modal', () => {
     ).toBeInTheDocument()
   })
 
-  it('validates required account, password, and privilege fields', async () => {
+  it('submits the numeric default privilege without a manual selection', async () => {
+    renderModal()
+    const user = await fillRequiredFields()
+    await user.click(screen.getByRole('button', { name: '注册' }))
+    expect(await screen.findByText('账号注册成功')).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledWith('/_api/account', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        account: 'new-account',
+        rawPassword: 'test-password',
+        goldCoin: 0,
+        silverCoin: 0,
+        privilege: 0,
+      }),
+    })
+  })
+
+  it('restores the default privilege after closing and reopening', async () => {
+    const onCancel = vi.fn()
+    const modal = (open: boolean) => (
+      <QueryClientProvider client={queryClient}>
+        <ConfigProvider theme={{ token: { motion: false } }}>
+          <AccountRegisterModal open={open} onCancel={onCancel} />
+        </ConfigProvider>
+      </QueryClientProvider>
+    )
+    const { rerender } = render(modal(true))
+    const user = userEvent.setup()
+    await selectPrivilege(user)
+    expect(
+      within(screen.getByRole('dialog')).getByTitle(
+        '120 - GA - ADMINISTRATOR(管理员)',
+      ),
+    ).toBeInTheDocument()
+    rerender(modal(false))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    rerender(modal(true))
+    expect(
+      await screen.findByTitle('0 - USER - COMMON_USER(普通用户)'),
+    ).toBeInTheDocument()
+  })
+
+  it('validates account and password while accepting the default privilege', async () => {
     const user = userEvent.setup()
     renderModal()
 
@@ -156,10 +202,10 @@ describe('account register modal', () => {
     expect(await screen.findByText('请输入账号')).toBeInTheDocument()
     expect(await screen.findByText('请输入密码')).toBeInTheDocument()
     expect(
-      await screen.findByText('请选择权限', {
+      screen.queryByText('请选择权限', {
         selector: '.ant-form-item-explain-error',
       }),
-    ).toBeInTheDocument()
+    ).toBeNull()
     expect(registrationCalls()).toHaveLength(0)
   })
 
@@ -263,6 +309,9 @@ describe('account register modal', () => {
     expect(screen.getByLabelText('账号')).toHaveValue('')
     expect(screen.getByLabelText('密码')).toHaveValue('')
     expect(screen.getByLabelText('金元宝')).toHaveValue('0')
+    expect(
+      screen.getByTitle('0 - USER - COMMON_USER(普通用户)'),
+    ).toBeInTheDocument()
   })
 
   it('shows a field error for ACCOUNT_ALREADY_EXISTS and preserves the form', async () => {
@@ -343,6 +392,7 @@ describe('account register modal', () => {
   it('resets the form when cancelled', async () => {
     const { onCancel } = renderModal()
     const user = await fillRequiredFields()
+    await selectPrivilege(user)
     await user.clear(screen.getByLabelText('金元宝'))
     await user.type(screen.getByLabelText('金元宝'), '10')
 
@@ -352,5 +402,8 @@ describe('account register modal', () => {
     expect(screen.getByLabelText('账号')).toHaveValue('')
     expect(screen.getByLabelText('密码')).toHaveValue('')
     expect(screen.getByLabelText('金元宝')).toHaveValue('0')
+    expect(
+      screen.getByTitle('0 - USER - COMMON_USER(普通用户)'),
+    ).toBeInTheDocument()
   })
 })
