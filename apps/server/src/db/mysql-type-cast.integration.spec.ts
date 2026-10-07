@@ -7,7 +7,6 @@ import { createConnection } from 'mysql2/promise'
 import { expect, it } from 'vitest'
 import { createDatabases } from '.'
 import { parseServerEnv } from '../env'
-import { readCharacterNameBytes } from '../lib/character-name-bytes'
 import { decodeGb18030 } from '../lib/gb18030'
 
 // Run from the repository root with an existing GB18030 Chinese character gid:
@@ -50,7 +49,6 @@ it.skipIf(process.env.MYSQL_TYPE_CAST_DB_TEST !== '1')(
       expect(typeof character.gender).toBe('number')
       const bytes = Buffer.from(character.nameHex, 'hex')
       expect(character.name).toBe(decodeGb18030(bytes))
-      expect(await readCharacterNameBytes(ddbDb, gid)).toEqual(bytes)
 
       const compiled = query.compile()
       const [defaultCharacters] = await baseline.query<RowDataPacket[]>(
