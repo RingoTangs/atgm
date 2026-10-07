@@ -1,4 +1,5 @@
 export * from './account'
 export * from './character'
 export * from './error'
+export * from './pagination'
 export * from './privilege'

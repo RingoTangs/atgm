@@ -1,12 +1,11 @@
 import { z } from 'zod'
 import { errorCodes, errorResponseSchema } from './error'
+import { paginatedResponseSchema, paginationQuerySchema } from './pagination'
 
 export const ACCOUNT_COIN_MIN = 0
 export const ACCOUNT_COIN_MAX = 2_000_000_000
 
-export const accountsQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).default(1),
-  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+export const accountsQuerySchema = paginationQuerySchema.extend({
   account: z.string().trim().optional(),
 })
 
@@ -25,12 +24,9 @@ export const accountListItemSchema = z.object({
 
 export type AccountListItem = z.infer<typeof accountListItemSchema>
 
-export const accountsResponseSchema = z.object({
-  page: z.number().int(),
-  pageSize: z.number().int(),
-  total: z.number().int().min(0),
-  items: z.array(accountListItemSchema),
-})
+export const accountsResponseSchema = paginatedResponseSchema(
+  accountListItemSchema,
+)
 
 export type AccountsResponse = z.infer<typeof accountsResponseSchema>
 
