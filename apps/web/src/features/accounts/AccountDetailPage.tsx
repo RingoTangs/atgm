@@ -1,6 +1,6 @@
 import type { Privilege } from '@atgm/contracts'
 import type { DescriptionsProps } from 'antd'
-import { errorCodes } from '@atgm/contracts'
+import { ACCOUNT_PRIVILEGES, errorCodes } from '@atgm/contracts'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Alert, Badge, Button, Descriptions, Skeleton, Tooltip } from 'antd'
@@ -8,10 +8,7 @@ import { useState } from 'react'
 import { ApiError } from '@/lib/apiError'
 import { AccountPrivilegeModal } from './AccountPrivilegeModal'
 import { AccountRechargeModal } from './AccountRechargeModal'
-import {
-  accountDetailQueryOptions,
-  privilegesQueryOptions,
-} from './accounts-queries'
+import { accountDetailQueryOptions } from './accounts-queries'
 import './AccountDetailPage.css'
 
 interface AccountDetailPageProps {
@@ -56,7 +53,6 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = ({
   const [rechargeOpen, setRechargeOpen] = useState(false)
   const [privilegeOpen, setPrivilegeOpen] = useState(false)
   const accountQuery = useQuery(accountDetailQueryOptions(account))
-  const privilegesQuery = useQuery(privilegesQueryOptions())
 
   if (accountQuery.isPending) {
     return (
@@ -97,7 +93,7 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = ({
   }
 
   const detail = accountQuery.data
-  const privilege = privilegesQuery.data?.find(
+  const privilege = ACCOUNT_PRIVILEGES.find(
     (item) => item.privilege === detail.privilege,
   )
   const basicInfoItems: DescriptionsProps['items'] = [

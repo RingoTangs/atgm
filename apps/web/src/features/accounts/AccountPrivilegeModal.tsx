@@ -3,13 +3,13 @@ import type {
   UpdateAccountPrivilegeRequest,
 } from '@atgm/contracts'
 import type { FormProps } from 'antd'
-import { errorCodes } from '@atgm/contracts'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Alert, Form, message, Modal, Select } from 'antd'
+import { ACCOUNT_PRIVILEGES, errorCodes } from '@atgm/contracts'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Form, message, Modal, Select } from 'antd'
 import { useEffect, useMemo } from 'react'
 import { ApiError } from '@/lib/apiError'
 import { updateAccountPrivilege } from './accounts-api'
-import { accountQueryKeys, privilegesQueryOptions } from './accounts-queries'
+import { accountQueryKeys } from './accounts-queries'
 
 interface AccountPrivilegeModalProps {
   account: AccountDetailResponse
@@ -25,12 +25,8 @@ export const AccountPrivilegeModal: React.FC<AccountPrivilegeModalProps> = ({
   const [form] = Form.useForm<UpdateAccountPrivilegeRequest>()
   const [messageApi, messageContext] = message.useMessage()
   const queryClient = useQueryClient()
-  const privilegesQuery = useQuery({
-    ...privilegesQueryOptions(),
-    enabled: open,
-  })
   const privilegeOptions = useMemo(() => {
-    const options = (privilegesQuery.data ?? []).map((privilege) => ({
+    const options = ACCOUNT_PRIVILEGES.map((privilege) => ({
       label:
         privilege.grant && privilege.constant
           ? `${privilege.privilege} - ${privilege.grant} - ${privilege.constant}(${privilege.description})`
@@ -46,7 +42,7 @@ export const AccountPrivilegeModal: React.FC<AccountPrivilegeModalProps> = ({
     }
 
     return options
-  }, [account.privilege, privilegesQuery.data])
+  }, [account.privilege])
   const updateMutation = useMutation({
     mutationFn: (values: UpdateAccountPrivilegeRequest) =>
       updateAccountPrivilege(account.account, values),
@@ -99,12 +95,12 @@ export const AccountPrivilegeModal: React.FC<AccountPrivilegeModalProps> = ({
   const handleFinish: FormProps<UpdateAccountPrivilegeRequest>['onFinish'] = (
     values,
   ) => {
-    if (privilegesQuery.isSuccess && !updateMutation.isPending) {
+    if (!updateMutation.isPending) {
       updateMutation.mutate(values)
     }
   }
 
-  const saveDisabled = !privilegesQuery.isSuccess || updateMutation.isPending
+  const saveDisabled = updateMutation.isPending
 
   return (
     <>
@@ -134,15 +130,6 @@ export const AccountPrivilegeModal: React.FC<AccountPrivilegeModalProps> = ({
         open={open}
         title={`变更权限：${account.account}`}
       >
-        {privilegesQuery.isError && (
-          <Alert
-            className="mb-4"
-            showIcon
-            title="权限列表加载失败"
-            type="error"
-          />
-        )}
-
         <Form<UpdateAccountPrivilegeRequest>
           form={form}
           layout="vertical"
@@ -153,12 +140,7 @@ export const AccountPrivilegeModal: React.FC<AccountPrivilegeModalProps> = ({
             name="privilege"
             rules={[{ required: true, message: '请选择权限' }]}
           >
-            <Select
-              disabled={privilegesQuery.isPending || privilegesQuery.isError}
-              loading={privilegesQuery.isPending}
-              options={privilegeOptions}
-              placeholder="请选择权限"
-            />
+            <Select options={privilegeOptions} placeholder="请选择权限" />
           </Form.Item>
         </Form>
       </Modal>

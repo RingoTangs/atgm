@@ -26,23 +26,6 @@ const account: AccountDetailResponse = {
   regDate: '',
 }
 
-const privileges = [
-  {
-    privilege: 120,
-    grant: 'GA',
-    constant: 'ADMINISTRATOR',
-    type: '管理特权',
-    description: '管理员',
-  },
-  {
-    privilege: 1000,
-    grant: 'GD',
-    constant: 'DEBUGGER',
-    type: '调试特权',
-    description: '调试器权限',
-  },
-]
-
 const jsonResponse = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
@@ -50,11 +33,7 @@ const jsonResponse = (body: unknown, status = 200) =>
   })
 
 const mockUpdateResponse = (responseFactory: () => Promise<Response>) => {
-  fetchMock.mockImplementation((input) => {
-    if (String(input) === '/_api/privileges') {
-      return Promise.resolve(jsonResponse(privileges))
-    }
-
+  fetchMock.mockImplementation(() => {
     return responseFactory()
   })
 }
@@ -285,16 +264,6 @@ describe('account privilege modal', () => {
     await user.click(screen.getByRole('button', { name: '取消' }))
 
     expect(onCancel).toHaveBeenCalledOnce()
-    expect(updateCalls()).toHaveLength(0)
-  })
-
-  it('disables editing when the privilege dictionary fails', async () => {
-    fetchMock.mockResolvedValue(new Response(null, { status: 500 }))
-    renderModal()
-
-    expect(await screen.findByText('权限列表加载失败')).toBeInTheDocument()
-    expect(screen.getByLabelText('权限')).toBeDisabled()
-    expect(screen.getByRole('button', { name: '保存' })).toBeDisabled()
     expect(updateCalls()).toHaveLength(0)
   })
 })

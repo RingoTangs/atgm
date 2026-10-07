@@ -13,7 +13,6 @@ import { accountPrivilegeRoutes } from './routes/account-privilege'
 import { accountRechargeRoutes } from './routes/account-recharge'
 import { accountRegisterRoutes } from './routes/account-register'
 import { accountRoutes } from './routes/accounts'
-import { privilegeRoutes } from './routes/privileges'
 import { statusRoutes } from './routes/status'
 
 export function buildApp() {
@@ -43,7 +42,6 @@ export function buildApp() {
   app.register(accountRegisterRoutes)
   app.register(accountRechargeRoutes)
   app.register(accountPrivilegeRoutes)
-  app.register(privilegeRoutes)
 
   return app
 }

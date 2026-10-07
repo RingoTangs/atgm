@@ -1,3 +1,4 @@
+import { ACCOUNT_PRIVILEGES } from '@atgm/contracts'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import {
   cleanup,
@@ -13,30 +14,6 @@ import { AccountRegisterModal } from './AccountRegisterModal'
 const fetchMock = vi.fn<typeof fetch>()
 let queryClient: QueryClient
 
-const privileges = [
-  {
-    privilege: 0,
-    grant: 'USER',
-    constant: 'COMMON_USER',
-    type: '用户权限',
-    description: '普通用户',
-  },
-  {
-    privilege: 120,
-    grant: 'GA',
-    constant: 'ADMINISTRATOR',
-    type: '管理特权',
-    description: '管理员',
-  },
-  {
-    privilege: 1000,
-    grant: 'GD',
-    constant: 'DEBUGGER',
-    type: '调试特权',
-    description: '调试器权限',
-  },
-]
-
 const jsonResponse = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
@@ -44,11 +21,7 @@ const jsonResponse = (body: unknown, status = 200) =>
   })
 
 const mockRegistrationResponse = (responseFactory: () => Promise<Response>) => {
-  fetchMock.mockImplementation((input) => {
-    if (String(input) === '/_api/privileges') {
-      return Promise.resolve(jsonResponse(privileges))
-    }
-
+  fetchMock.mockImplementation(() => {
     return responseFactory()
   })
 }
@@ -126,7 +99,27 @@ const selectPrivilege = async (
 }
 
 describe('account register modal', () => {
-  it('loads privileges and shows a Select without a default value', async () => {
+  it('preserves the shared privilege dictionary values and order', () => {
+    expect(ACCOUNT_PRIVILEGES.map(({ privilege }) => privilege)).toEqual([
+      0, 120, 130, 140, 150, 200, 300, 400, 1000,
+    ])
+    expect(ACCOUNT_PRIVILEGES[0]).toEqual({
+      privilege: 0,
+      grant: 'USER',
+      constant: 'COMMON_USER',
+      type: '用户权限',
+      description: '普通用户',
+    })
+    expect(ACCOUNT_PRIVILEGES[8]).toEqual({
+      privilege: 1000,
+      grant: 'GD',
+      constant: 'DEBUGGER',
+      type: '调试特权',
+      description: '调试器权限',
+    })
+  })
+
+  it('uses shared privileges without a request or default selection', async () => {
     renderModal()
 
     expect(screen.getByLabelText('账号')).toBeInTheDocument()
@@ -136,9 +129,7 @@ describe('account register modal', () => {
     expect(screen.getByLabelText('权限')).toHaveAttribute('role', 'combobox')
     expect(screen.getByLabelText('权限')).toHaveValue('')
 
-    await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith('/_api/privileges')
-    })
+    expect(fetchMock).not.toHaveBeenCalled()
 
     const user = userEvent.setup()
     await user.click(screen.getByLabelText('权限'))
@@ -336,16 +327,5 @@ describe('account register modal', () => {
     expect(screen.getByLabelText('账号')).toHaveValue('')
     expect(screen.getByLabelText('密码')).toHaveValue('')
     expect(screen.getByLabelText('金币')).toHaveValue('0')
-  })
-
-  it('disables privilege selection and registration when loading fails', async () => {
-    fetchMock.mockResolvedValue(new Response(null, { status: 500 }))
-    renderModal()
-
-    expect(await screen.findByText('权限列表加载失败')).toBeInTheDocument()
-    expect(screen.getByLabelText('权限')).toBeDisabled()
-    expect(screen.getByRole('button', { name: '注册' })).toBeDisabled()
-    expect(screen.queryByRole('spinbutton', { name: '权限' })).toBeNull()
-    expect(registrationCalls()).toHaveLength(0)
   })
 })

@@ -1,14 +1,12 @@
 import type { AccountListItem, Privilege } from '@atgm/contracts'
 import type { TableProps } from 'antd'
+import { ACCOUNT_PRIVILEGES } from '@atgm/contracts'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Alert, Badge, Button, Input, Table, Tooltip } from 'antd'
 import { useMemo, useState } from 'react'
 import { AccountRegisterModal } from './AccountRegisterModal'
-import {
-  accountsQueryOptions,
-  privilegesQueryOptions,
-} from './accounts-queries'
+import { accountsQueryOptions } from './accounts-queries'
 
 const useAccountColumns = (privileges?: Privilege[]) =>
   useMemo<TableProps<AccountListItem>['columns']>(() => {
@@ -135,8 +133,7 @@ export const AccountsPage: React.FC = () => {
       account: account || undefined,
     }),
   )
-  const privilegesQuery = useQuery(privilegesQueryOptions())
-  const columns = useAccountColumns(privilegesQuery.data)
+  const columns = useAccountColumns(ACCOUNT_PRIVILEGES)
 
   const submitSearch = (value: string) => {
     setSearchText(value)

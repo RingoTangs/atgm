@@ -42,27 +42,8 @@ const accountsResponse = (
     headers: { 'Content-Type': 'application/json' },
   })
 
-const privilegesResponse = () =>
-  new Response(
-    JSON.stringify([
-      {
-        privilege: 120,
-        grant: 'GA',
-        constant: 'ADMINISTRATOR',
-        type: '管理特权',
-        description: '管理员',
-      },
-    ]),
-    {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    },
-  )
-
 const mockDefaultApiResponses = () => {
-  fetchMock.mockImplementation(async (input) => {
-    if (String(input) === '/_api/privileges') return privilegesResponse()
-
+  fetchMock.mockImplementation(async () => {
     return accountsResponse()
   })
 }
@@ -196,13 +177,11 @@ describe('accounts page', () => {
     expect(getAccountRequestUrls()).toContain(
       '/_api/accounts?page=1&pageSize=20',
     )
-    expect(getPrivilegeRequestUrls()).toEqual(['/_api/privileges'])
+    expect(getPrivilegeRequestUrls()).toEqual([])
   })
 
   it('renders an offline badge for an offline account', async () => {
-    fetchMock.mockImplementation(async (input) => {
-      if (String(input) === '/_api/privileges') return privilegesResponse()
-
+    fetchMock.mockImplementation(async () => {
       return accountsResponse([{ ...accountItem, online: false }])
     })
     renderPage()
@@ -227,9 +206,7 @@ describe('accounts page', () => {
   })
 
   it('renders known privilege details and metadata in a tooltip', async () => {
-    fetchMock.mockImplementation(async (input) => {
-      if (String(input) === '/_api/privileges') return privilegesResponse()
-
+    fetchMock.mockImplementation(async () => {
       return accountsResponse([{ ...accountItem, privilege: 120 }])
     })
     const user = userEvent.setup()
@@ -247,9 +224,7 @@ describe('accounts page', () => {
   })
 
   it('renders placeholders for empty account times', async () => {
-    fetchMock.mockImplementation(async (input) => {
-      if (String(input) === '/_api/privileges') return privilegesResponse()
-
+    fetchMock.mockImplementation(async () => {
       return accountsResponse([
         { ...accountItem, lastLoginTime: '', regDate: '' },
       ])
@@ -263,8 +238,6 @@ describe('accounts page', () => {
 
   it('uses the server total and requests the selected page', async () => {
     fetchMock.mockImplementation(async (input) => {
-      if (String(input) === '/_api/privileges') return privilegesResponse()
-
       const url = new URL(String(input), 'http://localhost')
       const page = Number(url.searchParams.get('page'))
       return accountsResponse(
@@ -326,11 +299,7 @@ describe('accounts page', () => {
 
   it('shows table loading while the first request is pending', async () => {
     let resolveRequest: (response: Response) => void = () => undefined
-    fetchMock.mockImplementation((input) => {
-      if (String(input) === '/_api/privileges') {
-        return Promise.resolve(privilegesResponse())
-      }
-
+    fetchMock.mockImplementation(() => {
       return new Promise((resolve) => {
         resolveRequest = resolve
       })
@@ -347,9 +316,7 @@ describe('accounts page', () => {
 
   it('shows a load error and retries the request', async () => {
     let accountsRequestCount = 0
-    fetchMock.mockImplementation(async (input) => {
-      if (String(input) === '/_api/privileges') return privilegesResponse()
-
+    fetchMock.mockImplementation(async () => {
       accountsRequestCount += 1
       return accountsRequestCount === 1
         ? new Response(null, { status: 500 })
@@ -365,24 +332,7 @@ describe('accounts page', () => {
     expect(getAccountRequestUrls()).toHaveLength(2)
   })
 
-  it('keeps the account table usable when privileges fail to load', async () => {
-    fetchMock.mockImplementation(async (input) => {
-      if (String(input) === '/_api/privileges') {
-        return new Response(null, { status: 500 })
-      }
-
-      return accountsResponse([{ ...accountItem, privilege: 120 }])
-    })
-    renderPage()
-
-    const row = (await screen.findByText('server-account')).closest('tr')
-    if (!row) throw new Error('server account row not found')
-    expect(within(row).getByText('120')).toBeInTheDocument()
-    expect(within(row).getByText('未知权限')).toBeInTheDocument()
-    expect(screen.queryByText('账号列表加载失败')).toBeNull()
-  })
-
-  it('opens the registration modal using the shared privilege query', async () => {
+  it('opens the registration modal using shared privileges without a request', async () => {
     const user = userEvent.setup()
     renderPage()
 
@@ -392,7 +342,7 @@ describe('accounts page', () => {
     expect(within(dialog).getByText('注册账号')).toBeInTheDocument()
     expect(within(dialog).getByLabelText('账号')).toBeInTheDocument()
     await waitFor(() => {
-      expect(getPrivilegeRequestUrls()).toEqual(['/_api/privileges'])
+      expect(getPrivilegeRequestUrls()).toEqual([])
     })
   })
 })

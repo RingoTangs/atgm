@@ -1,20 +1,16 @@
 import type { RegisterAccountRequest } from '@atgm/contracts'
 import type { FormProps } from 'antd'
-import { ACCOUNT_COIN_MAX, ACCOUNT_COIN_MIN, errorCodes } from '@atgm/contracts'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  Alert,
-  Button,
-  Form,
-  Input,
-  InputNumber,
-  message,
-  Modal,
-  Select,
-} from 'antd'
+  ACCOUNT_COIN_MAX,
+  ACCOUNT_COIN_MIN,
+  ACCOUNT_PRIVILEGES,
+  errorCodes,
+} from '@atgm/contracts'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Button, Form, Input, InputNumber, message, Modal, Select } from 'antd'
 import { ApiError } from '@/lib/apiError'
 import { registerAccount } from './accounts-api'
-import { accountQueryKeys, privilegesQueryOptions } from './accounts-queries'
+import { accountQueryKeys } from './accounts-queries'
 
 interface AccountRegisterModalProps {
   open: boolean
@@ -51,10 +47,6 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
   const [form] = Form.useForm<RegisterAccountRequest>()
   const [messageApi, messageContext] = message.useMessage()
   const queryClient = useQueryClient()
-  const privilegesQuery = useQuery({
-    ...privilegesQueryOptions(),
-    enabled: open,
-  })
   const registerMutation = useMutation({
     mutationFn: registerAccount,
     onSuccess: () => {
@@ -90,13 +82,12 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
   const handleFinish: FormProps<RegisterAccountRequest>['onFinish'] = (
     values,
   ) => {
-    if (privilegesQuery.isSuccess && !registerMutation.isPending) {
+    if (!registerMutation.isPending) {
       registerMutation.mutate(values)
     }
   }
 
-  const registrationDisabled =
-    !privilegesQuery.isSuccess || registerMutation.isPending
+  const registrationDisabled = registerMutation.isPending
 
   return (
     <>
@@ -126,15 +117,6 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
         open={open}
         title="注册账号"
       >
-        {privilegesQuery.isError && (
-          <Alert
-            className="mb-4"
-            showIcon
-            title="权限列表加载失败"
-            type="error"
-          />
-        )}
-
         <Form<RegisterAccountRequest>
           form={form}
           initialValues={initialValues}
@@ -244,9 +226,7 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
             rules={[{ required: true, message: '请选择权限' }]}
           >
             <Select
-              disabled={privilegesQuery.isPending || privilegesQuery.isError}
-              loading={privilegesQuery.isPending}
-              options={(privilegesQuery.data ?? []).map((privilege) => ({
+              options={ACCOUNT_PRIVILEGES.map((privilege) => ({
                 label:
                   privilege.grant && privilege.constant
                     ? `${privilege.privilege} - ${privilege.grant} - ${privilege.constant}(${privilege.description})`

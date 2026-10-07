@@ -38,14 +38,6 @@ const accountDetail = {
   regDate: '2026-09-01 10:00:00',
 }
 
-const privilege = {
-  privilege: 120,
-  grant: 'GA',
-  constant: 'ADMINISTRATOR',
-  type: '管理特权',
-  description: '管理员',
-}
-
 const jsonResponse = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
@@ -56,11 +48,7 @@ let queryClient: QueryClient
 
 beforeEach(() => {
   fetchMock.mockReset()
-  fetchMock.mockImplementation(async (input) =>
-    String(input) === '/_api/privileges'
-      ? jsonResponse([privilege])
-      : jsonResponse(accountDetail),
-  )
+  fetchMock.mockImplementation(async () => jsonResponse(accountDetail))
   queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
@@ -133,7 +121,9 @@ describe('account detail page', () => {
       await screen.findByRole('heading', { name: '账号详情' }),
     ).toBeInTheDocument()
     expect(fetchMock).toHaveBeenCalledWith('/_api/accounts/server-account')
-    expect(fetchMock).toHaveBeenCalledWith('/_api/privileges')
+    expect(
+      fetchMock.mock.calls.some(([url]) => String(url) === '/_api/privileges'),
+    ).toBe(false)
     expect(await screen.findByText('server-account')).toBeInTheDocument()
     expect(screen.getByText('在线')).toBeInTheDocument()
     expect(screen.getByText('1,000,000')).toBeInTheDocument()
@@ -147,10 +137,8 @@ describe('account detail page', () => {
   })
 
   it('renders the offline account status', async () => {
-    fetchMock.mockImplementation(async (input) =>
-      String(input) === '/_api/privileges'
-        ? jsonResponse([privilege])
-        : jsonResponse({ ...accountDetail, online: false }),
+    fetchMock.mockImplementation(async () =>
+      jsonResponse({ ...accountDetail, online: false }),
     )
     renderPage()
 
@@ -177,10 +165,8 @@ describe('account detail page', () => {
     ['充值', '充值账号：server-account', '充值成功'],
     ['变更权限', '变更权限：server-account', '权限变更成功'],
   ])('opens %s and closes it after success', async (action, title, success) => {
-    fetchMock.mockImplementation(async (input) =>
-      String(input) === '/_api/privileges'
-        ? jsonResponse([privilege])
-        : jsonResponse({ ...accountDetail, online: false }),
+    fetchMock.mockImplementation(async () =>
+      jsonResponse({ ...accountDetail, online: false }),
     )
     const invalidateQueries = vi.spyOn(queryClient, 'invalidateQueries')
     const user = userEvent.setup()
@@ -211,10 +197,8 @@ describe('account detail page', () => {
   })
 
   it('falls back safely for an unknown privilege', async () => {
-    fetchMock.mockImplementation(async (input) =>
-      String(input) === '/_api/privileges'
-        ? jsonResponse([privilege])
-        : jsonResponse({ ...accountDetail, privilege: 999 }),
+    fetchMock.mockImplementation(async () =>
+      jsonResponse({ ...accountDetail, privilege: 999 }),
     )
     renderPage()
 
@@ -222,27 +206,12 @@ describe('account detail page', () => {
     expect(screen.getByText('未知权限')).toBeInTheDocument()
   })
 
-  it('keeps rendering details when the privilege dictionary fails', async () => {
-    fetchMock.mockImplementation(async (input) =>
-      String(input) === '/_api/privileges'
-        ? new Response(null, { status: 500 })
-        : jsonResponse(accountDetail),
-    )
-    renderPage()
-
-    expect(await screen.findByText('server-account')).toBeInTheDocument()
-    expect(screen.getByText('120')).toBeInTheDocument()
-    expect(screen.getByText('未知权限')).toBeInTheDocument()
-  })
-
   it('shows the not-found state with a link back to accounts', async () => {
-    fetchMock.mockImplementation(async (input) =>
-      String(input) === '/_api/privileges'
-        ? jsonResponse([privilege])
-        : jsonResponse(
-            { code: 'ACCOUNT_NOT_FOUND', message: 'Account not found' },
-            404,
-          ),
+    fetchMock.mockImplementation(async () =>
+      jsonResponse(
+        { code: 'ACCOUNT_NOT_FOUND', message: 'Account not found' },
+        404,
+      ),
     )
     renderPage()
 
@@ -255,9 +224,7 @@ describe('account detail page', () => {
 
   it('shows a generic error and retries the account request', async () => {
     let accountRequests = 0
-    fetchMock.mockImplementation(async (input) => {
-      if (String(input) === '/_api/privileges') return jsonResponse([privilege])
-
+    fetchMock.mockImplementation(async () => {
       accountRequests += 1
       return accountRequests === 1
         ? new Response(null, { status: 500 })

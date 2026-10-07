@@ -2,7 +2,6 @@ import type {
   AccountDetailResponse,
   AccountsQuery,
   AccountsResponse,
-  PrivilegesResponse,
   RechargeAccountRequest,
   RechargeAccountResponse,
   RegisterAccountRequest,
@@ -76,14 +75,6 @@ export async function getAccounts(
   await checkApiResponse(response, '账号列表请求失败')
 
   return (await response.json()) as AccountsResponse
-}
-
-export async function getPrivileges(): Promise<PrivilegesResponse> {
-  const response = await fetch(`${API_PREFIX}/privileges`)
-
-  await checkApiResponse(response, '权限列表请求失败')
-
-  return (await response.json()) as PrivilegesResponse
 }
 
 export async function registerAccount(
