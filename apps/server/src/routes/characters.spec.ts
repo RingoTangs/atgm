@@ -59,7 +59,8 @@ afterEach(async () => {
   await ddb.destroy()
 })
 
-describe('get /characters', () => {
+// eslint-disable-next-line test/prefer-lowercase-title
+describe('GET /characters', () => {
   it('returns default pagination, numeric total and decoded Chinese names', async () => {
     const response = await app.inject('/characters')
     expect(response.statusCode).toBe(200)
