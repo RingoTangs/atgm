@@ -96,6 +96,38 @@ export type AccountUpdateConflictResponse = z.infer<
   typeof accountUpdateConflictResponseSchema
 >
 
+export const updateAccountPrivilegeBodySchema = z
+  .object({
+    privilege: z.number().int().min(0).max(1000),
+  })
+  .strict()
+
+export type UpdateAccountPrivilegeRequest = z.infer<
+  typeof updateAccountPrivilegeBodySchema
+>
+
+export const updateAccountPrivilegeResponseSchema = z.object({
+  account: z.string(),
+  privilege: z.number().int().min(0).max(1000),
+})
+
+export type UpdateAccountPrivilegeResponse = z.infer<
+  typeof updateAccountPrivilegeResponseSchema
+>
+
+export const accountPrivilegeConflictResponseSchema =
+  errorResponseSchema.extend({
+    code: z.enum([
+      errorCodes.ACCOUNT_CHECKSUM_INVALID,
+      errorCodes.ACCOUNT_CONCURRENT_MODIFICATION,
+      errorCodes.ACCOUNT_ONLINE,
+    ]),
+  })
+
+export type AccountPrivilegeConflictResponse = z.infer<
+  typeof accountPrivilegeConflictResponseSchema
+>
+
 export const rechargeAccountBodySchema = z
   .object({
     goldCoinAmount: z

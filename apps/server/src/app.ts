@@ -9,6 +9,7 @@ import {
 import pkg from '../package.json' with { type: 'json' }
 import { isDevelopment } from './env'
 import { handleServerError, registerErrorHandlers } from './lib/errorHandlers'
+import { accountPrivilegeRoutes } from './routes/account-privilege'
 import { accountRechargeRoutes } from './routes/account-recharge'
 import { accountRegisterRoutes } from './routes/account-register'
 import { accountUpdateRoutes } from './routes/account-update'
@@ -43,6 +44,7 @@ export function buildApp() {
   app.register(accountRegisterRoutes)
   app.register(accountRechargeRoutes)
   app.register(accountUpdateRoutes)
+  app.register(accountPrivilegeRoutes)
   app.register(privilegeRoutes)
 
   return app
