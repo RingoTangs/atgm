@@ -8,6 +8,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button, Form, InputNumber, message, Modal } from 'antd'
 import { useEffect } from 'react'
 import { ApiError } from '@/lib/apiError'
+import { coinFormatter, coinParser } from '@/lib/coinInput'
 import { rechargeAccount } from './accounts-api'
 import { accountQueryKeys } from './accounts-queries'
 
@@ -183,6 +184,8 @@ export const AccountRechargeModal: React.FC<AccountRechargeModalProps> = ({
               id="goldCoinAmount"
               min={ACCOUNT_COIN_MIN}
               max={maxGoldCoinAmount}
+              formatter={coinFormatter}
+              parser={coinParser}
               step={1}
             />
           </Form.Item>
@@ -236,6 +239,8 @@ export const AccountRechargeModal: React.FC<AccountRechargeModalProps> = ({
               id="silverCoinAmount"
               min={ACCOUNT_COIN_MIN}
               max={maxSilverCoinAmount}
+              formatter={coinFormatter}
+              parser={coinParser}
               step={1}
             />
           </Form.Item>

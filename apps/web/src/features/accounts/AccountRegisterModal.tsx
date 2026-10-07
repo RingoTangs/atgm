@@ -1,5 +1,5 @@
 import type { RegisterAccountRequest } from '@atgm/contracts'
-import type { FormProps, InputNumberProps } from 'antd'
+import type { FormProps } from 'antd'
 import {
   ACCOUNT_COIN_MAX,
   ACCOUNT_COIN_MIN,
@@ -9,6 +9,7 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button, Form, Input, InputNumber, message, Modal, Select } from 'antd'
 import { ApiError } from '@/lib/apiError'
+import { coinFormatter, coinParser } from '@/lib/coinInput'
 import { registerAccount } from './accounts-api'
 import { accountQueryKeys } from './accounts-queries'
 
@@ -20,14 +21,6 @@ interface AccountRegisterModalProps {
 const initialValues: Pick<RegisterAccountRequest, 'goldCoin' | 'silverCoin'> = {
   goldCoin: ACCOUNT_COIN_MIN,
   silverCoin: ACCOUNT_COIN_MIN,
-}
-
-const coinFormatter: InputNumberProps['formatter'] = (value) =>
-  String(value ?? '').replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-
-const coinParser: InputNumberProps['parser'] = (value) => {
-  const normalized = (value ?? '').replace(/[^\w.-]+/g, '')
-  return normalized === '' ? '' : Number(normalized)
 }
 
 const integerRangeValidator = (label: string, min: number, max: number) => ({

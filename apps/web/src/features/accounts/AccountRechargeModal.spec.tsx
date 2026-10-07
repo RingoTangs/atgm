@@ -131,7 +131,7 @@ describe('account recharge modal', () => {
       const row = screen.getByText(label).parentElement
       if (!row) throw new Error('Field label row not found')
       await user.click(within(row).getByRole('button', { name: '最大' }))
-      expect(input).toHaveValue(maximum)
+      expect(input).toHaveValue(Number(maximum).toLocaleString('en-US'))
       expect(input).toHaveAttribute('aria-valuemax', maximum)
       expect(screen.getByLabelText(other)).toHaveValue('0')
       await user.click(within(row).getByRole('button', { name: '最小' }))
@@ -189,6 +189,52 @@ describe('account recharge modal', () => {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ goldCoinAmount: 0, silverCoinAmount: 10 }),
+      },
+    )
+  })
+
+  it.each(['金元宝充值数量', '银元宝充值数量'])(
+    'formats %s and preserves empty input',
+    async (label) => {
+      renderModal()
+      const user = userEvent.setup()
+      const input = screen.getByLabelText(label)
+      for (const [value, display] of [
+        ['1000', '1,000'],
+        ['100000000', '100,000,000'],
+        ['100,000,000', '100,000,000'],
+      ]) {
+        await user.clear(input)
+        await user.type(input, value)
+        await user.tab()
+        expect(input).toHaveValue(display)
+      }
+      await user.clear(input)
+      await user.tab()
+      expect(input).toHaveValue('')
+      await user.type(input, '1000')
+      expect(input).toHaveValue('1,000')
+    },
+  )
+
+  it('submits formatted input as numeric amounts', async () => {
+    renderModal()
+    const user = userEvent.setup()
+    await user.clear(screen.getByLabelText('金元宝充值数量'))
+    await user.type(screen.getByLabelText('金元宝充值数量'), '1,000')
+    await user.clear(screen.getByLabelText('银元宝充值数量'))
+    await user.type(screen.getByLabelText('银元宝充值数量'), '100,000,000')
+    await user.click(screen.getByRole('button', { name: '充值' }))
+    expect(await screen.findByText('充值成功')).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/_api/accounts/server-account/recharge',
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          goldCoinAmount: 1000,
+          silverCoinAmount: 100_000_000,
+        }),
       },
     )
   })
