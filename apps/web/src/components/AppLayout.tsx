@@ -9,6 +9,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Sun,
+  UserRound,
   Users,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -65,8 +66,16 @@ const NavigationMenu: React.FC<NavigationMenuProps> = ({ onNavigate }) => {
   const { resolvedTheme } = useTheme()
   const isAccountsPath =
     pathname === '/accounts' || pathname.startsWith('/accounts/')
+  const isCharactersPath =
+    pathname === '/characters' || pathname.startsWith('/characters/')
   const selectedNavigationKey =
-    pathname === '/' ? pathname : isAccountsPath ? '/accounts' : undefined
+    pathname === '/'
+      ? pathname
+      : isAccountsPath
+        ? '/accounts'
+        : isCharactersPath
+          ? '/characters'
+          : undefined
 
   const navigationItems: MenuProps['items'] = [
     {
@@ -85,6 +94,15 @@ const NavigationMenu: React.FC<NavigationMenuProps> = ({ onNavigate }) => {
         <span aria-current={isAccountsPath ? 'page' : undefined}>账号管理</span>
       ),
     },
+    {
+      key: '/characters',
+      icon: <UserRound aria-hidden="true" size={18} />,
+      label: (
+        <span aria-current={isCharactersPath ? 'page' : undefined}>
+          角色管理
+        </span>
+      ),
+    },
   ]
 
   const handleNavigation: MenuProps['onClick'] = ({ key }) => {
@@ -96,6 +114,9 @@ const NavigationMenu: React.FC<NavigationMenuProps> = ({ onNavigate }) => {
 
     if (key === '/accounts') {
       void navigate({ to: '/accounts' })
+    }
+    if (key === '/characters') {
+      void navigate({ to: '/characters' })
     }
   }
 

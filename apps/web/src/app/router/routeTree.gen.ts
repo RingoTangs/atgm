@@ -15,6 +15,7 @@ import { Route as AppIndexRouteImport } from './../../routes/_app/index'
 import { Route as AppAccountsRouteImport } from './../../routes/_app/accounts'
 import { Route as AppAccountsIndexRouteImport } from './../../routes/_app/accounts.index'
 import { Route as AppAccountsAccountRouteImport } from './../../routes/_app/accounts.$account'
+import { Route as AppCharactersIndexRouteImport } from './../../routes/_app/characters.index'
 
 const SplatRoute = SplatRouteImport.update({
   id: '/$',
@@ -45,6 +46,11 @@ const AppAccountsAccountRoute = AppAccountsAccountRouteImport.update({
   path: '/$account',
   getParentRoute: () => AppAccountsRoute,
 } as any)
+const AppCharactersIndexRoute = AppCharactersIndexRouteImport.update({
+  id: '/characters/',
+  path: '/characters/',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/$': typeof SplatRoute
@@ -52,12 +58,14 @@ export interface FileRoutesByFullPath {
   '/accounts': typeof AppAccountsRouteWithChildren
   '/accounts/$account': typeof AppAccountsAccountRoute
   '/accounts/': typeof AppAccountsIndexRoute
+  '/characters/': typeof AppCharactersIndexRoute
 }
 export interface FileRoutesByTo {
   '/$': typeof SplatRoute
   '/': typeof AppIndexRoute
   '/accounts/$account': typeof AppAccountsAccountRoute
   '/accounts': typeof AppAccountsIndexRoute
+  '/characters': typeof AppCharactersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -67,12 +75,19 @@ export interface FileRoutesById {
   '/_app/': typeof AppIndexRoute
   '/_app/accounts/$account': typeof AppAccountsAccountRoute
   '/_app/accounts/': typeof AppAccountsIndexRoute
+  '/_app/characters/': typeof AppCharactersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/$' | '/' | '/accounts' | '/accounts/$account' | '/accounts/'
+  fullPaths:
+    | '/$'
+    | '/'
+    | '/accounts'
+    | '/accounts/$account'
+    | '/accounts/'
+    | '/characters/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/$' | '/' | '/accounts/$account' | '/accounts'
+  to: '/$' | '/' | '/accounts/$account' | '/accounts' | '/characters'
   id:
     | '__root__'
     | '/$'
@@ -81,6 +96,7 @@ export interface FileRouteTypes {
     | '/_app/'
     | '/_app/accounts/$account'
     | '/_app/accounts/'
+    | '/_app/characters/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,6 +148,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAccountsAccountRouteImport
       parentRoute: typeof AppAccountsRoute
     }
+    '/_app/characters/': {
+      id: '/_app/characters/'
+      path: '/characters'
+      fullPath: '/characters/'
+      preLoaderRoute: typeof AppCharactersIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -152,11 +175,13 @@ const AppAccountsRouteWithChildren = AppAccountsRoute._addFileChildren(
 interface AppRouteChildren {
   AppAccountsRoute: typeof AppAccountsRouteWithChildren
   AppIndexRoute: typeof AppIndexRoute
+  AppCharactersIndexRoute: typeof AppCharactersIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppAccountsRoute: AppAccountsRouteWithChildren,
   AppIndexRoute: AppIndexRoute,
+  AppCharactersIndexRoute: AppCharactersIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

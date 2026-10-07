@@ -6,7 +6,13 @@ import {
   Outlet,
   RouterProvider,
 } from '@tanstack/react-router'
-import { cleanup, render, screen, within } from '@testing-library/react'
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ConfigProvider } from 'antd'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -23,6 +29,7 @@ const DashboardPage: React.FC = () => (
 )
 
 const AccountsPage: React.FC = () => <h1>账号管理页面</h1>
+const CharactersPage: React.FC = () => <h1>角色管理页面</h1>
 const AccountDetailPage: React.FC = () => <h1>账号详情页面</h1>
 
 const installMatchMedia = (width: number, dark = false) => {
@@ -84,6 +91,11 @@ const renderApplication = (initialEntry = '/') => {
     path: '/accounts/$account',
     component: AccountDetailPage,
   })
+  const charactersRoute = createRoute({
+    getParentRoute: () => appRoute,
+    path: '/characters',
+    component: CharactersPage,
+  })
   const brokenRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/broken',
@@ -92,7 +104,12 @@ const renderApplication = (initialEntry = '/') => {
   const router = createRouter({
     history: createMemoryHistory({ initialEntries: [initialEntry] }),
     routeTree: rootRoute.addChildren([
-      appRoute.addChildren([dashboardRoute, accountsRoute, accountDetailRoute]),
+      appRoute.addChildren([
+        dashboardRoute,
+        accountsRoute,
+        accountDetailRoute,
+        charactersRoute,
+      ]),
       brokenRoute,
     ]),
   })
@@ -128,6 +145,40 @@ afterEach(() => {
 })
 
 describe('app layout', () => {
+  it('角色管理支持桌面导航和高亮', async () => {
+    installMatchMedia(1280)
+    const user = userEvent.setup()
+    renderApplication()
+    await screen.findByRole('heading', { name: 'Dashboard' })
+    await user.click(screen.getByRole('menuitem', { name: '角色管理' }))
+    await screen.findByRole('heading', { name: '角色管理页面' })
+    const item = screen.getByRole('menuitem', { name: '角色管理' })
+    expect(item).toHaveClass('ant-menu-item-selected')
+    expect(within(item).getByText('角色管理')).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+  })
+
+  it('角色管理支持移动导航并在跳转后关闭 Drawer', async () => {
+    installMatchMedia(375)
+    const user = userEvent.setup()
+    renderApplication()
+    await screen.findByRole('heading', { name: 'Dashboard' })
+    await user.click(screen.getByRole('button', { name: '打开导航' }))
+    await user.click(await screen.findByRole('menuitem', { name: '角色管理' }))
+    await screen.findByRole('heading', { name: '角色管理页面' })
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
+    )
+    await user.click(screen.getByRole('button', { name: '打开导航' }))
+    const item = await screen.findByRole('menuitem', { name: '角色管理' })
+    expect(within(item).getByText('角色管理')).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+  })
+
   it('在桌面端渲染 Dashboard、品牌和当前菜单', async () => {
     installMatchMedia(1280)
     renderApplication()
