@@ -4,6 +4,8 @@ import {
   accountDetailParamsSchema,
   accountNotFoundResponseSchema,
   accountUpdateConflictResponseSchema,
+  errorCodes,
+  errorResponseSchema,
   updateAccountBodySchema,
   updateAccountResponseSchema,
 } from '@atgm/contracts'
@@ -38,6 +40,9 @@ export async function accountUpdateRoutes(app: FastifyInstance) {
           200: updateAccountResponseSchema,
           404: accountNotFoundResponseSchema,
           409: accountUpdateConflictResponseSchema,
+          400: errorResponseSchema,
+          500: errorResponseSchema,
+          default: errorResponseSchema,
         },
       },
     },
@@ -49,7 +54,9 @@ export async function accountUpdateRoutes(app: FastifyInstance) {
         .executeTakeFirst()
 
       if (!item) {
-        return reply.code(404).send({ message: '账号不存在' })
+        return reply
+          .code(404)
+          .send({ code: errorCodes.ACCOUNT_NOT_FOUND, message: '账号不存在' })
       }
 
       const currentChecksum = createAccountChecksum({
@@ -67,7 +74,10 @@ export async function accountUpdateRoutes(app: FastifyInstance) {
       })
 
       if (currentChecksum !== item.checksum) {
-        return reply.code(409).send({ message: '账号数据校验失败' })
+        return reply.code(409).send({
+          code: errorCodes.ACCOUNT_CHECKSUM_INVALID,
+          message: '账号数据校验失败',
+        })
       }
 
       const { privilege, goldCoin, silverCoin } = request.body
@@ -88,7 +98,10 @@ export async function accountUpdateRoutes(app: FastifyInstance) {
         .executeTakeFirst()
 
       if (onlineRow) {
-        return reply.code(409).send({ message: '账号当前在线，无法修改' })
+        return reply.code(409).send({
+          code: errorCodes.ACCOUNT_ONLINE,
+          message: '账号当前在线，无法修改',
+        })
       }
 
       const nextChecksum = createAccountChecksum({
@@ -118,7 +131,10 @@ export async function accountUpdateRoutes(app: FastifyInstance) {
         .executeTakeFirst()
 
       if (result.numUpdatedRows === 0n) {
-        return reply.code(409).send({ message: '账号数据已发生变化，请重试' })
+        return reply.code(409).send({
+          code: errorCodes.ACCOUNT_CONCURRENT_MODIFICATION,
+          message: '账号数据已发生变化，请重试',
+        })
       }
 
       return { account: item.account }

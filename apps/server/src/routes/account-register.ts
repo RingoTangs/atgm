@@ -2,6 +2,8 @@ import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import {
   accountConflictResponseSchema,
+  errorCodes,
+  errorResponseSchema,
   registerAccountBodySchema,
   registerAccountResponseSchema,
 } from '@atgm/contracts'
@@ -31,6 +33,9 @@ export async function accountRegisterRoutes(app: FastifyInstance) {
         response: {
           201: registerAccountResponseSchema,
           409: accountConflictResponseSchema,
+          400: errorResponseSchema,
+          500: errorResponseSchema,
+          default: errorResponseSchema,
         },
       },
     },
@@ -68,12 +73,13 @@ export async function accountRegisterRoutes(app: FastifyInstance) {
           .executeTakeFirst()
       } catch (error) {
         if (isDuplicateEntryError(error)) {
-          return reply.code(409).send({ message: '账号已存在' })
+          return reply.code(409).send({
+            code: errorCodes.ACCOUNT_ALREADY_EXISTS,
+            message: '账号已存在',
+          })
         }
 
-        throw Object.assign(new Error('Internal Server Error'), {
-          cause: error,
-        })
+        throw error
       }
 
       return reply.code(201).send({ account })

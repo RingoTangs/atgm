@@ -1,5 +1,6 @@
 import type { RegisterAccountRequest } from '@atgm/contracts'
 import type { FormProps } from 'antd'
+import { errorCodes } from '@atgm/contracts'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Alert,
@@ -11,7 +12,8 @@ import {
   Modal,
   Select,
 } from 'antd'
-import { AccountConflictError, registerAccount } from './accounts-api'
+import { ApiError } from '@/lib/apiError'
+import { registerAccount } from './accounts-api'
 import { accountQueryKeys, privilegesQueryOptions } from './accounts-queries'
 
 interface AccountRegisterModalProps {
@@ -68,7 +70,10 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
       onCancel()
     },
     onError: (error) => {
-      if (error instanceof AccountConflictError) {
+      if (
+        error instanceof ApiError &&
+        error.code === errorCodes.ACCOUNT_ALREADY_EXISTS
+      ) {
         form.setFields([{ name: 'account', errors: ['账号已存在'] }])
         return
       }

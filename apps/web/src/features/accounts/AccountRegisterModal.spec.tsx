@@ -249,9 +249,14 @@ describe('account register modal', () => {
     expect(screen.getByLabelText('金币')).toHaveValue('0')
   })
 
-  it('shows a field error for HTTP 409 and preserves the form', async () => {
+  it('shows a field error for ACCOUNT_ALREADY_EXISTS and preserves the form', async () => {
     mockRegistrationResponse(() =>
-      Promise.resolve(new Response(null, { status: 409 })),
+      Promise.resolve(
+        jsonResponse(
+          { code: 'ACCOUNT_ALREADY_EXISTS', message: 'Account exists' },
+          409,
+        ),
+      ),
     )
     const { onCancel } = renderModal()
     const user = await fillRequiredFields('existing-account')
@@ -266,6 +271,17 @@ describe('account register modal', () => {
   })
 
   it.each([
+    [
+      'different 409 code with duplicate message',
+      () =>
+        Promise.resolve(
+          jsonResponse({ code: 'ACCOUNT_ONLINE', message: '账号已存在' }, 409),
+        ),
+    ],
+    [
+      'missing code',
+      () => Promise.resolve(jsonResponse({ message: '账号已存在' }, 409)),
+    ],
     ['HTTP 500', () => Promise.resolve(new Response(null, { status: 500 }))],
     ['network error', () => Promise.reject(new Error('network unavailable'))],
   ])('shows a generic error for %s', async (_case, responseFactory) => {

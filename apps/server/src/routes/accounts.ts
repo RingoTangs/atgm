@@ -6,6 +6,8 @@ import {
   accountNotFoundResponseSchema,
   accountsQuerySchema,
   accountsResponseSchema,
+  errorCodes,
+  errorResponseSchema,
 } from '@atgm/contracts'
 import { sql } from 'kysely'
 import { formatDisplayTime } from '../lib/game-time'
@@ -24,6 +26,9 @@ export async function accountRoutes(app: FastifyInstance) {
         querystring: accountsQuerySchema,
         response: {
           200: accountsResponseSchema,
+          400: errorResponseSchema,
+          500: errorResponseSchema,
+          default: errorResponseSchema,
         },
       },
     },
@@ -115,6 +120,9 @@ export async function accountRoutes(app: FastifyInstance) {
         response: {
           200: accountDetailResponseSchema,
           404: accountNotFoundResponseSchema,
+          400: errorResponseSchema,
+          500: errorResponseSchema,
+          default: errorResponseSchema,
         },
       },
     },
@@ -141,7 +149,9 @@ export async function accountRoutes(app: FastifyInstance) {
         .executeTakeFirst()
 
       if (!item) {
-        return reply.code(404).send({ message: '账号不存在' })
+        return reply
+          .code(404)
+          .send({ code: errorCodes.ACCOUNT_NOT_FOUND, message: '账号不存在' })
       }
 
       const onlineRow = await app.db.ddb

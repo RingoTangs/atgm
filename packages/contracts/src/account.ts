@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { errorCodes, errorResponseSchema } from './error'
 
 export const accountsQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -56,8 +57,8 @@ export const accountDetailResponseSchema = z.object({
 
 export type AccountDetailResponse = z.infer<typeof accountDetailResponseSchema>
 
-export const accountNotFoundResponseSchema = z.object({
-  message: z.literal('账号不存在'),
+export const accountNotFoundResponseSchema = errorResponseSchema.extend({
+  code: z.literal(errorCodes.ACCOUNT_NOT_FOUND),
 })
 
 export type AccountNotFoundResponse = z.infer<
@@ -80,11 +81,11 @@ export const updateAccountResponseSchema = z.object({
 
 export type UpdateAccountResponse = z.infer<typeof updateAccountResponseSchema>
 
-export const accountUpdateConflictResponseSchema = z.object({
-  message: z.enum([
-    '账号数据校验失败',
-    '账号数据已发生变化，请重试',
-    '账号当前在线，无法修改',
+export const accountUpdateConflictResponseSchema = errorResponseSchema.extend({
+  code: z.enum([
+    errorCodes.ACCOUNT_CHECKSUM_INVALID,
+    errorCodes.ACCOUNT_CONCURRENT_MODIFICATION,
+    errorCodes.ACCOUNT_ONLINE,
   ]),
 })
 
@@ -116,14 +117,16 @@ export type RechargeAccountResponse = z.infer<
   typeof rechargeAccountResponseSchema
 >
 
-export const accountRechargeConflictResponseSchema = z.object({
-  message: z.enum([
-    '账号数据校验失败',
-    '账号数据已发生变化，请重试',
-    '账号当前在线，无法修改',
-    '充值后金币或银币不能超过 20 亿',
-  ]),
-})
+export const accountRechargeConflictResponseSchema = errorResponseSchema.extend(
+  {
+    code: z.enum([
+      errorCodes.ACCOUNT_CHECKSUM_INVALID,
+      errorCodes.ACCOUNT_CONCURRENT_MODIFICATION,
+      errorCodes.ACCOUNT_ONLINE,
+      errorCodes.ACCOUNT_COIN_LIMIT_EXCEEDED,
+    ]),
+  },
+)
 
 export type AccountRechargeConflictResponse = z.infer<
   typeof accountRechargeConflictResponseSchema
@@ -149,8 +152,8 @@ export type RegisterAccountResponse = z.infer<
   typeof registerAccountResponseSchema
 >
 
-export const accountConflictResponseSchema = z.object({
-  message: z.literal('账号已存在'),
+export const accountConflictResponseSchema = errorResponseSchema.extend({
+  code: z.literal(errorCodes.ACCOUNT_ALREADY_EXISTS),
 })
 
 export type AccountConflictResponse = z.infer<

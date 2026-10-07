@@ -210,7 +210,10 @@ describe('account detail page', () => {
     fetchMock.mockImplementation(async (input) =>
       String(input) === '/_api/privileges'
         ? jsonResponse([privilege])
-        : jsonResponse({ message: '账号不存在' }, 404),
+        : jsonResponse(
+            { code: 'ACCOUNT_NOT_FOUND', message: 'Account not found' },
+            404,
+          ),
     )
     renderPage()
 

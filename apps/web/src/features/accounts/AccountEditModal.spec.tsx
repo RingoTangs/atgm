@@ -180,10 +180,16 @@ describe('account edit modal', () => {
     expect(onCancel).toHaveBeenCalledOnce()
   })
 
-  it.each(['账号当前在线，无法修改', '账号数据校验失败'])(
+  it.each([
+    ['ACCOUNT_ONLINE', '账号当前在线，无法修改'],
+    ['ACCOUNT_CHECKSUM_INVALID', '账号数据校验失败'],
+    ['ACCOUNT_CONCURRENT_MODIFICATION', '账号数据已发生变化，请重试'],
+  ])(
     'shows the server conflict message and keeps the modal open: %s',
-    async (message) => {
-      mockUpdateResponse(() => Promise.resolve(jsonResponse({ message }, 409)))
+    async (code, message) => {
+      mockUpdateResponse(() =>
+        Promise.resolve(jsonResponse({ code, message }, 409)),
+      )
       const { onCancel } = renderModal()
       const user = userEvent.setup()
 
@@ -200,7 +206,9 @@ describe('account edit modal', () => {
 
   it('shows the not-found message and keeps the modal open', async () => {
     mockUpdateResponse(() =>
-      Promise.resolve(new Response(null, { status: 404 })),
+      Promise.resolve(
+        jsonResponse({ code: 'ACCOUNT_NOT_FOUND', message: '账号不存在' }, 404),
+      ),
     )
     const { onCancel } = renderModal()
     const user = userEvent.setup()

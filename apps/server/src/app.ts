@@ -8,6 +8,7 @@ import {
 } from 'fastify-type-provider-zod'
 import pkg from '../package.json' with { type: 'json' }
 import { isDevelopment } from './env'
+import { handleServerError, registerErrorHandlers } from './lib/errorHandlers'
 import { accountRechargeRoutes } from './routes/account-recharge'
 import { accountRegisterRoutes } from './routes/account-register'
 import { accountUpdateRoutes } from './routes/account-update'
@@ -16,11 +17,12 @@ import { privilegeRoutes } from './routes/privileges'
 import { statusRoutes } from './routes/status'
 
 export function buildApp() {
-  const app = Fastify({ logger: true })
+  const app = Fastify({ logger: true, frameworkErrors: handleServerError })
   const development = isDevelopment()
 
   app.setValidatorCompiler(validatorCompiler)
   app.setSerializerCompiler(serializerCompiler)
+  registerErrorHandlers(app)
 
   if (development) {
     app.register(swagger, {

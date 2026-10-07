@@ -131,6 +131,10 @@ describe('post /account endpoint', () => {
       })
 
       expect(response.statusCode).toBe(400)
+      expect(response.json()).toEqual({
+        code: 'VALIDATION_ERROR',
+        message: expect.any(String),
+      })
       expect(mocks.insertInto).not.toHaveBeenCalled()
     },
   )
@@ -182,6 +186,10 @@ describe('post /account endpoint', () => {
     })
 
     expect(response.statusCode).toBe(400)
+    expect(response.json()).toEqual({
+      code: 'VALIDATION_ERROR',
+      message: expect.any(String),
+    })
     expect(mocks.insertInto).not.toHaveBeenCalled()
     expect(mocks.executeTakeFirst).not.toHaveBeenCalled()
   })
@@ -199,7 +207,10 @@ describe('post /account endpoint', () => {
     })
 
     expect(response.statusCode).toBe(409)
-    expect(response.json()).toEqual({ message: '账号已存在' })
+    expect(response.json()).toEqual({
+      code: 'ACCOUNT_ALREADY_EXISTS',
+      message: '账号已存在',
+    })
   })
 
   it('does not treat other database failures as duplicate accounts', async () => {
@@ -212,6 +223,10 @@ describe('post /account endpoint', () => {
     })
 
     expect(response.statusCode).toBe(500)
+    expect(response.json()).toEqual({
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'Internal Server Error',
+    })
     expect(response.body).not.toContain('账号已存在')
     expect(response.body).not.toContain('database unavailable')
   })

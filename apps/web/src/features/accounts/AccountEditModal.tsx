@@ -3,10 +3,12 @@ import type {
   UpdateAccountRequest,
 } from '@atgm/contracts'
 import type { FormProps } from 'antd'
+import { errorCodes } from '@atgm/contracts'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Alert, Form, InputNumber, message, Modal, Select } from 'antd'
 import { useEffect, useMemo } from 'react'
-import { AccountNotFoundError, updateAccount } from './accounts-api'
+import { ApiError } from '@/lib/apiError'
+import { updateAccount } from './accounts-api'
 import { accountQueryKeys, privilegesQueryOptions } from './accounts-queries'
 
 interface AccountEditModalProps {
@@ -79,7 +81,10 @@ export const AccountEditModal: React.FC<AccountEditModalProps> = ({
       onCancel()
     },
     onError: (error) => {
-      if (error instanceof AccountNotFoundError) {
+      if (
+        error instanceof ApiError &&
+        error.code === errorCodes.ACCOUNT_NOT_FOUND
+      ) {
         void messageApi.error('账号不存在')
         return
       }

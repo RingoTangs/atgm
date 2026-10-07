@@ -131,6 +131,29 @@ afterAll(async () => {
 })
 
 describe('patch /accounts/:account/recharge endpoint', () => {
+  it.each([
+    'selectExecuteTakeFirst',
+    'onlineExecuteTakeFirst',
+    'updateExecuteTakeFirst',
+  ] as const)(
+    'returns a shared internal error when %s fails',
+    async (operation) => {
+      mocks[operation].mockRejectedValueOnce(new Error('database unavailable'))
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: '/accounts/example_user/recharge',
+        payload: { goldCoinAmount: 500, silverCoinAmount: 0 },
+      })
+
+      expect(response.statusCode).toBe(500)
+      expect(response.json()).toEqual({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Internal Server Error',
+      })
+    },
+  )
+
   it('recharges only gold coins and updates only balances and checksum', async () => {
     const response = await app.inject({
       method: 'PATCH',
@@ -229,7 +252,10 @@ describe('patch /accounts/:account/recharge endpoint', () => {
     })
 
     expect(response.statusCode).toBe(404)
-    expect(response.json()).toEqual({ message: '账号不存在' })
+    expect(response.json()).toEqual({
+      code: 'ACCOUNT_NOT_FOUND',
+      message: '账号不存在',
+    })
     expect(mocks.ddbSelectFrom).not.toHaveBeenCalled()
     expect(mocks.updateTable).not.toHaveBeenCalled()
   })
@@ -247,7 +273,10 @@ describe('patch /accounts/:account/recharge endpoint', () => {
     })
 
     expect(response.statusCode).toBe(409)
-    expect(response.json()).toEqual({ message: '账号数据校验失败' })
+    expect(response.json()).toEqual({
+      code: 'ACCOUNT_CHECKSUM_INVALID',
+      message: '账号数据校验失败',
+    })
     expect(mocks.ddbSelectFrom).not.toHaveBeenCalled()
     expect(mocks.updateTable).not.toHaveBeenCalled()
   })
@@ -263,6 +292,7 @@ describe('patch /accounts/:account/recharge endpoint', () => {
 
     expect(response.statusCode).toBe(409)
     expect(response.json()).toEqual({
+      code: 'ACCOUNT_ONLINE',
       message: '账号当前在线，无法修改',
     })
     expect(mocks.onlineExecuteTakeFirst).toHaveBeenCalledOnce()
@@ -301,6 +331,7 @@ describe('patch /accounts/:account/recharge endpoint', () => {
 
       expect(response.statusCode).toBe(409)
       expect(response.json()).toEqual({
+        code: 'ACCOUNT_COIN_LIMIT_EXCEEDED',
         message: '充值后金币或银币不能超过 20 亿',
       })
       expect(mocks.updateTable).not.toHaveBeenCalled()
@@ -318,6 +349,7 @@ describe('patch /accounts/:account/recharge endpoint', () => {
 
     expect(response.statusCode).toBe(409)
     expect(response.json()).toEqual({
+      code: 'ACCOUNT_CONCURRENT_MODIFICATION',
       message: '账号数据已发生变化，请重试',
     })
   })
@@ -340,6 +372,10 @@ describe('patch /accounts/:account/recharge endpoint', () => {
     })
 
     expect(response.statusCode).toBe(400)
+    expect(response.json()).toEqual({
+      code: 'VALIDATION_ERROR',
+      message: expect.any(String),
+    })
     expect(mocks.selectFrom).not.toHaveBeenCalled()
     expect(mocks.ddbSelectFrom).not.toHaveBeenCalled()
     expect(mocks.updateTable).not.toHaveBeenCalled()

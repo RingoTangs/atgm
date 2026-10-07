@@ -2,28 +2,14 @@ import type {
   AccountDetailResponse,
   AccountsQuery,
   AccountsResponse,
-  AccountUpdateConflictResponse,
   PrivilegesResponse,
   RegisterAccountRequest,
   UpdateAccountRequest,
   UpdateAccountResponse,
 } from '@atgm/contracts'
+import { checkApiResponse } from '@/lib/apiError'
 
 const API_PREFIX = '/_api'
-
-export class AccountConflictError extends Error {
-  constructor() {
-    super('账号已存在')
-    this.name = 'AccountConflictError'
-  }
-}
-
-export class AccountNotFoundError extends Error {
-  constructor() {
-    super('账号不存在')
-    this.name = 'AccountNotFoundError'
-  }
-}
 
 export async function updateAccount(
   account: string,
@@ -40,18 +26,7 @@ export async function updateAccount(
     },
   )
 
-  if (response.status === 404) {
-    throw new AccountNotFoundError()
-  }
-
-  if (response.status === 409) {
-    const body = (await response.json()) as AccountUpdateConflictResponse
-    throw new Error(body.message)
-  }
-
-  if (!response.ok) {
-    throw new Error('账号修改请求失败')
-  }
+  await checkApiResponse(response, '账号修改请求失败')
 
   return (await response.json()) as UpdateAccountResponse
 }
@@ -63,13 +38,7 @@ export async function getAccount(
     `${API_PREFIX}/accounts/${encodeURIComponent(account)}`,
   )
 
-  if (response.status === 404) {
-    throw new AccountNotFoundError()
-  }
-
-  if (!response.ok) {
-    throw new Error('账号详情请求失败')
-  }
+  await checkApiResponse(response, '账号详情请求失败')
 
   return (await response.json()) as AccountDetailResponse
 }
@@ -88,9 +57,7 @@ export async function getAccounts(
 
   const response = await fetch(`${API_PREFIX}/accounts?${searchParams}`)
 
-  if (!response.ok) {
-    throw new Error('账号列表请求失败')
-  }
+  await checkApiResponse(response, '账号列表请求失败')
 
   return (await response.json()) as AccountsResponse
 }
@@ -98,9 +65,7 @@ export async function getAccounts(
 export async function getPrivileges(): Promise<PrivilegesResponse> {
   const response = await fetch(`${API_PREFIX}/privileges`)
 
-  if (!response.ok) {
-    throw new Error('权限列表请求失败')
-  }
+  await checkApiResponse(response, '权限列表请求失败')
 
   return (await response.json()) as PrivilegesResponse
 }
@@ -116,11 +81,5 @@ export async function registerAccount(
     body: JSON.stringify(values),
   })
 
-  if (response.status === 409) {
-    throw new AccountConflictError()
-  }
-
-  if (!response.ok) {
-    throw new Error('账号注册请求失败')
-  }
+  await checkApiResponse(response, '账号注册请求失败')
 }

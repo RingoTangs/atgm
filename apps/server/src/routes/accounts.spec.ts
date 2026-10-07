@@ -403,6 +403,10 @@ describe('get /accounts endpoint', () => {
       })
 
       expect(response.statusCode).toBe(400)
+      expect(response.json()).toEqual({
+        code: 'VALIDATION_ERROR',
+        message: expect.any(String),
+      })
       expect(mocks.selectFrom).not.toHaveBeenCalled()
       expect(mocks.ddbSelectFrom).not.toHaveBeenCalled()
       expect(mocks.itemsExecute).not.toHaveBeenCalled()
@@ -505,7 +509,10 @@ describe('get /accounts/:account endpoint', () => {
     })
 
     expect(response.statusCode).toBe(404)
-    expect(response.json()).toEqual({ message: '账号不存在' })
+    expect(response.json()).toEqual({
+      code: 'ACCOUNT_NOT_FOUND',
+      message: '账号不存在',
+    })
     expect(mocks.ddbSelectFrom).not.toHaveBeenCalled()
     expect(mocks.onlineExecuteTakeFirst).not.toHaveBeenCalled()
   })

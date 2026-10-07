@@ -1,11 +1,12 @@
 import type { Privilege } from '@atgm/contracts'
 import type { DescriptionsProps } from 'antd'
+import { errorCodes } from '@atgm/contracts'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Alert, Badge, Button, Descriptions, Skeleton, Tooltip } from 'antd'
 import { useState } from 'react'
+import { ApiError } from '@/lib/apiError'
 import { AccountEditModal } from './AccountEditModal'
-import { AccountNotFoundError } from './accounts-api'
 import {
   accountDetailQueryOptions,
   privilegesQueryOptions,
@@ -65,7 +66,9 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = ({
   }
 
   if (accountQuery.isError) {
-    const notFound = accountQuery.error instanceof AccountNotFoundError
+    const notFound =
+      accountQuery.error instanceof ApiError &&
+      accountQuery.error.code === errorCodes.ACCOUNT_NOT_FOUND
 
     return (
       <div className="space-y-4">

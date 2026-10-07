@@ -4,6 +4,8 @@ import {
   accountDetailParamsSchema,
   accountNotFoundResponseSchema,
   accountRechargeConflictResponseSchema,
+  errorCodes,
+  errorResponseSchema,
   rechargeAccountBodySchema,
   rechargeAccountResponseSchema,
 } from '@atgm/contracts'
@@ -40,6 +42,9 @@ export async function accountRechargeRoutes(app: FastifyInstance) {
           200: rechargeAccountResponseSchema,
           404: accountNotFoundResponseSchema,
           409: accountRechargeConflictResponseSchema,
+          400: errorResponseSchema,
+          500: errorResponseSchema,
+          default: errorResponseSchema,
         },
       },
     },
@@ -51,7 +56,9 @@ export async function accountRechargeRoutes(app: FastifyInstance) {
         .executeTakeFirst()
 
       if (!item) {
-        return reply.code(404).send({ message: '账号不存在' })
+        return reply
+          .code(404)
+          .send({ code: errorCodes.ACCOUNT_NOT_FOUND, message: '账号不存在' })
       }
 
       const currentChecksum = createAccountChecksum({
@@ -69,7 +76,10 @@ export async function accountRechargeRoutes(app: FastifyInstance) {
       })
 
       if (currentChecksum !== item.checksum) {
-        return reply.code(409).send({ message: '账号数据校验失败' })
+        return reply.code(409).send({
+          code: errorCodes.ACCOUNT_CHECKSUM_INVALID,
+          message: '账号数据校验失败',
+        })
       }
 
       const onlineRow = await app.db.ddb
@@ -80,16 +90,20 @@ export async function accountRechargeRoutes(app: FastifyInstance) {
         .executeTakeFirst()
 
       if (onlineRow) {
-        return reply.code(409).send({ message: '账号当前在线，无法修改' })
+        return reply.code(409).send({
+          code: errorCodes.ACCOUNT_ONLINE,
+          message: '账号当前在线，无法修改',
+        })
       }
 
       const nextGoldCoin = item.gold_coin + request.body.goldCoinAmount
       const nextSilverCoin = item.silver_coin + request.body.silverCoinAmount
 
       if (nextGoldCoin > COIN_MAX || nextSilverCoin > COIN_MAX) {
-        return reply
-          .code(409)
-          .send({ message: '充值后金币或银币不能超过 20 亿' })
+        return reply.code(409).send({
+          code: errorCodes.ACCOUNT_COIN_LIMIT_EXCEEDED,
+          message: '充值后金币或银币不能超过 20 亿',
+        })
       }
 
       const nextChecksum = createAccountChecksum({
@@ -118,7 +132,10 @@ export async function accountRechargeRoutes(app: FastifyInstance) {
         .executeTakeFirst()
 
       if (result.numUpdatedRows === 0n) {
-        return reply.code(409).send({ message: '账号数据已发生变化，请重试' })
+        return reply.code(409).send({
+          code: errorCodes.ACCOUNT_CONCURRENT_MODIFICATION,
+          message: '账号数据已发生变化，请重试',
+        })
       }
 
       return {
