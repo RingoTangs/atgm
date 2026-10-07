@@ -7,8 +7,6 @@ export interface BasicCharInfoTable {
   name: Defaulted<string>
   polar: Defaulted<number>
   gender: Defaulted<number>
-  tt_weibo_name: Defaulted<string>
-  hide_tt_weibo: Defaulted<number>
   time: Defaulted<string>
 }
 

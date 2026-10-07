@@ -11,13 +11,11 @@ interface ExpectedRow {
   name: string
   polar: number
   gender: number
-  tt_weibo_name: string
-  hide_tt_weibo: number
   time: string
 }
 
 describe('basic char info table', () => {
-  it('models all selected fields from the SQL table', () => {
+  it('models the supported fields from the SQL table', () => {
     expectTypeOf<keyof BasicCharInfoTable>().toEqualTypeOf<keyof ExpectedRow>()
     expectTypeOf<BasicCharInfoRow>().toEqualTypeOf<ExpectedRow>()
   })
