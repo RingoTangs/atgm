@@ -25,6 +25,81 @@ afterEach(async () => {
 })
 
 describe('createDatabases', () => {
+  const createTestConnection = (error?: Error) => ({
+    query: vi.fn(
+      (
+        _sql: string,
+        _parameters: readonly unknown[],
+        callback: (error: Error | null, rows?: unknown[]) => void,
+      ) => callback(error ?? null, []),
+    ),
+    release: vi.fn(),
+  })
+
+  const createTestDatabase = (
+    connections: Array<ReturnType<typeof createTestConnection>>,
+  ) => {
+    let index = 0
+    mocks.createPool.mockReturnValueOnce({
+      getConnection: (
+        callback: (
+          error: null,
+          connection: ReturnType<typeof createTestConnection>,
+        ) => void,
+      ) => callback(null, connections[index++ % connections.length]!),
+      end: (callback: (error: null) => void) => callback(null),
+    })
+    const result = createDatabases(
+      parseServerEnv({
+        MYSQL_HOST: '127.0.0.1',
+        MYSQL_USER: 'atgm',
+        MYSQL_PASSWORD: 'password',
+      }),
+    )
+    databases.push(result.db)
+    return result
+  }
+
+  it('initializes each new connection before queries and reuses its session', async () => {
+    const first = createTestConnection()
+    const second = createTestConnection()
+    const { ddbDb } = createTestDatabase([first, second])
+
+    await ddbDb.selectFrom('data').select('name').execute()
+    await ddbDb.selectFrom('data').select('name').execute()
+    await ddbDb.selectFrom('data').select('name').execute()
+
+    for (const connection of [first, second]) {
+      expect(connection.query.mock.calls[0]?.[0]).toBe(
+        'SET SESSION character_set_results = NULL',
+      )
+      expect(connection.query.mock.calls[1]?.[0]).toBe(
+        'select `name` from `dl_ddb_1`.`data`',
+      )
+      expect(
+        connection.query.mock.calls.filter(([query]) =>
+          query.startsWith('SET'),
+        ),
+      ).toHaveLength(1)
+    }
+    expect(first.query).toHaveBeenCalledTimes(3)
+    expect(second.query).toHaveBeenCalledTimes(2)
+  })
+
+  it('rejects a query when session initialization fails', async () => {
+    const error = new Error('session initialization failed')
+    const connection = createTestConnection(error)
+    const { ddbDb } = createTestDatabase([connection])
+
+    await expect(
+      ddbDb.selectFrom('data').select('name').execute(),
+    ).rejects.toBe(error)
+    expect(connection.query).toHaveBeenCalledOnce()
+    expect(connection.query.mock.calls[0]?.[0]).toBe(
+      'SET SESSION character_set_results = NULL',
+    )
+  })
+
   it('creates ADB and DDB entries on one root instance', () => {
     const env = parseServerEnv({
       MYSQL_HOST: '127.0.0.1',

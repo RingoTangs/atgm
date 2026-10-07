@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import type { AdbDatabase, DdbDatabase } from '.'
 import type { ServerEnv } from '../env'
-import { Kysely, MysqlDialect } from 'kysely'
+import { CompiledQuery, Kysely, MysqlDialect } from 'kysely'
 import { createPool } from 'mysql2'
 import { mysqlTypeCast } from './mysql-type-cast'
 
@@ -28,7 +28,15 @@ export function createDatabases(env: ServerEnv) {
   })
 
   const db = new Kysely<AdbDatabase & DdbDatabase>({
-    dialect: new MysqlDialect({ pool }),
+    dialect: new MysqlDialect({
+      pool,
+      onCreateConnection: async (connection) => {
+        // Preserve stored bytes for the GB18030 field whitelist.
+        await connection.executeQuery(
+          CompiledQuery.raw('SET SESSION character_set_results = NULL'),
+        )
+      },
+    }),
   })
 
   const adbDb = db.$pickTables<'account'>().withSchema(env.MYSQL_DL_ADB_ALL)

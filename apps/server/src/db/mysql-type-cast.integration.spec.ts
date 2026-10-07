@@ -32,10 +32,16 @@ it.skipIf(process.env.MYSQL_TYPE_CAST_DB_TEST !== '1')(
         database: env.MYSQL_DL_ADB_ALL,
       })
 
+      const session = await sql<{ resultCharset: string | null }>`
+        SELECT @@SESSION.character_set_results AS resultCharset
+      `.execute(ddbDb)
+      expect(session.rows[0]?.resultCharset).toBeNull()
+
       const query = ddbDb
         .selectFrom('basic_char_info')
         .select(['gid', 'name', 'polar', 'gender'])
         .select(sql<string>`HEX(${sql.ref('name')})`.as('nameHex'))
+        .select(sql<Buffer>`CAST(${sql.ref('name')} AS BINARY)`.as('nameBytes'))
         .where('gid', '=', gid)
       const character = await query.executeTakeFirst()
       if (!character)
@@ -48,6 +54,8 @@ it.skipIf(process.env.MYSQL_TYPE_CAST_DB_TEST !== '1')(
       expect(typeof character.polar).toBe('number')
       expect(typeof character.gender).toBe('number')
       const bytes = Buffer.from(character.nameHex, 'hex')
+      expect(Buffer.isBuffer(character.nameBytes)).toBe(true)
+      expect(character.nameBytes).toEqual(bytes)
       expect(character.name).toBe(decodeGb18030(bytes))
 
       const compiled = query.compile()
