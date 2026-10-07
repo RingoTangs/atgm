@@ -21,6 +21,7 @@
     "dayjs": "catalog:",
     "fastify": "^5.12.5",
     "fastify-type-provider-zod": "^7.0.0",
+    "iconv-lite": "^0.7.3",
     "kysely": "^0.29.6",
     "mysql2": "^3.24.4",
     "zod": "catalog:"
