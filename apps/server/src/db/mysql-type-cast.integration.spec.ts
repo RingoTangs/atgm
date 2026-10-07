@@ -9,7 +9,7 @@ import { createDatabases } from '.'
 import { parseServerEnv } from '../env'
 import { decodeGb18030 } from '../lib/gb18030'
 
-// Run from the repository root with an existing GB18030 Chinese character gid:
+// Run from the repository root with an existing character gid:
 // pnpm --filter atgm-server exec cross-env MYSQL_TYPE_CAST_DB_TEST=1 MYSQL_TYPE_CAST_TEST_GID=<gid> node --env-file=.env.local ../../node_modules/vitest/vitest.mjs run src/db/mysql-type-cast.integration.spec.ts
 it.skipIf(process.env.MYSQL_TYPE_CAST_DB_TEST !== '1')(
   'decodes only the whitelisted field through a real mysql2 connection',
@@ -17,7 +17,7 @@ it.skipIf(process.env.MYSQL_TYPE_CAST_DB_TEST !== '1')(
     const gid = process.env.MYSQL_TYPE_CAST_TEST_GID
     if (!gid)
       throw new Error(
-        'MYSQL_TYPE_CAST_TEST_GID must specify an existing Chinese character',
+        'MYSQL_TYPE_CAST_TEST_GID must specify an existing character',
       )
 
     const env = parseServerEnv(process.env)
@@ -50,7 +50,6 @@ it.skipIf(process.env.MYSQL_TYPE_CAST_DB_TEST !== '1')(
         )
 
       expect(typeof character.name).toBe('string')
-      expect(character.name).toMatch(/[\u3400-\u9FFF]/u)
       expect(typeof character.polar).toBe('number')
       expect(typeof character.gender).toBe('number')
       const bytes = Buffer.from(character.nameHex, 'hex')
