@@ -1,6 +1,12 @@
 import type { AccountDetailResponse } from '@atgm/contracts'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AccountRechargeModal } from './AccountRechargeModal'
@@ -109,7 +115,81 @@ describe('account recharge modal', () => {
     )
     expect(screen.getByLabelText('金元宝充值数量')).toHaveAttribute(
       'aria-valuemax',
-      '2000000000',
+      '1999000000',
+    )
+  })
+
+  it.each([
+    ['金元宝充值数量', '银元宝充值数量', '1999000000'],
+    ['银元宝充值数量', '金元宝充值数量', '1999950000'],
+  ])(
+    'fills shortcuts for %s without changing the other amount',
+    async (label, other, maximum) => {
+      renderModal()
+      const user = userEvent.setup()
+      const input = screen.getByLabelText(label)
+      const row = screen.getByText(label).parentElement
+      if (!row) throw new Error('Field label row not found')
+      await user.click(within(row).getByRole('button', { name: '最大' }))
+      expect(input).toHaveValue(maximum)
+      expect(input).toHaveAttribute('aria-valuemax', maximum)
+      expect(screen.getByLabelText(other)).toHaveValue('0')
+      await user.click(within(row).getByRole('button', { name: '最小' }))
+      expect(input).toHaveValue('0')
+      expect(updateCalls()).toHaveLength(0)
+    },
+  )
+
+  it('uses the full limit for zero balances', () => {
+    renderModal({ ...account, goldCoin: 0, silverCoin: 0 })
+    for (const label of ['金元宝充值数量', '银元宝充值数量']) {
+      expect(screen.getByLabelText(label)).toHaveAttribute(
+        'aria-valuemax',
+        '2000000000',
+      )
+    }
+  })
+
+  it('keeps zero-amount validation when both balances reach the limit', async () => {
+    renderModal({
+      ...account,
+      goldCoin: 2_000_000_000,
+      silverCoin: 2_000_000_000,
+    })
+    const user = userEvent.setup()
+    for (const button of screen.getAllByRole('button', { name: '最大' })) {
+      await user.click(button)
+    }
+    expect(screen.getByLabelText('金元宝充值数量')).toHaveValue('0')
+    expect(screen.getByLabelText('银元宝充值数量')).toHaveValue('0')
+    await user.click(screen.getByRole('button', { name: '充值' }))
+    expect(
+      await screen.findByText('金元宝和银元宝充值数量不能同时为 0'),
+    ).toBeInTheDocument()
+    expect(updateCalls()).toHaveLength(0)
+  })
+
+  it('allows silver recharge when gold is already at its limit', async () => {
+    renderModal({
+      ...account,
+      goldCoin: 2_000_000_000,
+      silverCoin: 1_999_999_990,
+    })
+    const user = userEvent.setup()
+    expect(screen.getByLabelText('金元宝充值数量')).toHaveAttribute(
+      'aria-valuemax',
+      '0',
+    )
+    await user.click(screen.getAllByRole('button', { name: '最大' })[1]!)
+    await user.click(screen.getByRole('button', { name: '充值' }))
+    expect(await screen.findByText('充值成功')).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/_api/accounts/server-account/recharge',
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ goldCoinAmount: 0, silverCoinAmount: 10 }),
+      },
     )
   })
 
@@ -123,27 +203,26 @@ describe('account recharge modal', () => {
     expect(updateCalls()).toHaveLength(0)
   })
 
-  it.each(['金元宝充值数量', '银元宝充值数量'])(
-    'rejects fractional %s',
-    async (label) => {
-      renderModal()
-      const user = userEvent.setup()
-      await user.clear(screen.getByLabelText(label))
-      await user.type(screen.getByLabelText(label), '1.5')
-      await user.click(screen.getByRole('button', { name: '充值' }))
-      expect(
-        await screen.findByText(`${label}必须是 0～2,000,000,000 的整数`),
-      ).toBeInTheDocument()
-      expect(updateCalls()).toHaveLength(0)
-    },
-  )
+  it.each([
+    ['金元宝充值数量', '1,999,000,000'],
+    ['银元宝充值数量', '1,999,950,000'],
+  ])('rejects fractional %s', async (label, maximum) => {
+    renderModal()
+    const user = userEvent.setup()
+    await user.clear(screen.getByLabelText(label))
+    await user.type(screen.getByLabelText(label), '1.5')
+    await user.click(screen.getByRole('button', { name: '充值' }))
+    expect(
+      await screen.findByText(`${label}必须是 0～${maximum} 的整数`),
+    ).toBeInTheDocument()
+    expect(updateCalls()).toHaveLength(0)
+  })
 
-  it('patches an amount without checking the resulting balance, refreshes queries and closes', async () => {
+  it('patches the maximum available amount, refreshes queries and closes', async () => {
     const invalidateQueries = vi.spyOn(queryClient, 'invalidateQueries')
     const { onCancel } = renderModal()
     const user = userEvent.setup()
-    await user.clear(screen.getByLabelText('金元宝充值数量'))
-    await user.type(screen.getByLabelText('金元宝充值数量'), '2000000000')
+    await user.click(screen.getAllByRole('button', { name: '最大' })[0]!)
     await user.click(screen.getByRole('button', { name: '充值' }))
     expect(await screen.findByText('充值成功')).toBeInTheDocument()
     expect(fetchMock).toHaveBeenCalledWith(
@@ -152,7 +231,7 @@ describe('account recharge modal', () => {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          goldCoinAmount: 2_000_000_000,
+          goldCoinAmount: 1_999_000_000,
           silverCoinAmount: 0,
         }),
       },

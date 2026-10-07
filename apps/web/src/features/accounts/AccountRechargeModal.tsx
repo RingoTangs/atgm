@@ -5,7 +5,7 @@ import type {
 import type { FormProps } from 'antd'
 import { ACCOUNT_COIN_MAX, ACCOUNT_COIN_MIN, errorCodes } from '@atgm/contracts'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Form, InputNumber, message, Modal } from 'antd'
+import { Button, Form, InputNumber, message, Modal } from 'antd'
 import { useEffect } from 'react'
 import { ApiError } from '@/lib/apiError'
 import { rechargeAccount } from './accounts-api'
@@ -43,6 +43,8 @@ export const AccountRechargeModal: React.FC<AccountRechargeModalProps> = ({
   const [form] = Form.useForm<RechargeAccountRequest>()
   const [messageApi, messageContext] = message.useMessage()
   const queryClient = useQueryClient()
+  const maxGoldCoinAmount = ACCOUNT_COIN_MAX - account.goldCoin
+  const maxSilverCoinAmount = ACCOUNT_COIN_MAX - account.silverCoin
   const updateMutation = useMutation({
     mutationFn: (values: RechargeAccountRequest) =>
       rechargeAccount(account.account, values),
@@ -141,34 +143,83 @@ export const AccountRechargeModal: React.FC<AccountRechargeModalProps> = ({
           layout="vertical"
           onFinish={handleFinish}
         >
+          <div className="mb-2 flex items-center justify-between">
+            <label htmlFor="goldCoinAmount">金元宝充值数量</label>
+            <div className="flex gap-1">
+              <Button
+                size="small"
+                type="text"
+                className="text-muted-foreground"
+                onClick={() =>
+                  form.setFieldValue('goldCoinAmount', ACCOUNT_COIN_MIN)
+                }
+              >
+                最小
+              </Button>
+              <Button
+                size="small"
+                type="text"
+                className="text-muted-foreground"
+                onClick={() =>
+                  form.setFieldValue('goldCoinAmount', maxGoldCoinAmount)
+                }
+              >
+                最大
+              </Button>
+            </div>
+          </div>
           <Form.Item
-            label="金元宝充值数量"
             name="goldCoinAmount"
             rules={[
               integerRangeValidator(
                 '金元宝充值数量',
                 ACCOUNT_COIN_MIN,
-                ACCOUNT_COIN_MAX,
+                maxGoldCoinAmount,
               ),
             ]}
           >
             <InputNumber
               className="w-full"
+              id="goldCoinAmount"
               min={ACCOUNT_COIN_MIN}
-              max={ACCOUNT_COIN_MAX}
+              max={maxGoldCoinAmount}
               step={1}
             />
           </Form.Item>
 
+          <div className="mb-2 flex items-center justify-between">
+            <label htmlFor="silverCoinAmount">银元宝充值数量</label>
+            <div className="flex gap-1">
+              <Button
+                size="small"
+                type="text"
+                className="text-muted-foreground"
+                onClick={() =>
+                  form.setFieldValue('silverCoinAmount', ACCOUNT_COIN_MIN)
+                }
+              >
+                最小
+              </Button>
+              <Button
+                size="small"
+                type="text"
+                className="text-muted-foreground"
+                onClick={() =>
+                  form.setFieldValue('silverCoinAmount', maxSilverCoinAmount)
+                }
+              >
+                最大
+              </Button>
+            </div>
+          </div>
           <Form.Item
-            label="银元宝充值数量"
             name="silverCoinAmount"
             dependencies={['goldCoinAmount']}
             rules={[
               integerRangeValidator(
                 '银元宝充值数量',
                 ACCOUNT_COIN_MIN,
-                ACCOUNT_COIN_MAX,
+                maxSilverCoinAmount,
               ),
               ({ getFieldValue }) => ({
                 validator: (_rule, value: number | null | undefined) =>
@@ -182,8 +233,9 @@ export const AccountRechargeModal: React.FC<AccountRechargeModalProps> = ({
           >
             <InputNumber
               className="w-full"
+              id="silverCoinAmount"
               min={ACCOUNT_COIN_MIN}
-              max={ACCOUNT_COIN_MAX}
+              max={maxSilverCoinAmount}
               step={1}
             />
           </Form.Item>
