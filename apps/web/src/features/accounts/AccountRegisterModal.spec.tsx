@@ -203,7 +203,32 @@ describe('account register modal', () => {
       await user.click(
         within(labelRow as HTMLElement).getByRole('button', { name: '最大' }),
       )
-      expect(input).toHaveValue('2000000000')
+      expect(input).toHaveValue('2,000,000,000')
+    },
+  )
+
+  it.each(['金元宝', '银元宝'])(
+    'formats %s with thousands separators and preserves empty input',
+    async (label) => {
+      renderModal()
+      const user = userEvent.setup()
+      const input = screen.getByLabelText(label)
+      for (const [value, display] of [
+        ['1000', '1,000'],
+        ['100000000', '100,000,000'],
+        ['100,000,000', '100,000,000'],
+      ]) {
+        await user.clear(input)
+        expect(input).toHaveValue('')
+        await user.type(input, value)
+        await user.tab()
+        expect(input).toHaveValue(display)
+      }
+      await user.clear(input)
+      await user.tab()
+      expect(input).toHaveValue('')
+      await user.type(input, '1000')
+      expect(input).toHaveValue('1,000')
     },
   )
 
@@ -213,9 +238,9 @@ describe('account register modal', () => {
     const user = await fillRequiredFields()
 
     await user.clear(screen.getByLabelText('金元宝'))
-    await user.type(screen.getByLabelText('金元宝'), '2000000000')
+    await user.type(screen.getByLabelText('金元宝'), '2,000,000,000')
     await user.clear(screen.getByLabelText('银元宝'))
-    await user.type(screen.getByLabelText('银元宝'), '15')
+    await user.type(screen.getByLabelText('银元宝'), '100,000,000')
     await selectPrivilege(user, '1000 - GD - DEBUGGER(调试器权限)')
     await user.click(screen.getByRole('button', { name: '注册' }))
 
@@ -227,7 +252,7 @@ describe('account register modal', () => {
         account: 'new-account',
         rawPassword: 'test-password',
         goldCoin: 2_000_000_000,
-        silverCoin: 15,
+        silverCoin: 100_000_000,
         privilege: 1000,
       }),
     })

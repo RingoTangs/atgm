@@ -1,5 +1,5 @@
 import type { RegisterAccountRequest } from '@atgm/contracts'
-import type { FormProps } from 'antd'
+import type { FormProps, InputNumberProps } from 'antd'
 import {
   ACCOUNT_COIN_MAX,
   ACCOUNT_COIN_MIN,
@@ -20,6 +20,14 @@ interface AccountRegisterModalProps {
 const initialValues: Pick<RegisterAccountRequest, 'goldCoin' | 'silverCoin'> = {
   goldCoin: ACCOUNT_COIN_MIN,
   silverCoin: ACCOUNT_COIN_MIN,
+}
+
+const coinFormatter: InputNumberProps['formatter'] = (value) =>
+  String(value ?? '').replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+
+const coinParser: InputNumberProps['parser'] = (value) => {
+  const normalized = (value ?? '').replace(/[^\w.-]+/g, '')
+  return normalized === '' ? '' : Number(normalized)
 }
 
 const integerRangeValidator = (label: string, min: number, max: number) => ({
@@ -178,6 +186,8 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
               id="goldCoin"
               max={ACCOUNT_COIN_MAX}
               min={ACCOUNT_COIN_MIN}
+              formatter={coinFormatter}
+              parser={coinParser}
               precision={0}
               step={1}
             />
@@ -223,6 +233,8 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
               id="silverCoin"
               max={ACCOUNT_COIN_MAX}
               min={ACCOUNT_COIN_MIN}
+              formatter={coinFormatter}
+              parser={coinParser}
               precision={0}
               step={1}
             />
