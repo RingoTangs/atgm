@@ -6,6 +6,7 @@ import { Link } from '@tanstack/react-router'
 import { Alert, Badge, Button, Descriptions, Skeleton, Tooltip } from 'antd'
 import { useState } from 'react'
 import { ApiError } from '@/lib/apiError'
+import { formatAccountPrivilegeLabel } from './accountPrivilege'
 import { AccountPrivilegeModal } from './AccountPrivilegeModal'
 import { AccountRechargeModal } from './AccountRechargeModal'
 import { accountDetailQueryOptions } from './accounts-queries'
@@ -38,13 +39,7 @@ const renderPrivilege = (value: number, privilege?: Privilege) => {
     )
   }
 
-  return (
-    <div>
-      {privilege.grant && privilege.constant
-        ? `${privilege.privilege} - ${privilege.grant} - ${privilege.constant}(${privilege.description})`
-        : `${privilege.privilege} - ${privilege.description}`}
-    </div>
-  )
+  return <div>{formatAccountPrivilegeLabel(privilege)}</div>
 }
 
 export const AccountDetailPage: React.FC<AccountDetailPageProps> = ({

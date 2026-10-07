@@ -214,7 +214,9 @@ describe('accounts page', () => {
 
     const row = (await screen.findByText('server-account')).closest('tr')
     if (!row) throw new Error('server account row not found')
-    const privilege = await within(row).findByText('120 - GA')
+    const privilege = await within(row).findByText(
+      '120 - GA - ADMINISTRATOR(管理员)',
+    )
     expect(privilege).toBeInTheDocument()
 
     await user.hover(privilege)

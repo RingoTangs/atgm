@@ -10,6 +10,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button, Form, Input, InputNumber, message, Modal, Select } from 'antd'
 import { ApiError } from '@/lib/apiError'
 import { coinFormatter, coinParser } from '@/lib/coinInput'
+import { formatAccountPrivilegeLabel } from './accountPrivilege'
 import { registerAccount } from './accounts-api'
 import { accountQueryKeys } from './accounts-queries'
 
@@ -244,10 +245,7 @@ export const AccountRegisterModal: React.FC<AccountRegisterModalProps> = ({
           >
             <Select
               options={ACCOUNT_PRIVILEGES.map((privilege) => ({
-                label:
-                  privilege.grant && privilege.constant
-                    ? `${privilege.privilege} - ${privilege.grant} - ${privilege.constant}(${privilege.description})`
-                    : `${privilege.privilege} - ${privilege.description}`,
+                label: formatAccountPrivilegeLabel(privilege),
                 value: privilege.privilege,
               }))}
               placeholder="请选择权限"

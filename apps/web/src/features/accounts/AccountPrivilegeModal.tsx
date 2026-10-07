@@ -8,6 +8,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Form, message, Modal, Select } from 'antd'
 import { useEffect, useMemo } from 'react'
 import { ApiError } from '@/lib/apiError'
+import { formatAccountPrivilegeLabel } from './accountPrivilege'
 import { updateAccountPrivilege } from './accounts-api'
 import { accountQueryKeys } from './accounts-queries'
 
@@ -27,16 +28,16 @@ export const AccountPrivilegeModal: React.FC<AccountPrivilegeModalProps> = ({
   const queryClient = useQueryClient()
   const privilegeOptions = useMemo(() => {
     const options = ACCOUNT_PRIVILEGES.map((privilege) => ({
-      label:
-        privilege.grant && privilege.constant
-          ? `${privilege.privilege} - ${privilege.grant} - ${privilege.constant}(${privilege.description})`
-          : `${privilege.privilege} - ${privilege.description}`,
+      label: formatAccountPrivilegeLabel(privilege),
       value: privilege.privilege,
     }))
 
     if (!options.some((option) => option.value === account.privilege)) {
       options.unshift({
-        label: `${account.privilege} - 未知权限`,
+        label: formatAccountPrivilegeLabel({
+          privilege: account.privilege,
+          description: '未知权限',
+        }),
         value: account.privilege,
       })
     }
