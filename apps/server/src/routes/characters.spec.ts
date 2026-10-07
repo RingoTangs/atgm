@@ -59,7 +59,7 @@ afterEach(async () => {
   await ddb.destroy()
 })
 
-describe('gET /characters', () => {
+describe('get /characters', () => {
   it('returns default pagination, numeric total and decoded Chinese names', async () => {
     const response = await app.inject('/characters')
     expect(response.statusCode).toBe(200)
