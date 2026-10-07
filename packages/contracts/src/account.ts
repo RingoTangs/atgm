@@ -68,34 +68,6 @@ export type AccountNotFoundResponse = z.infer<
   typeof accountNotFoundResponseSchema
 >
 
-export const updateAccountBodySchema = z
-  .object({
-    privilege: z.number().int().min(0).max(1000),
-    goldCoin: z.number().int().min(ACCOUNT_COIN_MIN).max(ACCOUNT_COIN_MAX),
-    silverCoin: z.number().int().min(ACCOUNT_COIN_MIN).max(ACCOUNT_COIN_MAX),
-  })
-  .strict()
-
-export type UpdateAccountRequest = z.infer<typeof updateAccountBodySchema>
-
-export const updateAccountResponseSchema = z.object({
-  account: z.string(),
-})
-
-export type UpdateAccountResponse = z.infer<typeof updateAccountResponseSchema>
-
-export const accountUpdateConflictResponseSchema = errorResponseSchema.extend({
-  code: z.enum([
-    errorCodes.ACCOUNT_CHECKSUM_INVALID,
-    errorCodes.ACCOUNT_CONCURRENT_MODIFICATION,
-    errorCodes.ACCOUNT_ONLINE,
-  ]),
-})
-
-export type AccountUpdateConflictResponse = z.infer<
-  typeof accountUpdateConflictResponseSchema
->
-
 export const updateAccountPrivilegeBodySchema = z
   .object({
     privilege: z.number().int().min(0).max(1000),

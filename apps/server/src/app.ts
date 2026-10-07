@@ -12,7 +12,6 @@ import { handleServerError, registerErrorHandlers } from './lib/errorHandlers'
 import { accountPrivilegeRoutes } from './routes/account-privilege'
 import { accountRechargeRoutes } from './routes/account-recharge'
 import { accountRegisterRoutes } from './routes/account-register'
-import { accountUpdateRoutes } from './routes/account-update'
 import { accountRoutes } from './routes/accounts'
 import { privilegeRoutes } from './routes/privileges'
 import { statusRoutes } from './routes/status'
@@ -43,7 +42,6 @@ export function buildApp() {
   app.register(accountRoutes)
   app.register(accountRegisterRoutes)
   app.register(accountRechargeRoutes)
-  app.register(accountUpdateRoutes)
   app.register(accountPrivilegeRoutes)
   app.register(privilegeRoutes)
 
