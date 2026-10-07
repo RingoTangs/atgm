@@ -1,0 +1,91 @@
+import type { RowDataPacket } from 'mysql2'
+import type { Connection } from 'mysql2/promise'
+import { Buffer } from 'node:buffer'
+import process from 'node:process'
+import { sql } from 'kysely'
+import { createConnection } from 'mysql2/promise'
+import { expect, it } from 'vitest'
+import { createDatabases } from '.'
+import { parseServerEnv } from '../env'
+import { readCharacterNameBytes } from '../lib/character-name-bytes'
+import { decodeGb18030 } from '../lib/gb18030'
+
+// Run from the repository root with an existing GB18030 Chinese character gid:
+// pnpm --filter atgm-server exec cross-env MYSQL_TYPE_CAST_DB_TEST=1 MYSQL_TYPE_CAST_TEST_GID=<gid> node --env-file=.env.local ../../node_modules/vitest/vitest.mjs run src/db/mysql-type-cast.integration.spec.ts
+it.skipIf(process.env.MYSQL_TYPE_CAST_DB_TEST !== '1')(
+  'decodes only the whitelisted field through a real mysql2 connection',
+  async () => {
+    const gid = process.env.MYSQL_TYPE_CAST_TEST_GID
+    if (!gid)
+      throw new Error(
+        'MYSQL_TYPE_CAST_TEST_GID must specify an existing Chinese character',
+      )
+
+    const env = parseServerEnv(process.env)
+    const { db, ddbDb } = createDatabases(env)
+    let baseline: Connection | undefined
+    try {
+      baseline = await createConnection({
+        host: env.MYSQL_HOST,
+        port: env.MYSQL_PORT,
+        user: env.MYSQL_USER,
+        password: env.MYSQL_PASSWORD,
+        database: env.MYSQL_DL_ADB_ALL,
+      })
+
+      const query = ddbDb
+        .selectFrom('basic_char_info')
+        .select(['gid', 'name', 'polar', 'gender'])
+        .select(sql<string>`HEX(${sql.ref('name')})`.as('nameHex'))
+        .where('gid', '=', gid)
+      const character = await query.executeTakeFirst()
+      if (!character)
+        throw new Error(
+          'The specified basic_char_info character does not exist',
+        )
+
+      expect(typeof character.name).toBe('string')
+      expect(character.name).toMatch(/[\u3400-\u9FFF]/u)
+      expect(typeof character.polar).toBe('number')
+      expect(typeof character.gender).toBe('number')
+      const bytes = Buffer.from(character.nameHex, 'hex')
+      expect(character.name).toBe(decodeGb18030(bytes))
+      expect(await readCharacterNameBytes(ddbDb, gid)).toEqual(bytes)
+
+      const compiled = query.compile()
+      const [defaultCharacters] = await baseline.query<RowDataPacket[]>(
+        compiled.sql,
+        [...compiled.parameters],
+      )
+      expect(defaultCharacters[0]).toMatchObject({
+        gid: character.gid,
+        polar: character.polar,
+        gender: character.gender,
+        nameHex: character.nameHex,
+      })
+
+      const dataQuery = ddbDb
+        .selectFrom('data')
+        .select(['path', 'name', 'branch'])
+        .orderBy('path')
+        .orderBy('name')
+        .orderBy('branch')
+        .limit(1)
+      const data = await dataQuery.executeTakeFirst()
+      if (!data)
+        throw new Error(
+          'data must contain an existing record for the default decoding comparison',
+        )
+      const dataCompiled = dataQuery.compile()
+      const [defaultData] = await baseline.query<RowDataPacket[]>(
+        dataCompiled.sql,
+        [...dataCompiled.parameters],
+      )
+      expect(typeof data.name).toBe('string')
+      expect(data).toEqual(defaultData[0])
+    } finally {
+      await Promise.all([db.destroy(), baseline?.end()])
+    }
+  },
+  15_000,
+)

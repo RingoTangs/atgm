@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createDatabases, registerDatabase } from '.'
 import { buildApp } from '../app'
 import { parseServerEnv } from '../env'
+import { mysqlTypeCast } from './mysql-type-cast'
 
 const mocks = vi.hoisted(() => ({
   createPool: vi.fn(),
@@ -51,6 +52,7 @@ describe('createDatabases', () => {
       user: 'atgm',
       password: 'password',
       database: 'dl_adb_all',
+      typeCast: mysqlTypeCast,
       waitForConnections: true,
       connectionLimit: 10,
       maxIdle: 2,

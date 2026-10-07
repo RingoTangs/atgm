@@ -3,6 +3,7 @@ import type { AdbDatabase, DdbDatabase } from '.'
 import type { ServerEnv } from '../env'
 import { Kysely, MysqlDialect } from 'kysely'
 import { createPool } from 'mysql2'
+import { mysqlTypeCast } from './mysql-type-cast'
 
 export function createDatabases(env: ServerEnv) {
   const pool = createPool({
@@ -11,6 +12,7 @@ export function createDatabases(env: ServerEnv) {
     user: env.MYSQL_USER,
     password: env.MYSQL_PASSWORD,
     database: env.MYSQL_DL_ADB_ALL,
+    typeCast: mysqlTypeCast,
     // 连接达到上限时等待可用连接
     waitForConnections: true,
     // 连接池最多创建 10 个连接
