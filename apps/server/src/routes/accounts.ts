@@ -10,6 +10,7 @@ import {
   errorResponseSchema,
 } from '@atgm/contracts'
 import { sql } from 'kysely'
+import { getOnlineAccounts, isAccountOnline } from '../lib/account-status'
 import { formatDisplayTime } from '../lib/game-time'
 
 const escapeLikePattern = (value: string): string =>
@@ -76,20 +77,10 @@ export async function accountRoutes(app: FastifyInstance) {
         throw new Error('Invalid account count returned by database')
       }
 
-      const onlineRows =
-        items.length === 0
-          ? []
-          : await app.db.ddb
-              .selectFrom('data')
-              .select('name')
-              .where('path', '=', 'runtime')
-              .where(
-                'name',
-                'in',
-                items.map((item) => item.account),
-              )
-              .execute()
-      const onlineAccounts = new Set(onlineRows.map((item) => item.name))
+      const onlineAccounts = await getOnlineAccounts(
+        app.db.ddb,
+        items.map((item) => item.account),
+      )
 
       return {
         page,
@@ -154,16 +145,11 @@ export async function accountRoutes(app: FastifyInstance) {
           .send({ code: errorCodes.ACCOUNT_NOT_FOUND, message: '账号不存在' })
       }
 
-      const onlineRow = await app.db.ddb
-        .selectFrom('data')
-        .select('name')
-        .where('path', '=', 'runtime')
-        .where('name', '=', item.account)
-        .executeTakeFirst()
+      const online = await isAccountOnline(app.db.ddb, item.account)
 
       return {
         account: item.account,
-        online: Boolean(onlineRow),
+        online,
         privilege: item.privilege,
         goldCoin: item.gold_coin,
         silverCoin: item.silver_coin,

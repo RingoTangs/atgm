@@ -517,3 +517,23 @@ describe('get /accounts/:account endpoint', () => {
     expect(mocks.onlineExecuteTakeFirst).not.toHaveBeenCalled()
   })
 })
+
+describe('account status database failures', () => {
+  it.each([
+    { url: '/accounts', operation: 'onlineExecute' },
+    { url: '/accounts/example_user', operation: 'onlineExecuteTakeFirst' },
+  ] as const)(
+    'returns the shared 500 error for $url',
+    async ({ url, operation }) => {
+      mocks[operation].mockRejectedValueOnce(new Error('database unavailable'))
+
+      const response = await app.inject({ method: 'GET', url })
+
+      expect(response.statusCode).toBe(500)
+      expect(response.json()).toEqual({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Internal Server Error',
+      })
+    },
+  )
+})

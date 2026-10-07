@@ -11,6 +11,7 @@ import {
   rechargeAccountResponseSchema,
 } from '@atgm/contracts'
 import { createAccountChecksum } from '../lib/account-crypto'
+import { isAccountOnline } from '../lib/account-status'
 
 const checksumFields = [
   'account',
@@ -81,14 +82,9 @@ export async function accountRechargeRoutes(app: FastifyInstance) {
         })
       }
 
-      const onlineRow = await app.db.ddb
-        .selectFrom('data')
-        .select('name')
-        .where('path', '=', 'runtime')
-        .where('name', '=', item.account)
-        .executeTakeFirst()
+      const online = await isAccountOnline(app.db.ddb, item.account)
 
-      if (onlineRow) {
+      if (online) {
         return reply.code(409).send({
           code: errorCodes.ACCOUNT_ONLINE,
           message: '账号当前在线，无法修改',
