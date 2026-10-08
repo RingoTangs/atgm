@@ -436,7 +436,10 @@ describe('invalid input', () => {
 it('exports only the public API and the required types', () => {
   expect(Object.keys(publicApi).sort()).toEqual([
     'LpcParseError',
+    'formatLpc',
+    'formatLpcValue',
     'parseLpcValue',
+    'serializeLpcValue',
   ])
   expectTypeOf<LpcMappingKey>().toEqualTypeOf<string | number>()
   expectTypeOf<LpcMapping>().toEqualTypeOf<Map<LpcMappingKey, LpcValue>>()
