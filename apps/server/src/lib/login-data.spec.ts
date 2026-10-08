@@ -1,4 +1,4 @@
-import { LpcParseError } from '@atgm/lpc-serialization'
+import { LpcParseError } from '@atgm/lpc'
 import { describe, expect, it } from 'vitest'
 import { LoginDataError, parseLoginData } from './login-data'
 

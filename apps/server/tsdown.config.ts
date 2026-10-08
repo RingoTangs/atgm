@@ -13,7 +13,7 @@ export default defineConfig({
   },
   clean: true,
   deps: {
-    alwaysBundle: ['@atgm/contracts', '@atgm/lpc-serialization', /^dayjs/],
+    alwaysBundle: ['@atgm/contracts', '@atgm/lpc', /^dayjs/],
   },
   dts: false,
   format: 'esm',

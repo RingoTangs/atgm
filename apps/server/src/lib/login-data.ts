@@ -1,5 +1,5 @@
-import type { LpcMapping, LpcValue } from '@atgm/lpc-serialization'
-import { parseLpcValue } from '@atgm/lpc-serialization'
+import type { LpcMapping, LpcValue } from '@atgm/lpc'
+import { parseLpcValue } from '@atgm/lpc'
 
 export interface LoginData {
   createTime: number
