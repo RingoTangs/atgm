@@ -178,7 +178,7 @@ describe('responsive node details', () => {
       const details =
         width < 1600
           ? await screen.findByRole('dialog', { name: '节点详情' })
-          : screen.getByText('节点详情').closest<HTMLElement>('.ant-card')!
+          : screen.getByRole('region', { name: '节点详情' })
       expect(within(details).getByText('Number')).toBeInTheDocument()
       expect(within(details).getByText('$.level')).toBeInTheDocument()
       await user.click(within(details).getByRole('button', { name: '复制值' }))
@@ -291,6 +291,38 @@ describe('responsive node details', () => {
       expect(await screen.findByRole('dialog')).toHaveTextContent(
         '$.carry[103].embedded[255]',
       )
+    },
+  )
+})
+
+describe('analysis title alignment', () => {
+  it.each([767, 768, 1600])(
+    'places analysis titles outside cards at width %s',
+    (width) => {
+      installMatchMedia(width)
+      render(<LpcAnalysisView root={buildLpcAnalysisTree([1])} />)
+      for (const name of width >= 1600 ? ['解析树', '节点详情'] : ['解析树']) {
+        const heading = screen.getByRole('heading', { name })
+        expect(heading).toHaveClass(
+          'flex',
+          'h-8',
+          'shrink-0',
+          'items-center',
+          'text-base',
+          'font-normal',
+          'leading-6',
+        )
+        expect(heading.parentElement).toHaveClass(
+          'min-h-0',
+          'flex-col',
+          'gap-2',
+        )
+        expect(heading.closest('.ant-card')).toBeNull()
+        expect(
+          screen.getByRole('region', { name }).querySelector('.ant-card-head'),
+        ).not.toBeInTheDocument()
+      }
+      expect(screen.getByRole('tree')).toBeInTheDocument()
     },
   )
 })

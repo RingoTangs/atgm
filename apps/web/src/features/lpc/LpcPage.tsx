@@ -112,7 +112,14 @@ export const LpcPage: React.FC = () => {
           aria-label="输入"
           className="flex h-[60vh] min-h-0 min-w-0 flex-col gap-2"
         >
-          <label htmlFor="lpc-input">原始 LPC</label>
+          <div className="flex h-8 shrink-0 items-center">
+            <label
+              htmlFor="lpc-input"
+              className="text-base leading-6 font-normal"
+            >
+              原始 LPC
+            </label>
+          </div>
           <Input.TextArea
             id="lpc-input"
             className="min-h-0 flex-1"
@@ -134,8 +141,11 @@ export const LpcPage: React.FC = () => {
         >
           {mode === 'format' ? (
             <>
-              <div className="flex items-center justify-between gap-2">
-                <label htmlFor={!error && output ? 'lpc-output' : undefined}>
+              <div className="flex h-8 shrink-0 items-center justify-between gap-2">
+                <label
+                  className="text-base leading-6 font-normal"
+                  htmlFor={!error && output ? 'lpc-output' : undefined}
+                >
                   格式化结果
                 </label>
                 <Button disabled={!output} onClick={() => void copy()}>
@@ -172,28 +182,31 @@ export const LpcPage: React.FC = () => {
               {!error && analysis ? (
                 <LpcAnalysisView root={analysis} />
               ) : (
-                <Card
-                  title="解析树"
-                  className="flex h-full min-h-0 min-w-0 flex-col"
-                  styles={{
-                    header: { flexShrink: 0 },
-                    body: {
-                      display: 'flex',
-                      flex: 1,
-                      minHeight: 0,
-                      overflow: 'auto',
-                    },
-                  }}
-                >
-                  {error ? (
-                    errorResult
-                  ) : (
-                    <Empty
-                      style={{ margin: 'auto' }}
-                      description="输入 LPC 内容后，点击「执行」查看解析树"
-                    />
-                  )}
-                </Card>
+                <div className="flex h-full min-h-0 min-w-0 flex-col gap-2">
+                  <h2 className="flex h-8 shrink-0 items-center text-base leading-6 font-normal">
+                    解析树
+                  </h2>
+                  <Card
+                    className="flex min-h-0 min-w-0 flex-1 flex-col"
+                    styles={{
+                      body: {
+                        display: 'flex',
+                        flex: 1,
+                        minHeight: 0,
+                        overflow: 'auto',
+                      },
+                    }}
+                  >
+                    {error ? (
+                      errorResult
+                    ) : (
+                      <Empty
+                        style={{ margin: 'auto' }}
+                        description="输入 LPC 内容后，点击「执行」查看解析树"
+                      />
+                    )}
+                  </Card>
+                </div>
               )}
             </div>
           )}

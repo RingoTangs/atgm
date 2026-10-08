@@ -182,41 +182,55 @@ export const LpcAnalysisView: React.FC<LpcAnalysisViewProps> = ({ root }) => {
       }}
     >
       {messageContext}
-      <Card
-        title="解析树"
-        className="flex min-h-0 min-w-0 flex-col"
-        styles={{ body: { minHeight: 0, flex: 1, overflow: 'auto' } }}
+      <section
+        aria-label="解析树"
+        className="flex min-h-0 min-w-0 flex-col gap-2"
       >
-        <Tree
-          treeData={data}
-          virtual={false}
-          expandedKeys={state.expanded}
-          selectedKeys={[selected.id]}
-          onExpand={(keys) =>
-            setState((previous) => ({
-              ...previous,
-              expanded: keys.map(String),
-            }))
-          }
-          onSelect={(_, info) => {
-            const node = nodes.get(String(info.node.key))
-            if (node)
-              setState((previous) => ({
-                ...previous,
-                selected: node,
-                drawerOpen: !inlineDetails,
-              }))
-          }}
-        />
-      </Card>
-      {inlineDetails ? (
+        <h2 className="flex h-8 shrink-0 items-center text-base leading-6 font-normal">
+          解析树
+        </h2>
         <Card
-          title="节点详情"
-          className="flex min-h-0 min-w-0 flex-col"
+          className="flex min-h-0 min-w-0 flex-1 flex-col"
           styles={{ body: { minHeight: 0, flex: 1, overflow: 'auto' } }}
         >
-          {details}
+          <Tree
+            treeData={data}
+            virtual={false}
+            expandedKeys={state.expanded}
+            selectedKeys={[selected.id]}
+            onExpand={(keys) =>
+              setState((previous) => ({
+                ...previous,
+                expanded: keys.map(String),
+              }))
+            }
+            onSelect={(_, info) => {
+              const node = nodes.get(String(info.node.key))
+              if (node)
+                setState((previous) => ({
+                  ...previous,
+                  selected: node,
+                  drawerOpen: !inlineDetails,
+                }))
+            }}
+          />
         </Card>
+      </section>
+      {inlineDetails ? (
+        <section
+          aria-label="节点详情"
+          className="flex min-h-0 min-w-0 flex-col gap-2"
+        >
+          <h2 className="flex h-8 shrink-0 items-center text-base leading-6 font-normal">
+            节点详情
+          </h2>
+          <Card
+            className="flex min-h-0 min-w-0 flex-1 flex-col"
+            styles={{ body: { minHeight: 0, flex: 1, overflow: 'auto' } }}
+          >
+            {details}
+          </Card>
+        </section>
       ) : (
         <Drawer
           title="节点详情"

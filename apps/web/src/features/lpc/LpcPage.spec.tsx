@@ -350,7 +350,10 @@ describe('lpc result states', () => {
     const description = screen.getByText(
       '输入 LPC 内容后，点击「执行」查看解析树',
     )
-    expect(description.closest('.ant-card')).toHaveTextContent('解析树')
+    expect(screen.getByRole('heading', { name: '解析树' })).toBeInTheDocument()
+    expect(
+      description.closest('.ant-card')?.querySelector('.ant-card-head'),
+    ).not.toBeInTheDocument()
     expect(description.closest('.ant-empty')).toHaveStyle({ margin: 'auto' })
     expect(description.closest('.ant-card-body')).toHaveStyle({
       display: 'flex',
@@ -478,6 +481,69 @@ describe('lpc result states', () => {
       if (mode === '格式化')
         expect(screen.getByLabelText('格式化结果')).toHaveValue(formatted)
       else expect(screen.getByRole('tree')).toBeInTheDocument()
+    },
+  )
+})
+
+describe('workspace title alignment', () => {
+  it.each([
+    [767, '格式化'],
+    [768, '格式化'],
+    [1600, '格式化'],
+    [767, '深度解析'],
+    [768, '深度解析'],
+    [1600, '深度解析'],
+  ] as const)(
+    'keeps aligned external titles in every state at %s in %s',
+    async (width, mode) => {
+      installMatchMedia(width)
+      const { user, input, format: execute } = setup()
+      await user.click(
+        screen.getByRole('radio', { name: mode }).closest('label')!,
+      )
+      const assertTitles = () => {
+        const inputTitle = screen.getByText('原始 LPC', { exact: true })
+        const resultTitle =
+          mode === '格式化'
+            ? screen.getByText('格式化结果', { exact: true })
+            : screen.getByRole('heading', { name: '解析树' })
+        for (const title of [inputTitle, resultTitle]) {
+          expect(title).toHaveClass('text-base', 'font-normal', 'leading-6')
+          const header = title.tagName === 'H2' ? title : title.parentElement!
+          expect(header).toHaveClass('flex', 'h-8', 'shrink-0', 'items-center')
+          expect(header.parentElement).toHaveClass('gap-2')
+          expect(title.closest('.ant-card')).toBeNull()
+        }
+        expect(
+          screen
+            .getByRole('region', { name: '结果' })
+            .querySelector('.ant-card-head'),
+        ).not.toBeInTheDocument()
+        expect(screen.getByRole('region', { name: '结果' })).toHaveClass(
+          'h-[60vh]',
+        )
+      }
+      assertTitles()
+      await user.click(execute)
+      expect(screen.getByRole('alert')).toBeInTheDocument()
+      assertTitles()
+      await user.click(screen.getByRole('button', { name: '清空' }))
+      assertTitles()
+      await user.click(input)
+      await user.paste(source)
+      await user.click(execute)
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+      assertTitles()
+      if (mode === '深度解析' && width === 1600) {
+        expect(screen.getByRole('heading', { name: '节点详情' })).toHaveClass(
+          'h-8',
+          'shrink-0',
+          'items-center',
+          'text-base',
+          'font-normal',
+          'leading-6',
+        )
+      }
     },
   )
 })
