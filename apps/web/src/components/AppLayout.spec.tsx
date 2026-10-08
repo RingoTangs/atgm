@@ -99,6 +99,11 @@ const renderApplication = (
     path: '/characters',
     component: CharactersPage,
   })
+  const lpcFormatterRoute = createRoute({
+    getParentRoute: () => appRoute,
+    path: '/tools/lpc-formatter',
+    component: () => <h1>LPC 格式化页面</h1>,
+  })
   const brokenRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/broken',
@@ -112,6 +117,7 @@ const renderApplication = (
         accountsRoute,
         accountDetailRoute,
         charactersRoute,
+        lpcFormatterRoute,
       ]),
       brokenRoute,
     ]),
@@ -149,6 +155,40 @@ afterEach(() => {
 })
 
 describe('app layout', () => {
+  it.each([1280, 375])('lpc 格式化支持导航和高亮（宽度 %s）', async (width) => {
+    installMatchMedia(width)
+    const user = userEvent.setup()
+    renderApplication()
+    await screen.findByRole('heading', { name: 'Dashboard' })
+    if (width === 375)
+      await user.click(screen.getByRole('button', { name: '打开导航' }))
+    await user.click(
+      await screen.findByRole('menuitem', { name: 'LPC 格式化' }),
+    )
+    await screen.findByRole('heading', { name: 'LPC 格式化页面' })
+    if (width === 375) {
+      await waitFor(() =>
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
+      )
+      await user.click(screen.getByRole('button', { name: '打开导航' }))
+    }
+    const item = await screen.findByRole('menuitem', { name: 'LPC 格式化' })
+    expect(item).toHaveClass('ant-menu-item-selected')
+    expect(within(item).getByText('LPC 格式化')).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+  })
+
+  it('直接访问 LPC 格式化路径时导航选中', async () => {
+    installMatchMedia(1280)
+    renderApplication('/tools/lpc-formatter')
+    await screen.findByRole('heading', { name: 'LPC 格式化页面' })
+    expect(screen.getByRole('menuitem', { name: 'LPC 格式化' })).toHaveClass(
+      'ant-menu-item-selected',
+    )
+  })
+
   it('角色管理支持桌面导航和高亮', async () => {
     installMatchMedia(1280)
     const user = userEvent.setup()

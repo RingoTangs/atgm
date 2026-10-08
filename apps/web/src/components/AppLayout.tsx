@@ -2,6 +2,7 @@ import type { MenuProps } from 'antd'
 import { useLocation, useNavigate } from '@tanstack/react-router'
 import { Button, Drawer, Dropdown, Grid, Layout, Menu } from 'antd'
 import {
+  Braces,
   Gamepad2,
   LayoutDashboard,
   Menu as MenuIcon,
@@ -68,6 +69,7 @@ const NavigationMenu: React.FC<NavigationMenuProps> = ({ onNavigate }) => {
     pathname === '/accounts' || pathname.startsWith('/accounts/')
   const isCharactersPath =
     pathname === '/characters' || pathname.startsWith('/characters/')
+  const isLpcFormatterPath = pathname === '/tools/lpc-formatter'
   const selectedNavigationKey =
     pathname === '/'
       ? pathname
@@ -75,7 +77,9 @@ const NavigationMenu: React.FC<NavigationMenuProps> = ({ onNavigate }) => {
         ? '/accounts'
         : isCharactersPath
           ? '/characters'
-          : undefined
+          : isLpcFormatterPath
+            ? '/tools/lpc-formatter'
+            : undefined
 
   const navigationItems: MenuProps['items'] = [
     {
@@ -103,6 +107,15 @@ const NavigationMenu: React.FC<NavigationMenuProps> = ({ onNavigate }) => {
         </span>
       ),
     },
+    {
+      key: '/tools/lpc-formatter',
+      icon: <Braces aria-hidden="true" size={18} />,
+      label: (
+        <span aria-current={isLpcFormatterPath ? 'page' : undefined}>
+          LPC 格式化
+        </span>
+      ),
+    },
   ]
 
   const handleNavigation: MenuProps['onClick'] = ({ key }) => {
@@ -114,6 +127,9 @@ const NavigationMenu: React.FC<NavigationMenuProps> = ({ onNavigate }) => {
 
     if (key === '/accounts') {
       void navigate({ to: '/accounts' })
+    }
+    if (key === '/tools/lpc-formatter') {
+      void navigate({ to: '/tools/lpc-formatter' })
     }
     if (key === '/characters') {
       void navigate({ to: '/characters' })

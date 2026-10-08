@@ -16,6 +16,7 @@ import { Route as AppAccountsRouteImport } from './../../routes/_app/accounts'
 import { Route as AppAccountsIndexRouteImport } from './../../routes/_app/accounts.index'
 import { Route as AppAccountsAccountRouteImport } from './../../routes/_app/accounts.$account'
 import { Route as AppCharactersIndexRouteImport } from './../../routes/_app/characters.index'
+import { Route as AppToolsLpcFormatterRouteImport } from './../../routes/_app/tools.lpc-formatter'
 
 const SplatRoute = SplatRouteImport.update({
   id: '/$',
@@ -51,12 +52,18 @@ const AppCharactersIndexRoute = AppCharactersIndexRouteImport.update({
   path: '/characters/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppToolsLpcFormatterRoute = AppToolsLpcFormatterRouteImport.update({
+  id: '/tools/lpc-formatter',
+  path: '/tools/lpc-formatter',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/$': typeof SplatRoute
   '/': typeof AppIndexRoute
   '/accounts': typeof AppAccountsRouteWithChildren
   '/accounts/$account': typeof AppAccountsAccountRoute
+  '/tools/lpc-formatter': typeof AppToolsLpcFormatterRoute
   '/accounts/': typeof AppAccountsIndexRoute
   '/characters/': typeof AppCharactersIndexRoute
 }
@@ -64,6 +71,7 @@ export interface FileRoutesByTo {
   '/$': typeof SplatRoute
   '/': typeof AppIndexRoute
   '/accounts/$account': typeof AppAccountsAccountRoute
+  '/tools/lpc-formatter': typeof AppToolsLpcFormatterRoute
   '/accounts': typeof AppAccountsIndexRoute
   '/characters': typeof AppCharactersIndexRoute
 }
@@ -74,6 +82,7 @@ export interface FileRoutesById {
   '/_app/accounts': typeof AppAccountsRouteWithChildren
   '/_app/': typeof AppIndexRoute
   '/_app/accounts/$account': typeof AppAccountsAccountRoute
+  '/_app/tools/lpc-formatter': typeof AppToolsLpcFormatterRoute
   '/_app/accounts/': typeof AppAccountsIndexRoute
   '/_app/characters/': typeof AppCharactersIndexRoute
 }
@@ -84,10 +93,17 @@ export interface FileRouteTypes {
     | '/'
     | '/accounts'
     | '/accounts/$account'
+    | '/tools/lpc-formatter'
     | '/accounts/'
     | '/characters/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/$' | '/' | '/accounts/$account' | '/accounts' | '/characters'
+  to:
+    | '/$'
+    | '/'
+    | '/accounts/$account'
+    | '/tools/lpc-formatter'
+    | '/accounts'
+    | '/characters'
   id:
     | '__root__'
     | '/$'
@@ -95,6 +111,7 @@ export interface FileRouteTypes {
     | '/_app/accounts'
     | '/_app/'
     | '/_app/accounts/$account'
+    | '/_app/tools/lpc-formatter'
     | '/_app/accounts/'
     | '/_app/characters/'
   fileRoutesById: FileRoutesById
@@ -155,6 +172,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCharactersIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/tools/lpc-formatter': {
+      id: '/_app/tools/lpc-formatter'
+      path: '/tools/lpc-formatter'
+      fullPath: '/tools/lpc-formatter'
+      preLoaderRoute: typeof AppToolsLpcFormatterRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -175,12 +199,14 @@ const AppAccountsRouteWithChildren = AppAccountsRoute._addFileChildren(
 interface AppRouteChildren {
   AppAccountsRoute: typeof AppAccountsRouteWithChildren
   AppIndexRoute: typeof AppIndexRoute
+  AppToolsLpcFormatterRoute: typeof AppToolsLpcFormatterRoute
   AppCharactersIndexRoute: typeof AppCharactersIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppAccountsRoute: AppAccountsRouteWithChildren,
   AppIndexRoute: AppIndexRoute,
+  AppToolsLpcFormatterRoute: AppToolsLpcFormatterRoute,
   AppCharactersIndexRoute: AppCharactersIndexRoute,
 }
 
