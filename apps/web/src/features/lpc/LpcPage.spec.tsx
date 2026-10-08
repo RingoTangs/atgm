@@ -2,6 +2,7 @@ import { LpcParseError, parseLpcValue } from '@atgm/lpc'
 import * as lpc from '@atgm/lpc'
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { ConfigProvider, theme } from 'antd'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { LpcPage } from './LpcPage'
 import { installMatchMedia } from './lpcTestUtils'
@@ -25,6 +26,11 @@ const expectFormatEmpty = () => {
     'flex',
     'min-h-full',
   )
+  expect(description.closest('.ant-empty')?.parentElement).toHaveStyle({
+    boxSizing: 'border-box',
+    borderStyle: 'solid',
+    borderWidth: '1px',
+  })
   expect(
     screen.queryByRole('textbox', { name: '格式化结果' }),
   ).not.toBeInTheDocument()
@@ -64,6 +70,30 @@ afterEach(() => {
 })
 
 describe('lpc formatter', () => {
+  it.each([
+    ['light', theme.defaultAlgorithm],
+    ['dark', theme.darkAlgorithm],
+  ] as const)(
+    'matches the input border and background in the %s theme',
+    (_name, algorithm) => {
+      render(
+        <ConfigProvider theme={{ algorithm }}>
+          <LpcPage />
+        </ConfigProvider>,
+      )
+      expectFormatEmpty()
+      const placeholder = screen
+        .getByText('输入 LPC 内容后，点击「执行」查看格式化结果')
+        .closest('.ant-empty')!.parentElement!
+      const token = theme.getDesignToken({ algorithm })
+      expect(placeholder).toHaveStyle({
+        borderColor: token.colorBorder,
+        borderRadius: `${token.borderRadius}px`,
+        backgroundColor: token.colorBgContainer,
+      })
+    },
+  )
+
   it('shows an empty placeholder without executing on initial render', () => {
     const formatSpy = vi.spyOn(lpc, 'formatLpc')
     setup()

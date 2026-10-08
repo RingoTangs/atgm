@@ -1,6 +1,16 @@
 import type { LpcAnalysisNode } from './buildLpcAnalysisTree'
 import { formatLpc, LpcParseError, parseLpcValue } from '@atgm/lpc'
-import { Button, Card, Empty, Grid, Input, message, Radio, Result } from 'antd'
+import {
+  Button,
+  Card,
+  Empty,
+  Grid,
+  Input,
+  message,
+  Radio,
+  Result,
+  theme,
+} from 'antd'
 import { useState } from 'react'
 import { buildLpcAnalysisTree } from './buildLpcAnalysisTree'
 import { LpcAnalysisView } from './LpcAnalysisView'
@@ -20,6 +30,7 @@ export const LpcPage: React.FC = () => {
   const [errors, setErrors] = useState<Partial<Record<LpcMode, LpcError>>>({})
   const [messageApi, messageContext] = message.useMessage()
   const screens = Grid.useBreakpoint()
+  const { token } = theme.useToken()
   const error = errors[mode]
 
   const resetResults = () => {
@@ -168,7 +179,17 @@ export const LpcPage: React.FC = () => {
                     value={output}
                   />
                 ) : (
-                  <div className="flex min-h-full min-w-0">
+                  <div
+                    className="flex min-h-full min-w-0"
+                    style={{
+                      boxSizing: 'border-box',
+                      borderWidth: token.lineWidth,
+                      borderStyle: token.lineType,
+                      borderColor: token.colorBorder,
+                      borderRadius: token.borderRadius,
+                      backgroundColor: token.colorBgContainer,
+                    }}
+                  >
                     <Empty
                       style={{ margin: 'auto' }}
                       description="输入 LPC 内容后，点击「执行」查看格式化结果"
