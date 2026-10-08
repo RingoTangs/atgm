@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '@/lib/apiError'
 import {
   getAccount,
+  getAccountCharacters,
   getAccounts,
   rechargeAccount,
   registerAccount,
@@ -37,6 +38,7 @@ describe('accounts API', () => {
       () => rechargeAccount('test', { goldCoinAmount: 1, silverCoinAmount: 0 }),
     ],
     ['detail', () => getAccount('test')],
+    ['characters', () => getAccountCharacters('test')],
     ['list', () => getAccounts({ page: 1, pageSize: 20 })],
     [
       'registration',
@@ -324,4 +326,37 @@ describe('accounts API', () => {
       }),
     ).rejects.toThrow('账号注册请求失败')
   })
+})
+
+describe('account characters API', () => {
+  it('requests encoded accounts and returns recRole and chars', async () => {
+    const response = {
+      recRole: '0000000000000003',
+      chars: [
+        {
+          gid: '0000000000000003',
+          name: '女金',
+          polar: 1,
+          gender: 2,
+          time: '',
+        },
+      ],
+    }
+    fetchMock.mockResolvedValue(jsonResponse(response))
+    await expect(getAccountCharacters('server/account')).resolves.toEqual(
+      response,
+    )
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/_api/accounts/server%2Faccount/characters',
+    )
+  })
+  it.each([404, 500])(
+    'uses the characters fallback for HTTP %s',
+    async (status) => {
+      fetchMock.mockResolvedValue(new Response(null, { status }))
+      await expect(getAccountCharacters('test')).rejects.toThrow(
+        '账号关联角色请求失败',
+      )
+    },
+  )
 })

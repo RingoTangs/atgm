@@ -1,4 +1,5 @@
 import type {
+  AccountCharactersResponse,
   AccountDetailResponse,
   AccountsQuery,
   AccountsResponse,
@@ -89,4 +90,14 @@ export async function registerAccount(
   })
 
   await checkApiResponse(response, '账号注册请求失败')
+}
+
+export async function getAccountCharacters(
+  account: string,
+): Promise<AccountCharactersResponse> {
+  const response = await fetch(
+    `${API_PREFIX}/accounts/${encodeURIComponent(account)}/characters`,
+  )
+  await checkApiResponse(response, '账号关联角色请求失败')
+  return (await response.json()) as AccountCharactersResponse
 }

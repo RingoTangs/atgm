@@ -6,6 +6,7 @@ import { Link } from '@tanstack/react-router'
 import { Alert, Badge, Button, Descriptions, Skeleton, Tooltip } from 'antd'
 import { useState } from 'react'
 import { ApiError } from '@/lib/apiError'
+import { AccountCharacters } from './AccountCharacters'
 import { formatAccountPrivilegeLabel } from './accountPrivilege'
 import { AccountPrivilegeModal } from './AccountPrivilegeModal'
 import { AccountRechargeModal } from './AccountRechargeModal'
@@ -231,6 +232,8 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = ({
         column={2}
         styles={descriptionStyles}
       />
+
+      <AccountCharacters account={account} />
 
       <Descriptions
         bordered

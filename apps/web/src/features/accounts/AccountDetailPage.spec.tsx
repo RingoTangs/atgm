@@ -1,3 +1,4 @@
+import type { AccountCharactersResponse } from '@atgm/contracts'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import {
   createMemoryHistory,
@@ -44,11 +45,55 @@ const jsonResponse = (body: unknown, status = 200) =>
     headers: { 'Content-Type': 'application/json' },
   })
 
+const accountCharacters: AccountCharactersResponse = {
+  recRole: '0000000000000003',
+  chars: [
+    {
+      gid: '0000000000000003',
+      name: '女金',
+      polar: 1,
+      gender: 2,
+      time: '2026-10-02 23:37:54',
+    },
+    {
+      gid: '0000000000000004',
+      name: '龙宫守卫',
+      polar: 5,
+      gender: 1,
+      time: '',
+    },
+  ],
+}
+let detailResponse: () => Promise<Response>
+let charactersResponse: () => Promise<Response>
 let queryClient: QueryClient
 
 beforeEach(() => {
   fetchMock.mockReset()
-  fetchMock.mockImplementation(async () => jsonResponse(accountDetail))
+  detailResponse = async () => jsonResponse(accountDetail)
+  charactersResponse = async () => jsonResponse(accountCharacters)
+  fetchMock.mockImplementation(async (input, init) => {
+    const url = String(input)
+    if (url === '/_api/accounts/server-account/characters')
+      return charactersResponse()
+    if (url === '/_api/accounts/server-account' && !init?.method)
+      return detailResponse()
+    if (
+      url === '/_api/accounts/server-account/recharge' &&
+      init?.method === 'PATCH'
+    )
+      return jsonResponse({
+        account: 'server-account',
+        goldCoin: 1000010,
+        silverCoin: 50000,
+      })
+    if (
+      url === '/_api/accounts/server-account/privilege' &&
+      init?.method === 'PATCH'
+    )
+      return jsonResponse({ account: 'server-account', privilege: 120 })
+    throw new Error(`Unexpected request: ${url}`)
+  })
   queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
@@ -137,9 +182,8 @@ describe('account detail page', () => {
   })
 
   it('renders the offline account status', async () => {
-    fetchMock.mockImplementation(async () =>
-      jsonResponse({ ...accountDetail, online: false }),
-    )
+    detailResponse = async () =>
+      jsonResponse({ ...accountDetail, online: false })
     renderPage()
 
     expect(await screen.findByText('离线')).toBeInTheDocument()
@@ -165,9 +209,8 @@ describe('account detail page', () => {
     ['充值', '充值账号：server-account', '充值成功'],
     ['变更权限', '变更权限：server-account', '权限变更成功'],
   ])('opens %s and closes it after success', async (action, title, success) => {
-    fetchMock.mockImplementation(async () =>
-      jsonResponse({ ...accountDetail, online: false }),
-    )
+    detailResponse = async () =>
+      jsonResponse({ ...accountDetail, online: false })
     const invalidateQueries = vi.spyOn(queryClient, 'invalidateQueries')
     const user = userEvent.setup()
     renderPage()
@@ -197,9 +240,8 @@ describe('account detail page', () => {
   })
 
   it('falls back safely for an unknown privilege', async () => {
-    fetchMock.mockImplementation(async () =>
-      jsonResponse({ ...accountDetail, privilege: 999 }),
-    )
+    detailResponse = async () =>
+      jsonResponse({ ...accountDetail, privilege: 999 })
     renderPage()
 
     expect(await screen.findByText('999')).toBeInTheDocument()
@@ -207,12 +249,11 @@ describe('account detail page', () => {
   })
 
   it('shows the not-found state with a link back to accounts', async () => {
-    fetchMock.mockImplementation(async () =>
+    detailResponse = async () =>
       jsonResponse(
         { code: 'ACCOUNT_NOT_FOUND', message: 'Account not found' },
         404,
-      ),
-    )
+      )
     renderPage()
 
     expect(await screen.findByText('账号不存在')).toBeInTheDocument()
@@ -224,12 +265,12 @@ describe('account detail page', () => {
 
   it('shows a generic error and retries the account request', async () => {
     let accountRequests = 0
-    fetchMock.mockImplementation(async () => {
+    detailResponse = async () => {
       accountRequests += 1
       return accountRequests === 1
         ? new Response(null, { status: 500 })
         : jsonResponse(accountDetail)
-    })
+    }
     const user = userEvent.setup()
     renderPage()
 
@@ -240,5 +281,167 @@ describe('account detail page', () => {
       expect(screen.getByText('server-account')).toBeInTheDocument()
     })
     expect(accountRequests).toBe(2)
+  })
+})
+
+describe('account associated characters', () => {
+  it('requests characters and renders recommendation and rows in API order', async () => {
+    renderPage()
+    const section = await screen.findByRole('region', { name: '关联角色' })
+    expect(await within(section).findByText('女金')).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/_api/accounts/server-account/characters',
+    )
+    expect(
+      within(section).getByText('推荐角色 GID：0000000000000003'),
+    ).toBeInTheDocument()
+    const rows = within(section).getAllByRole('row').slice(1)
+    expect(within(rows[0]).getByText('0000000000000003')).toBeInTheDocument()
+    expect(within(rows[1]).getByText('0000000000000004')).toBeInTheDocument()
+    expect(within(rows[0]).getByText('推荐')).toBeInTheDocument()
+    expect(within(rows[1]).queryByText('推荐')).toBeNull()
+    expect(within(rows[0]).getByText('金')).toBeInTheDocument()
+    expect(within(rows[0]).getByText('女')).toBeInTheDocument()
+    expect(within(rows[1]).getByText('土')).toBeInTheDocument()
+    expect(within(rows[1]).getByText('男')).toBeInTheDocument()
+    expect(within(rows[1]).getByText('-')).toBeInTheDocument()
+    expect(
+      within(section)
+        .getAllByRole('columnheader')
+        .map((cell) => cell.textContent),
+    ).toEqual(['GID', '角色名', '相性', '性别', '时间'])
+    expect(section.querySelector('.ant-pagination')).toBeNull()
+    const content = screen
+      .getByText('基本信息')
+      .closest('.account-detail-page')!
+    expect(content.textContent).toMatch(
+      /基本信息.*资产.*关联角色.*登录信息.*封禁信息/s,
+    )
+  })
+
+  it.each([
+    { recRole: null, chars: [] },
+    { recRole: '0000000000000003', chars: [] },
+  ])('renders empty characters and recRole $recRole', async (response) => {
+    charactersResponse = async () => jsonResponse(response)
+    renderPage()
+    const section = await screen.findByRole('region', { name: '关联角色' })
+    expect(await within(section).findByText('暂无角色')).toBeInTheDocument()
+    expect(
+      within(section).getByText(`推荐角色 GID：${response.recRole ?? '-'}`),
+    ).toBeInTheDocument()
+  })
+
+  it('does not recommend other characters when recRole is absent from the list', async () => {
+    charactersResponse = async () =>
+      jsonResponse({ ...accountCharacters, recRole: 'missing' })
+    renderPage()
+    const section = await screen.findByRole('region', { name: '关联角色' })
+    expect(await within(section).findByText('女金')).toBeInTheDocument()
+    expect(
+      within(section).getByText('推荐角色 GID：missing'),
+    ).toBeInTheDocument()
+    expect(within(section).queryByText('推荐')).toBeNull()
+  })
+
+  it.each([
+    { polar: 1, label: '金' },
+    { polar: 2, label: '木' },
+    { polar: 3, label: '水' },
+    { polar: 4, label: '火' },
+    { polar: 5, label: '土' },
+    { polar: 9, label: '未知(9)' },
+  ])('maps polar $polar to $label', async ({ polar, label }) => {
+    charactersResponse = async () =>
+      jsonResponse({
+        recRole: null,
+        chars: [{ ...accountCharacters.chars[0], polar }],
+      })
+    renderPage()
+    const section = await screen.findByRole('region', { name: '关联角色' })
+    expect(await within(section).findByText(label)).toBeInTheDocument()
+  })
+
+  it.each([
+    { gender: 1, label: '男' },
+    { gender: 2, label: '女' },
+    { gender: 9, label: '未知(9)' },
+  ])('maps gender $gender to $label', async ({ gender, label }) => {
+    charactersResponse = async () =>
+      jsonResponse({
+        recRole: null,
+        chars: [{ ...accountCharacters.chars[0], gender }],
+      })
+    renderPage()
+    const section = await screen.findByRole('region', { name: '关联角色' })
+    expect(await within(section).findByText(label)).toBeInTheDocument()
+  })
+
+  it('loads characters without returning the account page to a skeleton', async () => {
+    let resolveCharacters!: (response: Response) => void
+    charactersResponse = () =>
+      new Promise((resolve) => {
+        resolveCharacters = resolve
+      })
+    renderPage()
+    expect(await screen.findByText('server-account')).toBeInTheDocument()
+    const section = screen.getByRole('region', { name: '关联角色' })
+    expect(within(section).getByText('加载中')).toBeInTheDocument()
+    expect(section.querySelector('.ant-spin-spinning')).not.toBeNull()
+    expect(document.querySelector('.ant-skeleton')).toBeNull()
+    expect(screen.getByText('1,000,000')).toBeInTheDocument()
+    expect(screen.getByText('登录信息')).toBeInTheDocument()
+    expect(screen.getByText('封禁信息')).toBeInTheDocument()
+    resolveCharacters(jsonResponse(accountCharacters))
+    expect(await within(section).findByText('女金')).toBeInTheDocument()
+  })
+
+  it('isolates characters errors and retries only the characters request', async () => {
+    let characterRequests = 0
+    charactersResponse = async () => {
+      characterRequests++
+      return characterRequests === 1
+        ? new Response(null, { status: 500 })
+        : jsonResponse(accountCharacters)
+    }
+    const user = userEvent.setup()
+    renderPage()
+    const section = await screen.findByRole('region', { name: '关联角色' })
+    expect(
+      await within(section).findByText('关联角色加载失败'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('server-account')).toBeInTheDocument()
+    expect(screen.getByText('基本信息')).toBeInTheDocument()
+    expect(screen.getByText('1,000,000')).toBeInTheDocument()
+    expect(screen.getByText('2026-10-01 19:12:00')).toBeInTheDocument()
+    expect(screen.getByText('封禁信息')).toBeInTheDocument()
+    expect(screen.queryByText('账号详情加载失败')).toBeNull()
+    expect(within(section).queryByText('暂无角色')).toBeNull()
+    await user.click(within(section).getByRole('button', { name: '重试' }))
+    expect(await within(section).findByText('女金')).toBeInTheDocument()
+    expect(characterRequests).toBe(2)
+    expect(
+      fetchMock.mock.calls.filter(
+        ([url]) => url === '/_api/accounts/server-account',
+      ),
+    ).toHaveLength(1)
+  })
+
+  it('renders duplicate gids as separate rows without duplicate key warnings', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    charactersResponse = async () =>
+      jsonResponse({
+        recRole: accountCharacters.recRole,
+        chars: [accountCharacters.chars[0], accountCharacters.chars[0]],
+      })
+    renderPage()
+    const section = await screen.findByRole('region', { name: '关联角色' })
+    await waitFor(() =>
+      expect(within(section).getAllByText('女金')).toHaveLength(2),
+    )
+    expect(within(section).getAllByText('推荐')).toHaveLength(2)
+    expect(consoleError.mock.calls.flat().join(' ')).not.toMatch(
+      /same key|unique.*key/i,
+    )
   })
 })
