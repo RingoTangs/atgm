@@ -39,6 +39,7 @@ export const AccountCharacters: React.FC<{ account: string }> = ({
           locale={{
             emptyText: charactersQuery.isPending ? '加载中' : '暂无角色',
           }}
+          bordered
           pagination={false}
           rowKey={(record, index) => `${record.gid}-${index}`}
           scroll={{ x: 'max-content' }}
