@@ -1,6 +1,6 @@
 import { LpcParseError, parseLpcValue } from '@atgm/lpc'
 import * as lpc from '@atgm/lpc'
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { LpcPage } from './LpcPage'
@@ -91,25 +91,31 @@ describe('lpc formatter', () => {
         `offset: ${error.offset}`,
       )
     }
-    expect(output).toHaveValue('')
+    expect(
+      screen.queryByRole('textbox', { name: '格式化结果' }),
+    ).not.toBeInTheDocument()
+    expect(screen.getByRole('alert')).toHaveTextContent('格式化失败')
+    expect(
+      screen.getByRole('alert').querySelector('.ant-result-error'),
+    ).toBeInTheDocument()
     expect(copy).toBeDisabled()
     await user.click(screen.getByRole('button', { name: '清空' }))
     expect(input).toHaveValue('')
-    expect(output).toHaveValue('')
+    expect(screen.getByLabelText('格式化结果')).toHaveValue('')
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
   it('clears parsing errors when formatting succeeds again', async () => {
-    const { user, input, format, output } = setup()
+    const { user, input, format } = setup()
     await user.click(format)
     expect(screen.getByRole('alert')).toBeInTheDocument()
     await user.click(input)
     await user.paste(source)
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
-    expect(output).toHaveValue('')
+    expect(screen.getByLabelText('格式化结果')).toHaveValue('')
     await user.click(format)
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
-    expect(output).toHaveValue(formatted)
+    expect(screen.getByLabelText('格式化结果')).toHaveValue(formatted)
   })
 
   it('reports clipboard failure while preserving the result', async () => {
@@ -208,7 +214,9 @@ describe('lpc analysis integration', () => {
     await user.clear(input)
     await user.paste('({2,})')
     expect(screen.queryByRole('tree')).not.toBeInTheDocument()
-    expect(screen.getByText('点击执行查看结果')).toBeInTheDocument()
+    expect(
+      screen.getByText('输入 LPC 内容后，点击「执行」查看解析树'),
+    ).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: '执行' }))
     expect(screen.getByRole('tree')).toBeInTheDocument()
     await user.click(screen.getByText('root', { exact: true }))
@@ -233,6 +241,10 @@ describe('lpc analysis integration', () => {
     )
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: '执行' }))
+    expect(screen.getByRole('alert')).toHaveTextContent('解析失败')
+    expect(
+      screen.getByRole('alert').querySelector('.ant-result-error'),
+    ).toBeInTheDocument()
     expect(screen.getByRole('alert')).toHaveTextContent('offset: 9')
     expect(screen.getByRole('alert')).toHaveTextContent('Expected LPC value')
     expect(screen.queryByRole('tree')).not.toBeInTheDocument()
@@ -286,4 +298,147 @@ describe('lpc workspace layout', () => {
       gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 3fr)',
     })
   })
+})
+
+describe('lpc result states', () => {
+  const selectMode = async (
+    user: ReturnType<typeof userEvent.setup>,
+    name: string,
+  ) => {
+    await user.click(screen.getByRole('radio', { name }).closest('label')!)
+  }
+  const expectAnalysisEmpty = () => {
+    const description = screen.getByText(
+      '输入 LPC 内容后，点击「执行」查看解析树',
+    )
+    expect(description.closest('.ant-card')).toHaveTextContent('解析树')
+    expect(description.closest('.ant-empty')).toHaveStyle({ margin: 'auto' })
+    expect(description.closest('.ant-card-body')).toHaveStyle({
+      display: 'flex',
+      flex: '1',
+      minHeight: '0',
+      overflow: 'auto',
+    })
+    expect(screen.queryByRole('tree')).not.toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  }
+
+  it('shows a centered Card and Empty before executing analysis', async () => {
+    const parseSpy = vi.spyOn(lpc, 'parseLpcValue')
+    const { user } = setup()
+    await selectMode(user, '深度解析')
+    expectAnalysisEmpty()
+    expect(parseSpy).not.toHaveBeenCalled()
+  })
+
+  it.each(['格式化', '深度解析'])(
+    'retains independent errors when %s succeeds',
+    async (successfulMode) => {
+      const formatSpy = vi
+        .spyOn(lpc, 'formatLpc')
+        .mockImplementationOnce(() => {
+          throw new Error('formatter failure')
+        })
+      const parseSpy = vi
+        .spyOn(lpc, 'parseLpcValue')
+        .mockImplementationOnce(() => {
+          throw new Error('parser failure')
+        })
+      const { user, input, format: execute } = setup()
+      await user.click(input)
+      await user.paste(source)
+      await user.click(execute)
+      expect(screen.getByRole('alert')).toHaveTextContent('formatter failure')
+      await selectMode(user, '深度解析')
+      expectAnalysisEmpty()
+      await user.click(execute)
+      expect(screen.getByRole('alert')).toHaveTextContent('parser failure')
+      await selectMode(user, '格式化')
+      expect(screen.getByRole('alert')).toHaveTextContent('formatter failure')
+      expect(screen.getByRole('alert')).not.toHaveTextContent('parser failure')
+      expect(formatSpy).toHaveBeenCalledTimes(1)
+      expect(parseSpy).toHaveBeenCalledTimes(1)
+      await selectMode(user, successfulMode)
+      await user.click(execute)
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+      if (successfulMode === '格式化') {
+        expect(screen.getByLabelText('格式化结果')).toHaveValue(formatted)
+        expect(screen.getByRole('button', { name: '复制结果' })).toBeEnabled()
+      } else {
+        expect(screen.getByRole('tree')).toBeInTheDocument()
+      }
+      const otherMode = successfulMode === '格式化' ? '深度解析' : '格式化'
+      await selectMode(user, otherMode)
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        otherMode === '格式化' ? 'formatter failure' : 'parser failure',
+      )
+      await user.type(input, ' ')
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+      await selectMode(user, '深度解析')
+      expectAnalysisEmpty()
+      await selectMode(user, '格式化')
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+      expect(screen.getByLabelText('格式化结果')).toHaveValue('')
+      expect(screen.getByRole('button', { name: '复制结果' })).toBeDisabled()
+    },
+  )
+
+  it('clears both errors and restores empty results', async () => {
+    const { user, input, format: execute } = setup()
+    await user.click(execute)
+    await selectMode(user, '深度解析')
+    await user.click(execute)
+    expect(screen.getByRole('alert')).toHaveTextContent('解析失败')
+    await user.click(screen.getByRole('button', { name: '清空' }))
+    expect(input).toHaveValue('')
+    expectAnalysisEmpty()
+    await selectMode(user, '格式化')
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('格式化结果')).toHaveValue('')
+    expect(screen.getByRole('button', { name: '复制结果' })).toBeDisabled()
+  })
+
+  it.each([
+    [767, '格式化'],
+    [768, '格式化'],
+    [767, '深度解析'],
+    [768, '深度解析'],
+  ] as const)(
+    'keeps the same result content space across empty, error and success at %s in %s',
+    async (width, mode) => {
+      installMatchMedia(width)
+      vi.spyOn(
+        lpc,
+        mode === '格式化' ? 'formatLpc' : 'parseLpcValue',
+      ).mockImplementationOnce(() => {
+        throw new Error('failure with long details '.repeat(100))
+      })
+      const { user, input, format: execute } = setup()
+      await user.click(input)
+      await user.paste(source)
+      await selectMode(user, mode)
+      const region = screen.getByRole('region', { name: '结果' })
+      const initialClass = region.className
+      const content = region.lastElementChild!
+      const contentClass = content.className
+      expect(region).toHaveClass('h-[60vh]', 'min-h-0', 'min-w-0')
+      expect(content).toHaveClass('min-h-0', 'flex-1', 'overflow-auto')
+      await user.click(execute)
+      expect(within(region).getByRole('alert')).toHaveTextContent(
+        mode === '格式化' ? '格式化失败' : '解析失败',
+      )
+      expect(region.className).toBe(initialClass)
+      expect(region.lastElementChild).toBe(content)
+      expect(content.className).toBe(contentClass)
+      expect(region.querySelector('.ant-alert')).not.toBeInTheDocument()
+      await user.click(execute)
+      expect(within(region).queryByRole('alert')).not.toBeInTheDocument()
+      expect(region.className).toBe(initialClass)
+      expect(region.lastElementChild).toBe(content)
+      expect(content.className).toBe(contentClass)
+      if (mode === '格式化')
+        expect(screen.getByLabelText('格式化结果')).toHaveValue(formatted)
+      else expect(screen.getByRole('tree')).toBeInTheDocument()
+    },
+  )
 })

@@ -1,44 +1,53 @@
 import type { LpcAnalysisNode } from './buildLpcAnalysisTree'
 import { formatLpc, LpcParseError, parseLpcValue } from '@atgm/lpc'
-import { Alert, Button, Grid, Input, message, Radio } from 'antd'
+import { Button, Card, Empty, Grid, Input, message, Radio, Result } from 'antd'
 import { useState } from 'react'
 import { buildLpcAnalysisTree } from './buildLpcAnalysisTree'
 import { LpcAnalysisView } from './LpcAnalysisView'
 
 type LpcMode = 'format' | 'analysis'
 
+interface LpcError {
+  mode: LpcMode
+  message: string
+}
+
 export const LpcPage: React.FC = () => {
   const [mode, setMode] = useState<LpcMode>('format')
   const [analysis, setAnalysis] = useState<LpcAnalysisNode | null>(null)
   const [input, setInput] = useState('')
   const [output, setOutput] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [errors, setErrors] = useState<Partial<Record<LpcMode, LpcError>>>({})
   const [messageApi, messageContext] = message.useMessage()
   const screens = Grid.useBreakpoint()
+  const error = errors[mode]
 
   const resetResults = () => {
     setOutput('')
     setAnalysis(null)
-    setError(null)
+    setErrors({})
   }
 
   const execute = () => {
     try {
       if (mode === 'format') setOutput(formatLpc(input))
       else setAnalysis(buildLpcAnalysisTree(parseLpcValue(input)))
-      setError(null)
+      setErrors((previous) => ({ ...previous, [mode]: undefined }))
     } catch (cause) {
       if (mode === 'format') setOutput('')
       else setAnalysis(null)
-      setError(
+      const errorMessage =
         cause instanceof LpcParseError
           ? `${cause.message} (offset: ${cause.offset})`
           : cause instanceof Error
             ? cause.message
             : mode === 'format'
               ? '格式化失败'
-              : '解析失败',
-      )
+              : '解析失败'
+      setErrors((previous) => ({
+        ...previous,
+        [mode]: { mode, message: errorMessage },
+      }))
     }
   }
 
@@ -50,6 +59,19 @@ export const LpcPage: React.FC = () => {
       void messageApi.error('复制失败，请手动复制')
     }
   }
+
+  const errorResult = error && (
+    <div role="alert" className="flex min-h-full w-full min-w-0">
+      <Result
+        className="m-auto w-full min-w-0 shrink-0"
+        status="error"
+        title={error.mode === 'format' ? '格式化失败' : '解析失败'}
+        subTitle={
+          <p className="break-all whitespace-pre-wrap">{error.message}</p>
+        }
+      />
+    </div>
+  )
 
   return (
     <div className="space-y-4">
@@ -110,37 +132,61 @@ export const LpcPage: React.FC = () => {
           aria-label="结果"
           className="flex h-[60vh] min-h-0 min-w-0 flex-col gap-2"
         >
-          {error && (
-            <div className="max-h-[20vh] shrink-0 overflow-auto">
-              <Alert showIcon title={error} type="error" />
-            </div>
-          )}
           {mode === 'format' ? (
             <>
               <div className="flex items-center justify-between gap-2">
-                <label htmlFor="lpc-output">格式化结果</label>
+                <label htmlFor={error ? undefined : 'lpc-output'}>
+                  格式化结果
+                </label>
                 <Button disabled={!output} onClick={() => void copy()}>
                   复制结果
                 </Button>
               </div>
-              <Input.TextArea
-                id="lpc-output"
-                className="min-h-0 flex-1"
-                readOnly
-                style={{
-                  fontFamily: 'monospace',
-                  resize: 'none',
-                  overflow: 'auto',
-                }}
-                value={output}
-              />
+              <div className="min-h-0 flex-1 overflow-auto">
+                {error ? (
+                  errorResult
+                ) : (
+                  <Input.TextArea
+                    id="lpc-output"
+                    className="h-full min-h-0"
+                    readOnly
+                    style={{
+                      fontFamily: 'monospace',
+                      resize: 'none',
+                      overflow: 'auto',
+                    }}
+                    value={output}
+                  />
+                )}
+              </div>
             </>
           ) : (
             <div className="min-h-0 flex-1 overflow-auto">
-              {analysis ? (
+              {!error && analysis ? (
                 <LpcAnalysisView root={analysis} />
               ) : (
-                <p>点击执行查看结果</p>
+                <Card
+                  title="解析树"
+                  className="flex h-full min-h-0 min-w-0 flex-col"
+                  styles={{
+                    header: { flexShrink: 0 },
+                    body: {
+                      display: 'flex',
+                      flex: 1,
+                      minHeight: 0,
+                      overflow: 'auto',
+                    },
+                  }}
+                >
+                  {error ? (
+                    errorResult
+                  ) : (
+                    <Empty
+                      style={{ margin: 'auto' }}
+                      description="输入 LPC 内容后，点击「执行」查看解析树"
+                    />
+                  )}
+                </Card>
               )}
             </div>
           )}
