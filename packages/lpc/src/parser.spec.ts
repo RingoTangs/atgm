@@ -509,6 +509,7 @@ it('exports only the public API and the required types', () => {
     'LpcParseError',
     'formatLpc',
     'formatLpcValue',
+    'parseEmbeddedLpc',
     'parseLpcValue',
     'serializeLpcValue',
   ])

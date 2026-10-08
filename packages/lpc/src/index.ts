@@ -1,3 +1,5 @@
+export type { EmbeddedLpc } from './embedded'
+export { parseEmbeddedLpc } from './embedded'
 export { LpcParseError } from './error'
 export { formatLpc, formatLpcValue } from './formatter'
 export { parseLpcValue } from './parser'
