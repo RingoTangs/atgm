@@ -35,7 +35,7 @@ const accountsResponse = (
   items = [accountItem],
   total = 21,
   page = 1,
-  pageSize = 20,
+  pageSize = 10,
 ) =>
   new Response(JSON.stringify({ page, pageSize, total, items }), {
     status: 200,
@@ -175,7 +175,7 @@ describe('accounts page', () => {
     expect(within(row).getByText('192.0.2.1')).toBeInTheDocument()
     expect(within(row).getByText('2026-09-01 10:00:00')).toBeInTheDocument()
     expect(getAccountRequestUrls()).toContain(
-      '/_api/accounts?page=1&pageSize=20',
+      '/_api/accounts?page=1&pageSize=10',
     )
     expect(getPrivilegeRequestUrls()).toEqual([])
   })
@@ -254,7 +254,7 @@ describe('accounts page', () => {
 
     expect(await screen.findByText('page-2-account')).toBeInTheDocument()
     expect(getLastAccountRequestedUrl()).toBe(
-      '/_api/accounts?page=2&pageSize=20',
+      '/_api/accounts?page=2&pageSize=10',
     )
   })
 
@@ -285,14 +285,14 @@ describe('accounts page', () => {
     await user.keyboard('{Enter}')
     await waitFor(() => {
       expect(getLastAccountRequestedUrl()).toBe(
-        '/_api/accounts?page=1&pageSize=20&account=test_01',
+        '/_api/accounts?page=1&pageSize=10&account=test_01',
       )
     })
 
     await user.clear(search)
     await waitFor(() => {
       expect(getLastAccountRequestedUrl()).toBe(
-        '/_api/accounts?page=1&pageSize=20',
+        '/_api/accounts?page=1&pageSize=10',
       )
     })
   })

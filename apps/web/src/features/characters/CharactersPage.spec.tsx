@@ -19,7 +19,7 @@ const character = {
 }
 const fetchMock = vi.fn<typeof fetch>()
 let queryClient: QueryClient
-const response = (items = [character], total = 21, page = 1, pageSize = 20) =>
+const response = (items = [character], total = 21, page = 1, pageSize = 10) =>
   new Response(JSON.stringify({ page, pageSize, total, items }), {
     status: 200,
     headers: { 'Content-Type': 'application/json' },
@@ -86,7 +86,7 @@ describe('characters page', () => {
     expect(within(row).getByText('金')).toBeInTheDocument()
     expect(within(row).getByText('女')).toBeInTheDocument()
     expect(fetchMock).toHaveBeenCalledWith(
-      '/_api/characters?page=1&pageSize=20',
+      '/_api/characters?page=1&pageSize=10',
     )
   })
 
@@ -119,11 +119,11 @@ describe('characters page', () => {
     const user = userEvent.setup()
     renderPage()
     await screen.findByText(character.name)
-    expect(screen.queryByTitle('3')).not.toBeInTheDocument()
+    expect(screen.getByTitle('3')).toBeInTheDocument()
     await user.click(screen.getByTitle('2'))
     await waitFor(() =>
       expect(fetchMock).toHaveBeenLastCalledWith(
-        '/_api/characters?page=2&pageSize=20',
+        '/_api/characters?page=2&pageSize=10',
       ),
     )
   })
@@ -135,7 +135,7 @@ describe('characters page', () => {
     await user.click(screen.getByTitle('2'))
     await waitFor(() =>
       expect(fetchMock).toHaveBeenLastCalledWith(
-        '/_api/characters?page=2&pageSize=20',
+        '/_api/characters?page=2&pageSize=10',
       ),
     )
     await user.click(screen.getByRole('combobox'))

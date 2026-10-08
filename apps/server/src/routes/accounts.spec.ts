@@ -208,7 +208,7 @@ describe('get /accounts endpoint', () => {
     expect(response.statusCode).toBe(200)
     expect(response.json()).toEqual({
       page: 1,
-      pageSize: 20,
+      pageSize: 10,
       total: 125,
       items: [accountResponseItem],
     })
@@ -217,7 +217,7 @@ describe('get /accounts endpoint', () => {
     expect(mocks.select).toHaveBeenCalledWith(accountFields)
     expect(mocks.select).toHaveBeenCalledWith(expect.any(Function))
     expect(mocks.orderBy).toHaveBeenCalledWith('account')
-    expect(mocks.limit).toHaveBeenCalledWith(20)
+    expect(mocks.limit).toHaveBeenCalledWith(10)
     expect(mocks.offset).toHaveBeenCalledWith(0)
     expect(mocks.itemsExecute).toHaveBeenCalledOnce()
     expect(mocks.countExecuteTakeFirstOrThrow).toHaveBeenCalledOnce()
@@ -291,7 +291,7 @@ describe('get /accounts endpoint', () => {
     expect(response.statusCode).toBe(200)
     expect(response.json()).toEqual({
       page: 1,
-      pageSize: 20,
+      pageSize: 10,
       total: 0,
       items: [],
     })

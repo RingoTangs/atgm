@@ -67,7 +67,7 @@ describe('GET /characters', () => {
     expect(response.statusCode).toBe(200)
     expect(response.json()).toEqual({
       page: 1,
-      pageSize: 20,
+      pageSize: 10,
       total: 125,
       items: [characterResponse],
     })
@@ -81,7 +81,7 @@ describe('GET /characters', () => {
         }),
         expect.objectContaining({
           sql: 'select `gid`, `name`, `polar`, `gender`, `time` from `dl_ddb_1`.`basic_char_info` order by `gid` limit ? offset ?',
-          parameters: [20, 0],
+          parameters: [10, 0],
         }),
       ]),
     )
@@ -151,7 +151,7 @@ describe('GET /characters', () => {
     expect(response.statusCode).toBe(200)
     expect(response.json()).toEqual({
       page: input.page,
-      pageSize: 20,
+      pageSize: 10,
       total: input.total,
       items: [],
     })

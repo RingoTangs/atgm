@@ -43,7 +43,7 @@ describe.each([
   ['characters', charactersQuerySchema],
 ] as const)('%s query pagination', (_name, schema) => {
   it('uses the existing defaults', () => {
-    expect(schema.parse({})).toEqual({ page: 1, pageSize: 20 })
+    expect(schema.parse({})).toEqual({ page: 1, pageSize: 10 })
   })
 
   it('converts query strings to numbers', () => {
@@ -78,7 +78,7 @@ describe('account query conditions', () => {
   it('retains the optional trimmed account filter', () => {
     expect(accountsQuerySchema.parse({ account: '  test-account  ' })).toEqual({
       page: 1,
-      pageSize: 20,
+      pageSize: 10,
       account: 'test-account',
     })
     expect(accountsQuerySchema.parse({ account: '  ' }).account).toBe('')
