@@ -34,6 +34,14 @@ export const LpcPage: React.FC = () => {
   const screens = Grid.useBreakpoint()
   const { token } = theme.useToken()
   const error = errors[mode]
+  const placeholderStyle: React.CSSProperties = {
+    boxSizing: 'border-box',
+    borderWidth: token.lineWidth,
+    borderStyle: token.lineType,
+    borderColor: token.colorBorder,
+    borderRadius: token.borderRadius,
+    backgroundColor: token.colorBgContainer,
+  }
 
   const resetResults = () => {
     setOutput('')
@@ -74,7 +82,11 @@ export const LpcPage: React.FC = () => {
   }
 
   const errorResult = error && (
-    <div role="alert" className="flex min-h-full w-full min-w-0">
+    <div
+      role="alert"
+      className="flex min-h-full w-full min-w-0"
+      style={error.mode === 'format' ? placeholderStyle : undefined}
+    >
       <Result
         className="m-auto w-full min-w-0 shrink-0"
         status="error"
@@ -192,14 +204,7 @@ export const LpcPage: React.FC = () => {
                 ) : (
                   <div
                     className="flex min-h-full min-w-0"
-                    style={{
-                      boxSizing: 'border-box',
-                      borderWidth: token.lineWidth,
-                      borderStyle: token.lineType,
-                      borderColor: token.colorBorder,
-                      borderRadius: token.borderRadius,
-                      backgroundColor: token.colorBgContainer,
-                    }}
+                    style={placeholderStyle}
                   >
                     <Empty
                       style={{ margin: 'auto' }}

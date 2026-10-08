@@ -75,8 +75,9 @@ describe('lpc formatter', () => {
     ['light', theme.defaultAlgorithm],
     ['dark', theme.darkAlgorithm],
   ] as const)(
-    'matches the input border and background in the %s theme',
-    (_name, algorithm) => {
+    'matches empty and error borders and backgrounds in the %s theme',
+    async (_name, algorithm) => {
+      const user = userEvent.setup()
       render(
         <ConfigProvider theme={{ algorithm }}>
           <LpcPage />
@@ -92,6 +93,21 @@ describe('lpc formatter', () => {
         borderRadius: `${token.borderRadius}px`,
         backgroundColor: token.colorBgContainer,
       })
+      const emptyStyle = placeholder.getAttribute('style')
+      await user.click(screen.getByRole('button', { name: '执行' }))
+      const error = screen.getByRole('alert')
+      expect(error).toHaveAttribute('style', emptyStyle!)
+      expect(error).toHaveClass('flex', 'min-h-full')
+      expect(error).toHaveTextContent('格式化失败')
+      expect(error).toHaveTextContent('offset: 0')
+      expect(error.querySelector('.ant-result')).toHaveClass('m-auto')
+      await user.click(
+        screen.getByRole('radio', { name: '深度解析' }).closest('label')!,
+      )
+      await user.click(screen.getByRole('button', { name: '执行' }))
+      const analysisError = screen.getByRole('alert')
+      expect(analysisError.closest('.ant-card')).toBeInTheDocument()
+      expect(analysisError).not.toHaveAttribute('style')
     },
   )
 
