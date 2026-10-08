@@ -1,7 +1,11 @@
 import type { CharacterListItem } from '@atgm/contracts'
+import type { TableProps } from 'antd'
+import {
+  CHARACTER_GENDER_LABELS,
+  CHARACTER_POLAR_LABELS,
+} from '@atgm/contracts'
 import { useQuery } from '@tanstack/react-query'
-import { Alert, Button, Table } from 'antd'
-import { createCharacterColumns } from '@/features/characters/characterColumns'
+import { Alert, Button, Table, Tag } from 'antd'
 import { accountCharactersQueryOptions } from './accounts-queries'
 
 export const AccountCharacters: React.FC<{ account: string }> = ({
@@ -9,6 +13,52 @@ export const AccountCharacters: React.FC<{ account: string }> = ({
 }) => {
   const charactersQuery = useQuery(accountCharactersQueryOptions(account))
   const data = charactersQuery.data
+  const columns: TableProps<CharacterListItem>['columns'] = [
+    { title: 'GID', dataIndex: 'gid', key: 'gid', align: 'center' },
+    {
+      title: '角色名',
+      dataIndex: 'name',
+      key: 'name',
+      align: 'center',
+      render: (name: string, character: CharacterListItem) => (
+        <span>
+          {name}
+          {character.gid === data?.recRole && (
+            <Tag className="ml-2" color="blue">
+              最近登陆
+            </Tag>
+          )}
+        </span>
+      ),
+    },
+    {
+      title: '相性',
+      dataIndex: 'polar',
+      key: 'polar',
+      align: 'center',
+      render: (value: number) =>
+        CHARACTER_POLAR_LABELS[value as keyof typeof CHARACTER_POLAR_LABELS] ??
+        `未知(${value})`,
+    },
+    {
+      title: '性别',
+      dataIndex: 'gender',
+      key: 'gender',
+      align: 'center',
+      render: (value: number) =>
+        CHARACTER_GENDER_LABELS[
+          value as keyof typeof CHARACTER_GENDER_LABELS
+        ] ?? `未知(${value})`,
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'time',
+      key: 'time',
+      align: 'center',
+      className: 'whitespace-nowrap',
+      render: (value: string) => value || '-',
+    },
+  ]
 
   return (
     <section aria-labelledby="account-characters-heading" className="space-y-4">
@@ -33,10 +83,7 @@ export const AccountCharacters: React.FC<{ account: string }> = ({
       {data && <p>最近登陆角色 GID：{data.recRole ?? '-'}</p>}
       {(!charactersQuery.isError || data) && (
         <Table<CharacterListItem>
-          columns={createCharacterColumns({
-            recRole: data?.recRole,
-            timeTitle: '创建时间',
-          })}
+          columns={columns}
           dataSource={data?.chars ?? []}
           loading={charactersQuery.isPending || charactersQuery.isFetching}
           locale={{

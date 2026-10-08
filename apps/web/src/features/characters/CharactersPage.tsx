@@ -1,15 +1,46 @@
 import type { CharacterListItem } from '@atgm/contracts'
+import type { TableProps } from 'antd'
 import {
+  CHARACTER_GENDER_LABELS,
+  CHARACTER_POLAR_LABELS,
   PAGINATION_DEFAULT_PAGE,
   PAGINATION_DEFAULT_PAGE_SIZE,
 } from '@atgm/contracts'
 import { useQuery } from '@tanstack/react-query'
 import { Alert, Button, Table } from 'antd'
 import { useState } from 'react'
-import { createCharacterColumns } from './characterColumns'
 import { charactersQueryOptions } from './characters-queries'
 
-const columns = createCharacterColumns()
+const columns: TableProps<CharacterListItem>['columns'] = [
+  { title: 'GID', dataIndex: 'gid', key: 'gid', align: 'center' },
+  { title: '角色名', dataIndex: 'name', key: 'name', align: 'center' },
+  {
+    title: '相性',
+    dataIndex: 'polar',
+    key: 'polar',
+    align: 'center',
+    render: (value: number) =>
+      CHARACTER_POLAR_LABELS[value as keyof typeof CHARACTER_POLAR_LABELS] ??
+      `未知(${value})`,
+  },
+  {
+    title: '性别',
+    dataIndex: 'gender',
+    key: 'gender',
+    align: 'center',
+    render: (value: number) =>
+      CHARACTER_GENDER_LABELS[value as keyof typeof CHARACTER_GENDER_LABELS] ??
+      `未知(${value})`,
+  },
+  {
+    title: '时间',
+    dataIndex: 'time',
+    key: 'time',
+    align: 'center',
+    className: 'whitespace-nowrap',
+    render: (value: string) => value || '-',
+  },
+]
 
 export const CharactersPage: React.FC = () => {
   const [page, setPage] = useState(PAGINATION_DEFAULT_PAGE)

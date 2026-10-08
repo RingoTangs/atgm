@@ -79,6 +79,7 @@ describe('characters page', () => {
       expect(screen.getByRole('columnheader', { name })).toBeInTheDocument()
     }
     expect(screen.getAllByRole('columnheader')).toHaveLength(5)
+    expect(screen.queryByText('最近登陆')).toBeNull()
     const row = (await screen.findByText('中文角色')).closest('tr')!
     expect(row).toHaveAttribute('data-row-key', character.gid)
     expect(within(row).getByText(character.time)).toBeInTheDocument()
