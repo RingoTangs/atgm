@@ -296,8 +296,8 @@ describe('account associated characters', () => {
     const rows = within(section).getAllByRole('row').slice(1)
     expect(within(rows[0]).getByText('0000000000000003')).toBeInTheDocument()
     expect(within(rows[1]).getByText('0000000000000004')).toBeInTheDocument()
-    expect(within(rows[0]).getByText('最近登陆')).toBeInTheDocument()
-    expect(within(rows[1]).queryByText('最近登陆')).toBeNull()
+    expect(within(rows[0]).getByText('是')).toBeInTheDocument()
+    expect(within(rows[1]).queryByText('是')).toBeNull()
     expect(within(rows[0]).getByText('金')).toBeInTheDocument()
     expect(within(rows[0]).getByText('女')).toBeInTheDocument()
     expect(within(rows[1]).getByText('土')).toBeInTheDocument()
@@ -305,15 +305,16 @@ describe('account associated characters', () => {
     const firstCells = within(rows[0]).getAllByRole('cell')
     const secondCells = within(rows[1]).getAllByRole('cell')
     expect(firstCells[1]).toHaveTextContent(/^女金$/)
-    expect(firstCells[2]).toHaveTextContent(/^最近登陆$/)
+    expect(firstCells[5]).toHaveTextContent(/^是$/)
+    expect(within(firstCells[5]).getByText('是')).toHaveClass('ant-tag-green')
     expect(secondCells[1]).toHaveTextContent(/^龙宫守卫$/)
-    expect(secondCells[2]).toHaveTextContent(/^-$/)
+    expect(secondCells[4]).toHaveTextContent(/^-$/)
     expect(secondCells[5]).toHaveTextContent(/^-$/)
     expect(
       within(section)
         .getAllByRole('columnheader')
         .map((cell) => cell.textContent),
-    ).toEqual(['GID', '角色名', '最近登陆', '相性', '性别', '创建时间'])
+    ).toEqual(['GID', '角色名', '相性', '性别', '创建时间', '最近登陆'])
     expect(section.querySelector('.ant-pagination')).toBeNull()
     const content = screen
       .getByText('基本信息')
@@ -350,8 +351,8 @@ describe('account associated characters', () => {
         within(section).getByRole('columnheader', { name: '最近登陆' }),
       ).toBeInTheDocument()
       for (const row of within(section).getAllByRole('row').slice(1)) {
-        expect(within(row).queryByText('最近登陆')).toBeNull()
-        expect(within(row).getAllByRole('cell')[2]).toHaveTextContent(/^-$/)
+        expect(within(row).queryByText('是')).toBeNull()
+        expect(within(row).getAllByRole('cell')[5]).toHaveTextContent(/^-$/)
       }
     },
   )
@@ -454,9 +455,7 @@ describe('account associated characters', () => {
     const rows = within(section).getAllByRole('row').slice(1)
     expect(rows).toHaveLength(2)
     for (const row of rows) {
-      expect(within(row).getAllByRole('cell')[2]).toHaveTextContent(
-        /^最近登陆$/,
-      )
+      expect(within(row).getAllByRole('cell')[5]).toHaveTextContent(/^是$/)
     }
     expect(rows[0]).toHaveAttribute('data-row-key', '0000000000000003-0')
     expect(rows[1]).toHaveAttribute('data-row-key', '0000000000000003-1')

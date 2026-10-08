@@ -30,18 +30,6 @@ export const AccountCharacters: React.FC<{ account: string }> = ({
       align: 'center',
     },
     {
-      title: '最近登陆',
-      key: 'recentLogin',
-      align: 'center',
-      width: 120,
-      render: (_, character) =>
-        data?.recRole && character.gid === data.recRole ? (
-          <Tag color="blue">最近登陆</Tag>
-        ) : (
-          '-'
-        ),
-    },
-    {
       title: '相性',
       dataIndex: 'polar',
       key: 'polar',
@@ -67,6 +55,18 @@ export const AccountCharacters: React.FC<{ account: string }> = ({
       align: 'center',
       className: 'whitespace-nowrap',
       render: (value: string) => value || '-',
+    },
+    {
+      title: '最近登陆',
+      key: 'recentLogin',
+      align: 'center',
+      width: 120,
+      render: (_, character) =>
+        data?.recRole && character.gid === data.recRole ? (
+          <Tag color="green">是</Tag>
+        ) : (
+          '-'
+        ),
     },
   ]
 
