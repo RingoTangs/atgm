@@ -135,7 +135,7 @@ export const LpcPage: React.FC = () => {
           {mode === 'format' ? (
             <>
               <div className="flex items-center justify-between gap-2">
-                <label htmlFor={error ? undefined : 'lpc-output'}>
+                <label htmlFor={!error && output ? 'lpc-output' : undefined}>
                   格式化结果
                 </label>
                 <Button disabled={!output} onClick={() => void copy()}>
@@ -145,7 +145,7 @@ export const LpcPage: React.FC = () => {
               <div className="min-h-0 flex-1 overflow-auto">
                 {error ? (
                   errorResult
-                ) : (
+                ) : output ? (
                   <Input.TextArea
                     id="lpc-output"
                     className="h-full min-h-0"
@@ -157,6 +157,13 @@ export const LpcPage: React.FC = () => {
                     }}
                     value={output}
                   />
+                ) : (
+                  <div className="flex min-h-full min-w-0">
+                    <Empty
+                      style={{ margin: 'auto' }}
+                      description="输入 LPC 内容后，点击「执行」查看格式化结果"
+                    />
+                  </div>
                 )}
               </div>
             </>

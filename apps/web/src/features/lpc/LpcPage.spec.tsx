@@ -16,13 +16,30 @@ const formatted = `([
   }),
 ])`
 
+const expectFormatEmpty = () => {
+  const description = screen.getByText(
+    '输入 LPC 内容后，点击「执行」查看格式化结果',
+  )
+  expect(description.closest('.ant-empty')).toHaveStyle({ margin: 'auto' })
+  expect(description.closest('.ant-empty')?.parentElement).toHaveClass(
+    'flex',
+    'min-h-full',
+  )
+  expect(
+    screen.queryByRole('textbox', { name: '格式化结果' }),
+  ).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: '复制结果' })).toBeDisabled()
+  expect(
+    within(screen.getByRole('region', { name: '结果' })).queryByRole('alert'),
+  ).not.toBeInTheDocument()
+}
+
 const setup = () => {
   const user = userEvent.setup()
   render(<LpcPage />)
   return {
     user,
     input: screen.getByLabelText('原始 LPC'),
-    output: screen.getByLabelText('格式化结果'),
     format: screen.getByRole('button', { name: '执行' }),
     copy: screen.getByRole('button', { name: '复制结果' }),
   }
@@ -47,8 +64,15 @@ afterEach(() => {
 })
 
 describe('lpc formatter', () => {
+  it('shows an empty placeholder without executing on initial render', () => {
+    const formatSpy = vi.spyOn(lpc, 'formatLpc')
+    setup()
+    expectFormatEmpty()
+    expect(formatSpy).not.toHaveBeenCalled()
+  })
+
   it('formats LPC without replacing the input and copies the readonly result', async () => {
-    const { user, input, output, format, copy } = setup()
+    const { user, input, format, copy } = setup()
     expect(copy).toBeDisabled()
     const writeText = vi
       .spyOn(navigator.clipboard, 'writeText')
@@ -57,25 +81,36 @@ describe('lpc formatter', () => {
     await user.paste(source)
     await user.click(format)
     expect(input).toHaveValue(source)
-    expect(output).toHaveValue(formatted)
-    expect(output).toHaveAttribute('readonly')
+    expect(
+      screen.queryByText('输入 LPC 内容后，点击「执行」查看格式化结果'),
+    ).not.toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: '格式化结果' })).toHaveStyle({
+      overflow: 'auto',
+      resize: 'none',
+    })
+    expect(screen.getByRole('textbox', { name: '格式化结果' })).toHaveValue(
+      formatted,
+    )
+    expect(screen.getByRole('textbox', { name: '格式化结果' })).toHaveAttribute(
+      'readonly',
+    )
     expect(copy).toBeEnabled()
     await user.click(copy)
     expect(writeText).toHaveBeenCalledWith(formatted)
     expect(await screen.findByText('复制成功')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: '清空' }))
     expect(input).toHaveValue('')
-    expect(output).toHaveValue('')
+    expectFormatEmpty()
     expect(copy).toBeDisabled()
   })
 
   it('shows the parser message and offset, clears stale output, and clears all state', async () => {
-    const { user, input, output, format, copy } = setup()
+    const { user, input, format, copy } = setup()
     await user.click(input)
     await user.paste(source)
     await user.click(format)
     await user.clear(input)
-    expect(output).toHaveValue('')
+    expectFormatEmpty()
     expect(copy).toBeDisabled()
     const invalid = '(["name":'
     await user.paste(invalid)
@@ -94,6 +129,9 @@ describe('lpc formatter', () => {
     expect(
       screen.queryByRole('textbox', { name: '格式化结果' }),
     ).not.toBeInTheDocument()
+    expect(
+      screen.queryByText('输入 LPC 内容后，点击「执行」查看格式化结果'),
+    ).not.toBeInTheDocument()
     expect(screen.getByRole('alert')).toHaveTextContent('格式化失败')
     expect(
       screen.getByRole('alert').querySelector('.ant-result-error'),
@@ -101,7 +139,7 @@ describe('lpc formatter', () => {
     expect(copy).toBeDisabled()
     await user.click(screen.getByRole('button', { name: '清空' }))
     expect(input).toHaveValue('')
-    expect(screen.getByLabelText('格式化结果')).toHaveValue('')
+    expectFormatEmpty()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
@@ -112,14 +150,14 @@ describe('lpc formatter', () => {
     await user.click(input)
     await user.paste(source)
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
-    expect(screen.getByLabelText('格式化结果')).toHaveValue('')
+    expectFormatEmpty()
     await user.click(format)
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     expect(screen.getByLabelText('格式化结果')).toHaveValue(formatted)
   })
 
   it('reports clipboard failure while preserving the result', async () => {
-    const { user, input, format, copy, output } = setup()
+    const { user, input, format, copy } = setup()
     vi.spyOn(navigator.clipboard, 'writeText').mockRejectedValue(
       new Error('Denied'),
     )
@@ -128,7 +166,9 @@ describe('lpc formatter', () => {
     await user.click(format)
     await user.click(copy)
     expect(await screen.findByText('复制失败，请手动复制')).toBeInTheDocument()
-    expect(output).toHaveValue(formatted)
+    expect(screen.getByRole('textbox', { name: '格式化结果' })).toHaveValue(
+      formatted,
+    )
   })
 })
 
@@ -172,7 +212,7 @@ describe('lpc analysis integration', () => {
     await user.click(
       screen.getByRole('radio', { name: '格式化' }).closest('label')!,
     )
-    expect(screen.getByLabelText('格式化结果')).toHaveValue('')
+    expectFormatEmpty()
     expect(screen.getByRole('button', { name: '复制结果' })).toBeDisabled()
     expect(formatSpy).toHaveBeenCalledTimes(1)
     expect(parseSpy).toHaveBeenCalledTimes(1)
@@ -194,7 +234,7 @@ describe('lpc analysis integration', () => {
     await user.click(
       screen.getByRole('radio', { name: '格式化' }).closest('label')!,
     )
-    expect(screen.getByLabelText('格式化结果')).toHaveValue('')
+    expectFormatEmpty()
     expect(screen.getByRole('button', { name: '复制结果' })).toBeDisabled()
   })
 
@@ -228,7 +268,7 @@ describe('lpc analysis integration', () => {
     await user.click(
       screen.getByRole('radio', { name: '格式化' }).closest('label')!,
     )
-    expect(screen.getByLabelText('格式化结果')).toHaveValue('')
+    expectFormatEmpty()
     expect(screen.getByRole('button', { name: '复制结果' })).toBeDisabled()
   })
 
@@ -277,12 +317,11 @@ describe('lpc workspace layout', () => {
         'min-h-0',
         'min-w-0',
       )
-      for (const name of ['原始 LPC', '格式化结果']) {
-        expect(screen.getByRole('textbox', { name })).toHaveStyle({
-          overflow: 'auto',
-          resize: 'none',
-        })
-      }
+      expect(screen.getByRole('textbox', { name: '原始 LPC' })).toHaveStyle({
+        overflow: 'auto',
+        resize: 'none',
+      })
+      expectFormatEmpty()
     },
   )
 
@@ -378,7 +417,7 @@ describe('lpc result states', () => {
       expectAnalysisEmpty()
       await selectMode(user, '格式化')
       expect(screen.queryByRole('alert')).not.toBeInTheDocument()
-      expect(screen.getByLabelText('格式化结果')).toHaveValue('')
+      expectFormatEmpty()
       expect(screen.getByRole('button', { name: '复制结果' })).toBeDisabled()
     },
   )
@@ -394,7 +433,7 @@ describe('lpc result states', () => {
     expectAnalysisEmpty()
     await selectMode(user, '格式化')
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
-    expect(screen.getByLabelText('格式化结果')).toHaveValue('')
+    expectFormatEmpty()
     expect(screen.getByRole('button', { name: '复制结果' })).toBeDisabled()
   })
 
