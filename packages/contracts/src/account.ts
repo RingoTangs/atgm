@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { characterListItemSchema } from './character'
 import { errorCodes, errorResponseSchema } from './error'
 import { paginatedResponseSchema, paginationQuerySchema } from './pagination'
 
@@ -35,6 +36,14 @@ export const accountDetailParamsSchema = z.object({
 })
 
 export type AccountDetailParams = z.infer<typeof accountDetailParamsSchema>
+
+export const accountCharactersResponseSchema = z.object({
+  items: z.array(characterListItemSchema),
+})
+
+export type AccountCharactersResponse = z.infer<
+  typeof accountCharactersResponseSchema
+>
 
 export const accountDetailResponseSchema = z.object({
   account: z.string(),

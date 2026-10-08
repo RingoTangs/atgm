@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import {
+  accountCharactersResponseSchema,
   accountDetailParamsSchema,
   accountDetailResponseSchema,
   accountNotFoundResponseSchema,
@@ -12,11 +13,70 @@ import {
 import { sql } from 'kysely'
 import { getOnlineAccounts, isAccountOnline } from '../lib/account-status'
 import { formatDisplayTime } from '../lib/game-time'
+import { parseLoginData } from '../lib/login-data'
 
 const escapeLikePattern = (value: string): string =>
   value.replace(/[!%_]/g, (character) => `!${character}`)
 
 export async function accountRoutes(app: FastifyInstance) {
+  app.withTypeProvider<ZodTypeProvider>().get(
+    '/accounts/:account/characters',
+    {
+      schema: {
+        tags: ['Account'],
+        summary: '查询账号关联角色',
+        description: '根据账号 login 数据查询关联角色，保留角色顺序',
+        params: accountDetailParamsSchema,
+        response: {
+          200: accountCharactersResponseSchema,
+          400: errorResponseSchema,
+          404: accountNotFoundResponseSchema,
+          500: errorResponseSchema,
+          default: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { account } = request.params
+      const accountRow = await app.db.adb
+        .selectFrom('account')
+        .select('account')
+        .where('account', '=', account)
+        .executeTakeFirst()
+      if (!accountRow) {
+        return reply.code(404).send({
+          code: errorCodes.ACCOUNT_NOT_FOUND,
+          message: '账号不存在',
+        })
+      }
+
+      const loginRow = await app.db.ddb
+        .selectFrom('data')
+        .select('content')
+        .where('path', '=', 'login')
+        .where('name', '=', account)
+        .where('branch', '=', '')
+        .executeTakeFirst()
+      if (!loginRow) return { items: [] }
+
+      const loginData = parseLoginData(loginRow.content)
+      if (loginData.chars.length === 0) return { items: [] }
+
+      const rows = await app.db.ddb
+        .selectFrom('basic_char_info')
+        .select(['gid', 'name', 'polar', 'gender', 'time'])
+        .where('gid', 'in', loginData.chars)
+        .execute()
+      const rowsByGid = new Map(rows.map((row) => [row.gid, row]))
+      return {
+        items: loginData.chars.flatMap((gid) => {
+          const row = rowsByGid.get(gid)
+          return row ? [{ ...row, time: formatDisplayTime(row.time) }] : []
+        }),
+      }
+    },
+  )
+
   app.withTypeProvider<ZodTypeProvider>().get(
     '/accounts',
     {

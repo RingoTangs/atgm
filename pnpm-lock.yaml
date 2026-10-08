@@ -59,6 +59,9 @@ importers:
       '@atgm/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@atgm/lpc-serialization':
+        specifier: workspace:*
+        version: link:../../packages/lpc-serialization
       '@fastify/swagger':
         specifier: ^9.9.0
         version: 9.9.0
