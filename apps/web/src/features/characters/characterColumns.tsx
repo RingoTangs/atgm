@@ -8,8 +8,10 @@ import { Tag } from 'antd'
 
 export const createCharacterColumns = ({
   recRole,
+  timeTitle = '时间',
 }: {
   recRole?: string | null
+  timeTitle?: string
 } = {}): TableProps<CharacterListItem>['columns'] => [
   { title: 'GID', dataIndex: 'gid', key: 'gid', align: 'center' },
   {
@@ -47,7 +49,7 @@ export const createCharacterColumns = ({
       `未知(${value})`,
   },
   {
-    title: '时间',
+    title: timeTitle,
     dataIndex: 'time',
     key: 'time',
     align: 'center',

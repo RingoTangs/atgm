@@ -309,7 +309,7 @@ describe('account associated characters', () => {
       within(section)
         .getAllByRole('columnheader')
         .map((cell) => cell.textContent),
-    ).toEqual(['GID', '角色名', '相性', '性别', '时间'])
+    ).toEqual(['GID', '角色名', '相性', '性别', '创建时间'])
     expect(section.querySelector('.ant-pagination')).toBeNull()
     const content = screen
       .getByText('基本信息')
