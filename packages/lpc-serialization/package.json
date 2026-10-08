@@ -1,5 +1,5 @@
 {
-  "name": "@atgm/lpc-parser",
+  "name": "@atgm/lpc-serialization",
   "type": "module",
   "version": "0.1.1",
   "private": true,
