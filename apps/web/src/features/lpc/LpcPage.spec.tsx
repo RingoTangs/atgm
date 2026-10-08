@@ -2,7 +2,7 @@ import { LpcParseError, parseLpcValue } from '@atgm/lpc'
 import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { LpcFormatterPage } from './LpcFormatterPage'
+import { LpcPage } from './LpcPage'
 
 const source = '(["name":"测试","items":({1,2,3,})])'
 const formatted = `([
@@ -16,7 +16,7 @@ const formatted = `([
 
 const setup = () => {
   const user = userEvent.setup()
-  render(<LpcFormatterPage />)
+  render(<LpcPage />)
   return {
     user,
     input: screen.getByLabelText('原始 LPC'),

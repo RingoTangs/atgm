@@ -69,7 +69,7 @@ const NavigationMenu: React.FC<NavigationMenuProps> = ({ onNavigate }) => {
     pathname === '/accounts' || pathname.startsWith('/accounts/')
   const isCharactersPath =
     pathname === '/characters' || pathname.startsWith('/characters/')
-  const isLpcFormatterPath = pathname === '/tools/lpc-formatter'
+  const isLpcPath = pathname === '/lpc'
   const selectedNavigationKey =
     pathname === '/'
       ? pathname
@@ -77,8 +77,8 @@ const NavigationMenu: React.FC<NavigationMenuProps> = ({ onNavigate }) => {
         ? '/accounts'
         : isCharactersPath
           ? '/characters'
-          : isLpcFormatterPath
-            ? '/tools/lpc-formatter'
+          : isLpcPath
+            ? '/lpc'
             : undefined
 
   const navigationItems: MenuProps['items'] = [
@@ -108,13 +108,9 @@ const NavigationMenu: React.FC<NavigationMenuProps> = ({ onNavigate }) => {
       ),
     },
     {
-      key: '/tools/lpc-formatter',
+      key: '/lpc',
       icon: <Braces aria-hidden="true" size={18} />,
-      label: (
-        <span aria-current={isLpcFormatterPath ? 'page' : undefined}>
-          LPC 格式化
-        </span>
-      ),
+      label: <span aria-current={isLpcPath ? 'page' : undefined}>LPC</span>,
     },
   ]
 
@@ -128,8 +124,8 @@ const NavigationMenu: React.FC<NavigationMenuProps> = ({ onNavigate }) => {
     if (key === '/accounts') {
       void navigate({ to: '/accounts' })
     }
-    if (key === '/tools/lpc-formatter') {
-      void navigate({ to: '/tools/lpc-formatter' })
+    if (key === '/lpc') {
+      void navigate({ to: '/lpc' })
     }
     if (key === '/characters') {
       void navigate({ to: '/characters' })

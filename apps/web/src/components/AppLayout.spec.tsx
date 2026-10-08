@@ -99,10 +99,10 @@ const renderApplication = (
     path: '/characters',
     component: CharactersPage,
   })
-  const lpcFormatterRoute = createRoute({
+  const lpcRoute = createRoute({
     getParentRoute: () => appRoute,
-    path: '/tools/lpc-formatter',
-    component: () => <h1>LPC 格式化页面</h1>,
+    path: '/lpc',
+    component: () => <h1>LPC页面</h1>,
   })
   const brokenRoute = createRoute({
     getParentRoute: () => rootRoute,
@@ -117,7 +117,7 @@ const renderApplication = (
         accountsRoute,
         accountDetailRoute,
         charactersRoute,
-        lpcFormatterRoute,
+        lpcRoute,
       ]),
       brokenRoute,
     ]),
@@ -155,36 +155,34 @@ afterEach(() => {
 })
 
 describe('app layout', () => {
-  it.each([1280, 375])('lpc 格式化支持导航和高亮（宽度 %s）', async (width) => {
+  it.each([1280, 375])('lpc 支持导航和高亮（宽度 %s）', async (width) => {
     installMatchMedia(width)
     const user = userEvent.setup()
     renderApplication()
     await screen.findByRole('heading', { name: 'Dashboard' })
     if (width === 375)
       await user.click(screen.getByRole('button', { name: '打开导航' }))
-    await user.click(
-      await screen.findByRole('menuitem', { name: 'LPC 格式化' }),
-    )
-    await screen.findByRole('heading', { name: 'LPC 格式化页面' })
+    await user.click(await screen.findByRole('menuitem', { name: 'LPC' }))
+    await screen.findByRole('heading', { name: 'LPC页面' })
     if (width === 375) {
       await waitFor(() =>
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
       )
       await user.click(screen.getByRole('button', { name: '打开导航' }))
     }
-    const item = await screen.findByRole('menuitem', { name: 'LPC 格式化' })
+    const item = await screen.findByRole('menuitem', { name: 'LPC' })
     expect(item).toHaveClass('ant-menu-item-selected')
-    expect(within(item).getByText('LPC 格式化')).toHaveAttribute(
+    expect(within(item).getByText('LPC')).toHaveAttribute(
       'aria-current',
       'page',
     )
   })
 
-  it('直接访问 LPC 格式化路径时导航选中', async () => {
+  it('直接访问 LPC路径时导航选中', async () => {
     installMatchMedia(1280)
-    renderApplication('/tools/lpc-formatter')
-    await screen.findByRole('heading', { name: 'LPC 格式化页面' })
-    expect(screen.getByRole('menuitem', { name: 'LPC 格式化' })).toHaveClass(
+    renderApplication('/lpc')
+    await screen.findByRole('heading', { name: 'LPC页面' })
+    expect(screen.getByRole('menuitem', { name: 'LPC' })).toHaveClass(
       'ant-menu-item-selected',
     )
   })

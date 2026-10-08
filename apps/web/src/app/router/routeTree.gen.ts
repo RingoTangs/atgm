@@ -13,10 +13,10 @@ import { Route as SplatRouteImport } from './../../routes/$'
 import { Route as AppRouteImport } from './../../routes/_app'
 import { Route as AppIndexRouteImport } from './../../routes/_app/index'
 import { Route as AppAccountsRouteImport } from './../../routes/_app/accounts'
+import { Route as AppLpcRouteImport } from './../../routes/_app/lpc'
 import { Route as AppAccountsIndexRouteImport } from './../../routes/_app/accounts.index'
 import { Route as AppAccountsAccountRouteImport } from './../../routes/_app/accounts.$account'
 import { Route as AppCharactersIndexRouteImport } from './../../routes/_app/characters.index'
-import { Route as AppToolsLpcFormatterRouteImport } from './../../routes/_app/tools.lpc-formatter'
 
 const SplatRoute = SplatRouteImport.update({
   id: '/$',
@@ -37,6 +37,11 @@ const AppAccountsRoute = AppAccountsRouteImport.update({
   path: '/accounts',
   getParentRoute: () => AppRoute,
 } as any)
+const AppLpcRoute = AppLpcRouteImport.update({
+  id: '/lpc',
+  path: '/lpc',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAccountsIndexRoute = AppAccountsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -52,26 +57,21 @@ const AppCharactersIndexRoute = AppCharactersIndexRouteImport.update({
   path: '/characters/',
   getParentRoute: () => AppRoute,
 } as any)
-const AppToolsLpcFormatterRoute = AppToolsLpcFormatterRouteImport.update({
-  id: '/tools/lpc-formatter',
-  path: '/tools/lpc-formatter',
-  getParentRoute: () => AppRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/$': typeof SplatRoute
   '/': typeof AppIndexRoute
   '/accounts': typeof AppAccountsRouteWithChildren
+  '/lpc': typeof AppLpcRoute
   '/accounts/$account': typeof AppAccountsAccountRoute
-  '/tools/lpc-formatter': typeof AppToolsLpcFormatterRoute
   '/accounts/': typeof AppAccountsIndexRoute
   '/characters/': typeof AppCharactersIndexRoute
 }
 export interface FileRoutesByTo {
   '/$': typeof SplatRoute
+  '/lpc': typeof AppLpcRoute
   '/': typeof AppIndexRoute
   '/accounts/$account': typeof AppAccountsAccountRoute
-  '/tools/lpc-formatter': typeof AppToolsLpcFormatterRoute
   '/accounts': typeof AppAccountsIndexRoute
   '/characters': typeof AppCharactersIndexRoute
 }
@@ -80,9 +80,9 @@ export interface FileRoutesById {
   '/$': typeof SplatRoute
   '/_app': typeof AppRouteWithChildren
   '/_app/accounts': typeof AppAccountsRouteWithChildren
+  '/_app/lpc': typeof AppLpcRoute
   '/_app/': typeof AppIndexRoute
   '/_app/accounts/$account': typeof AppAccountsAccountRoute
-  '/_app/tools/lpc-formatter': typeof AppToolsLpcFormatterRoute
   '/_app/accounts/': typeof AppAccountsIndexRoute
   '/_app/characters/': typeof AppCharactersIndexRoute
 }
@@ -92,26 +92,20 @@ export interface FileRouteTypes {
     | '/$'
     | '/'
     | '/accounts'
+    | '/lpc'
     | '/accounts/$account'
-    | '/tools/lpc-formatter'
     | '/accounts/'
     | '/characters/'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/$'
-    | '/'
-    | '/accounts/$account'
-    | '/tools/lpc-formatter'
-    | '/accounts'
-    | '/characters'
+  to: '/$' | '/lpc' | '/' | '/accounts/$account' | '/accounts' | '/characters'
   id:
     | '__root__'
     | '/$'
     | '/_app'
     | '/_app/accounts'
+    | '/_app/lpc'
     | '/_app/'
     | '/_app/accounts/$account'
-    | '/_app/tools/lpc-formatter'
     | '/_app/accounts/'
     | '/_app/characters/'
   fileRoutesById: FileRoutesById
@@ -151,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAccountsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/lpc': {
+      id: '/_app/lpc'
+      path: '/lpc'
+      fullPath: '/lpc'
+      preLoaderRoute: typeof AppLpcRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/accounts/': {
       id: '/_app/accounts/'
       path: '/'
@@ -172,13 +173,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCharactersIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/tools/lpc-formatter': {
-      id: '/_app/tools/lpc-formatter'
-      path: '/tools/lpc-formatter'
-      fullPath: '/tools/lpc-formatter'
-      preLoaderRoute: typeof AppToolsLpcFormatterRouteImport
-      parentRoute: typeof AppRoute
-    }
   }
 }
 
@@ -198,15 +192,15 @@ const AppAccountsRouteWithChildren = AppAccountsRoute._addFileChildren(
 
 interface AppRouteChildren {
   AppAccountsRoute: typeof AppAccountsRouteWithChildren
+  AppLpcRoute: typeof AppLpcRoute
   AppIndexRoute: typeof AppIndexRoute
-  AppToolsLpcFormatterRoute: typeof AppToolsLpcFormatterRoute
   AppCharactersIndexRoute: typeof AppCharactersIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppAccountsRoute: AppAccountsRouteWithChildren,
+  AppLpcRoute: AppLpcRoute,
   AppIndexRoute: AppIndexRoute,
-  AppToolsLpcFormatterRoute: AppToolsLpcFormatterRoute,
   AppCharactersIndexRoute: AppCharactersIndexRoute,
 }
 

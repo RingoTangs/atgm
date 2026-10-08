@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { buildLpcAnalysisTree } from './buildLpcAnalysisTree'
 import { LpcAnalysisView } from './LpcAnalysisView'
 
-export const LpcFormatterPage: React.FC = () => {
+export const LpcPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('format')
   const [analysis, setAnalysis] = useState<LpcAnalysisNode | null>(null)
   const [input, setInput] = useState('')
@@ -57,7 +57,7 @@ export const LpcFormatterPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {messageContext}
-      <h1 className="text-2xl font-semibold">LPC 格式化</h1>
+      <h1 className="text-2xl font-semibold">LPC</h1>
       <div className="space-y-2">
         <label htmlFor="lpc-input">原始 LPC</label>
         <Input.TextArea
