@@ -38,7 +38,8 @@ export const accountDetailParamsSchema = z.object({
 export type AccountDetailParams = z.infer<typeof accountDetailParamsSchema>
 
 export const accountCharactersResponseSchema = z.object({
-  items: z.array(characterListItemSchema),
+  recRole: z.string().nullable(),
+  chars: z.array(characterListItemSchema),
 })
 
 export type AccountCharactersResponse = z.infer<

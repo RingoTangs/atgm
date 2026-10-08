@@ -97,15 +97,21 @@ describe('GET /accounts/:account/characters', () => {
   })
 
   it.each([
-    undefined,
-    login.replace('({"0000000000000003","0000000000000004",})', '({})'),
+    { value: undefined, recRole: null },
+    {
+      value: login.replace(
+        '({"0000000000000003","0000000000000004",})',
+        '({})',
+      ),
+      recRole: first.gid,
+    },
   ])(
-    'returns empty items without querying characters for login content %j',
-    async (value) => {
+    'returns empty chars and recRole $recRole without querying characters for login content $value',
+    async ({ value, recRole }) => {
       content = value
       const response = await app.inject('/accounts/example_user/characters')
       expect(response.statusCode).toBe(200)
-      expect(response.json()).toEqual({ items: [] })
+      expect(response.json()).toEqual({ recRole, chars: [] })
       expect(transformResult).toHaveBeenCalledTimes(2)
       expect(
         compileQuery.mock.results.map((result) => result.value.sql),
@@ -118,7 +124,10 @@ describe('GET /accounts/:account/characters', () => {
   it('queries only required fields and returns real login roles in chars order with formatted times', async () => {
     const response = await app.inject('/accounts/example_user/characters')
     expect(response.statusCode).toBe(200)
-    expect(response.json()).toEqual({ items: [firstResponse, secondResponse] })
+    expect(response.json()).toEqual({
+      recRole: first.gid,
+      chars: [firstResponse, secondResponse],
+    })
     expect(transformResult).toHaveBeenCalledTimes(3)
     expect(
       compileQuery.mock.results.map((result) => result.value),
@@ -145,7 +154,8 @@ describe('GET /accounts/:account/characters', () => {
       const response = await app.inject('/accounts/example_user/characters')
       expect(response.statusCode).toBe(200)
       expect(response.json()).toEqual({
-        items: available.map((row) =>
+        recRole: first.gid,
+        chars: available.map((row) =>
           row.gid === first.gid ? firstResponse : secondResponse,
         ),
       })
@@ -160,7 +170,8 @@ describe('GET /accounts/:account/characters', () => {
     const response = await app.inject('/accounts/example_user/characters')
     expect(response.statusCode).toBe(200)
     expect(response.json()).toEqual({
-      items: [firstResponse, secondResponse, firstResponse],
+      recRole: first.gid,
+      chars: [firstResponse, secondResponse, firstResponse],
     })
   })
 
@@ -170,9 +181,25 @@ describe('GET /accounts/:account/characters', () => {
       rows = [{ ...first, time }]
       const response = await app.inject('/accounts/example_user/characters')
       expect(response.statusCode).toBe(200)
-      expect(response.json()).toEqual({ items: [{ ...first, time }] })
+      expect(response.json()).toEqual({
+        recRole: first.gid,
+        chars: [{ ...first, time }],
+      })
     },
   )
+
+  it('preserves recRole even when it is not in chars or the character query result', async () => {
+    content = login.replace(
+      '"rec_role":"0000000000000003"',
+      '"rec_role":"0000000000000005"',
+    )
+    const response = await app.inject('/accounts/example_user/characters')
+    expect(response.statusCode).toBe(200)
+    expect(response.json()).toEqual({
+      recRole: '0000000000000005',
+      chars: [firstResponse, secondResponse],
+    })
+  })
 
   it.each([
     '(["chars":',

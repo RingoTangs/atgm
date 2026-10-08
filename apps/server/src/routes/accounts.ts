@@ -57,10 +57,11 @@ export async function accountRoutes(app: FastifyInstance) {
         .where('name', '=', account)
         .where('branch', '=', '')
         .executeTakeFirst()
-      if (!loginRow) return { items: [] }
+      if (!loginRow) return { recRole: null, chars: [] }
 
       const loginData = parseLoginData(loginRow.content)
-      if (loginData.chars.length === 0) return { items: [] }
+      if (loginData.chars.length === 0)
+        return { recRole: loginData.recRole, chars: [] }
 
       const rows = await app.db.ddb
         .selectFrom('basic_char_info')
@@ -69,7 +70,8 @@ export async function accountRoutes(app: FastifyInstance) {
         .execute()
       const rowsByGid = new Map(rows.map((row) => [row.gid, row]))
       return {
-        items: loginData.chars.flatMap((gid) => {
+        recRole: loginData.recRole,
+        chars: loginData.chars.flatMap((gid) => {
           const row = rowsByGid.get(gid)
           return row ? [{ ...row, time: formatDisplayTime(row.time) }] : []
         }),
