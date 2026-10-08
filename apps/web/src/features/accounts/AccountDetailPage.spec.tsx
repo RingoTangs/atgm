@@ -437,8 +437,12 @@ describe('account associated characters', () => {
       expect(within(section).getAllByText('女金')).toHaveLength(2),
     )
     expect(within(section).getAllByText('最近登陆')).toHaveLength(2)
+    const rows = within(section).getAllByRole('row').slice(1)
+    expect(rows).toHaveLength(2)
+    expect(rows[0]).toHaveAttribute('data-row-key', '0000000000000003-0')
+    expect(rows[1]).toHaveAttribute('data-row-key', '0000000000000003-1')
     expect(consoleError.mock.calls.flat().join(' ')).not.toMatch(
-      /same key|unique.*key/i,
+      /same key|unique.*key|rowKey.*deprecated/i,
     )
   })
 })

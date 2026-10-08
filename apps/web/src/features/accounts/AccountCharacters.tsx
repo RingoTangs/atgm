@@ -8,12 +8,20 @@ import { useQuery } from '@tanstack/react-query'
 import { Alert, Button, Table, Tag } from 'antd'
 import { accountCharactersQueryOptions } from './accounts-queries'
 
+interface CharacterRow extends CharacterListItem {
+  rowKey: string
+}
+
 export const AccountCharacters: React.FC<{ account: string }> = ({
   account,
 }) => {
   const charactersQuery = useQuery(accountCharactersQueryOptions(account))
   const data = charactersQuery.data
-  const columns: TableProps<CharacterListItem>['columns'] = [
+  const rows: CharacterRow[] = (data?.chars ?? []).map((character, index) => ({
+    ...character,
+    rowKey: `${character.gid}-${index}`,
+  }))
+  const columns: TableProps<CharacterRow>['columns'] = [
     { title: 'GID', dataIndex: 'gid', key: 'gid', align: 'center' },
     {
       title: '角色名',
@@ -81,9 +89,9 @@ export const AccountCharacters: React.FC<{ account: string }> = ({
         />
       )}
       {(!charactersQuery.isError || data) && (
-        <Table<CharacterListItem>
+        <Table<CharacterRow>
           columns={columns}
-          dataSource={data?.chars ?? []}
+          dataSource={rows}
           loading={charactersQuery.isPending || charactersQuery.isFetching}
           locale={{
             emptyText: charactersQuery.isPending ? '加载中' : '暂无角色',
@@ -91,7 +99,7 @@ export const AccountCharacters: React.FC<{ account: string }> = ({
           bordered
           size="small"
           pagination={false}
-          rowKey={(record, index) => `${record.gid}-${index}`}
+          rowKey="rowKey"
           scroll={{ x: 'max-content' }}
         />
       )}
