@@ -191,11 +191,7 @@ importers:
         specifier: 'catalog:'
         version: 4.6.5
 
-  packages/lpc-serialization:
-    dependencies:
-      zod:
-        specifier: 'catalog:'
-        version: 4.6.5
+  packages/lpc-serialization: {}
 
 packages:
 
