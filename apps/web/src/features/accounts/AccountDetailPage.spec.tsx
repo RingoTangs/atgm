@@ -292,9 +292,7 @@ describe('account associated characters', () => {
     expect(fetchMock).toHaveBeenCalledWith(
       '/_api/accounts/server-account/characters',
     )
-    expect(
-      within(section).getByText('最近登陆角色 GID：0000000000000003'),
-    ).toBeInTheDocument()
+    expect(within(section).queryByText(/最近登陆角色 GID/)).toBeNull()
     const rows = within(section).getAllByRole('row').slice(1)
     expect(within(rows[0]).getByText('0000000000000003')).toBeInTheDocument()
     expect(within(rows[1]).getByText('0000000000000004')).toBeInTheDocument()
@@ -322,15 +320,16 @@ describe('account associated characters', () => {
   it.each([
     { recRole: null, chars: [] },
     { recRole: '0000000000000003', chars: [] },
-  ])('renders empty characters and recRole $recRole', async (response) => {
-    charactersResponse = async () => jsonResponse(response)
-    renderPage()
-    const section = await screen.findByRole('region', { name: '关联角色' })
-    expect(await within(section).findByText('暂无角色')).toBeInTheDocument()
-    expect(
-      within(section).getByText(`最近登陆角色 GID：${response.recRole ?? '-'}`),
-    ).toBeInTheDocument()
-  })
+  ])(
+    'renders empty characters without a GID hint for recRole $recRole',
+    async (response) => {
+      charactersResponse = async () => jsonResponse(response)
+      renderPage()
+      const section = await screen.findByRole('region', { name: '关联角色' })
+      expect(await within(section).findByText('暂无角色')).toBeInTheDocument()
+      expect(within(section).queryByText(/最近登陆角色 GID/)).toBeNull()
+    },
+  )
 
   it('does not mark other characters as last login when recRole is absent from the list', async () => {
     charactersResponse = async () =>
@@ -338,9 +337,7 @@ describe('account associated characters', () => {
     renderPage()
     const section = await screen.findByRole('region', { name: '关联角色' })
     expect(await within(section).findByText('女金')).toBeInTheDocument()
-    expect(
-      within(section).getByText('最近登陆角色 GID：missing'),
-    ).toBeInTheDocument()
+    expect(within(section).queryByText(/最近登陆角色 GID/)).toBeNull()
     expect(within(section).queryByText('最近登陆')).toBeNull()
   })
 
