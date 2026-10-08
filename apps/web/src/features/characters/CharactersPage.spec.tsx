@@ -75,18 +75,43 @@ describe('characters page', () => {
       screen.getByRole('heading', { name: '角色管理' }),
     ).toBeInTheDocument()
     expect(screen.getByText('查询游戏角色')).toBeInTheDocument()
-    for (const name of ['GID', '角色名', 'Polar', 'Gender', '时间']) {
+    for (const name of ['GID', '角色名', '相性', '性别', '时间']) {
       expect(screen.getByRole('columnheader', { name })).toBeInTheDocument()
     }
     expect(screen.getAllByRole('columnheader')).toHaveLength(5)
     const row = (await screen.findByText('中文角色')).closest('tr')!
     expect(row).toHaveAttribute('data-row-key', character.gid)
     expect(within(row).getByText(character.time)).toBeInTheDocument()
-    expect(within(row).getByText('1')).toBeInTheDocument()
-    expect(within(row).getByText('2')).toBeInTheDocument()
+    expect(within(row).getByText('金')).toBeInTheDocument()
+    expect(within(row).getByText('女')).toBeInTheDocument()
     expect(fetchMock).toHaveBeenCalledWith(
       '/_api/characters?page=1&pageSize=20',
     )
+  })
+
+  it.each([
+    { polar: 1, label: '金' },
+    { polar: 2, label: '木' },
+    { polar: 3, label: '水' },
+    { polar: 4, label: '火' },
+    { polar: 5, label: '土' },
+    { polar: 9, label: '未知(9)' },
+  ])('displays polar $polar as $label', async ({ polar, label }) => {
+    fetchMock.mockResolvedValue(response([{ ...character, polar }]))
+    renderPage()
+    const row = (await screen.findByText(character.name)).closest('tr')!
+    expect(within(row).getByText(label)).toBeInTheDocument()
+  })
+
+  it.each([
+    { gender: 1, label: '男' },
+    { gender: 2, label: '女' },
+    { gender: 9, label: '未知(9)' },
+  ])('displays gender $gender as $label', async ({ gender, label }) => {
+    fetchMock.mockResolvedValue(response([{ ...character, gender }]))
+    renderPage()
+    const row = (await screen.findByText(character.name)).closest('tr')!
+    expect(within(row).getByText(label)).toBeInTheDocument()
   })
 
   it('uses server total to request the second page', async () => {
