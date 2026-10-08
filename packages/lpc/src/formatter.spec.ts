@@ -13,7 +13,8 @@ const formatted = `([
   }),
 ])`
 
-describe('lPC formatter', () => {
+/* eslint-disable-next-line test/prefer-lowercase-title */
+describe('LPC formatter', () => {
   it('formats the requested example with two-space indentation', () => {
     expect(formatLpc(source)).toBe(formatted)
     expect(formatLpcValue(parseLpcValue(source))).toBe(formatted)
