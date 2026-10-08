@@ -61,7 +61,10 @@ const BrokenPage = () => {
   throw new Error('Route failed')
 }
 
-const renderApplication = (initialEntry = '/') => {
+const renderApplication = (
+  initialEntry = '/',
+  onCaughtError?: (error: unknown) => void,
+) => {
   const rootRoute = createRootRoute({
     component: Outlet,
     errorComponent: GeneralError,
@@ -120,6 +123,7 @@ const renderApplication = (initialEntry = '/') => {
         <RouterProvider router={router} />
       </ConfigProvider>
     </ThemeProvider>,
+    { onCaughtError },
   )
 }
 
@@ -331,11 +335,16 @@ describe('app layout', () => {
 
   it('保持根路由的 Error Boundary 行为', async () => {
     installMatchMedia(1280)
-    renderApplication('/broken')
+    const onCaughtError = vi.fn()
+    renderApplication('/broken', onCaughtError)
 
     expect(
       await screen.findByRole('heading', { name: '500' }),
     ).toBeInTheDocument()
     expect(screen.getByText(/Something went wrong/)).toBeInTheDocument()
+    expect(onCaughtError).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'Route failed' }),
+      expect.any(Object),
+    )
   })
 })
