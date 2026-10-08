@@ -5,6 +5,7 @@ import type {
   LpcSpecialValue,
   LpcValue,
 } from '.'
+import { readFileSync } from 'node:fs'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import * as publicApi from '.'
 import { LpcParseError, parseLpcValue } from '.'
@@ -212,6 +213,139 @@ describe('real content', () => {
     )
     const values = array(mapping(mapping(me.get('attrib')).get(92)).get(52))
     expect(values).toEqual([[-20, '中文', special]])
+  })
+})
+
+describe('complete real fixtures', () => {
+  it('parses the complete login fixture', () => {
+    const source = readFileSync(
+      new URL('./fixtures/login.txt', import.meta.url),
+      'utf8',
+    )
+    const result = mapping(parseLpcValue(source))
+    expect(result.get('create_time')).toBe(1790613437)
+    expect(result.get('rec_role')).toBe('0000000000000003')
+    expect(result.get('safe_status')).toBe(0)
+    expect(result.get('register_time')).toBe(0)
+    expect(result.get('chars')).toEqual([
+      '0000000000000003',
+      '0000000000000004',
+    ])
+  })
+
+  it('parses both complete salary periods', () => {
+    const source = readFileSync(
+      new URL('./fixtures/salary.txt', import.meta.url),
+      'utf8',
+    )
+    const result = mapping(parseLpcValue(source))
+    for (const [key, endDate] of [
+      ['last_period', 1791129600],
+      ['this_period', 1791734400],
+    ] as const) {
+      const period = mapping(result.get(key))
+      expect(period.get('end_date')).toBe(endDate)
+      const percent = array(
+        mapping(period.get('时间-工资百分比')).get('percent'),
+      )
+      expect(percent).toEqual([
+        [0, -1, 100],
+        [0, -1, 100],
+        [0, -1, 100],
+        [0, -1, 100],
+      ])
+      for (const row of percent) expect(array(row)).toEqual([0, -1, 100])
+      const salary = array(mapping(period.get('等级-工资')).get('salary'))
+      expect(salary).toEqual([
+        [0, 79, 0, 0],
+        [80, 89, 2000, 5500],
+        [90, 99, 2000, 6500],
+        [100, 109, 2000, 8500],
+        [110, 119, 2000, 10500],
+        [120, 129, 2000, 12500],
+        [130, 180, 2000, 15000],
+      ])
+      const settings = mapping(period.get('设置'))
+      expect(settings.get('period')).toEqual([0, 7])
+      expect(settings.get('period_start_time')).toBe('2006-12-25')
+      expect(settings.get('delay_time')).toBe(21600)
+      expect(settings.get('duration')).toBe(1)
+      expect(settings.get('start')).toBe('2006-12-18')
+      expect(settings.get('min_time')).toBe(54000)
+      expect(settings.get('min_level')).toBe(50)
+    }
+  })
+
+  it('parses the complete complex me fixture without parsing embedded LPC', () => {
+    const source = readFileSync(
+      new URL('./fixtures/complex-me.txt', import.meta.url),
+      'utf8',
+    )
+    const result = mapping(parseLpcValue(source))
+    const me = mapping(result.get('me'))
+    expect(me.get('gender')).toBe(1)
+    expect(me.get('phy_absorb')).toBe(-20)
+    expect(me.get('name')).toBe('龙宫守卫')
+    expect(me.get('polar')).toBe(5)
+    expect(me.get('level')).toBe(100)
+    expect(me.get('life')).toBe(97404)
+    expect(mapping(result.get('skills')).get('tumo-chenmai')).toBe(160)
+    const pet = me.get('l_pet')
+    const child = me.get('l_child')
+    expect(typeof pet).toBe('string')
+    expect(typeof child).toBe('string')
+    expect(pet).toContain('海龟:(["attrib":([')
+    expect(pet).toContain('33::6AB6A56F000101C911A4:')
+    expect(pet).toContain('"skills":([134:160,133:160,139:160,]),])')
+    expect(child).toContain('(["carry":([]),"attrib":([')
+    expect(child).toContain('"iid"::6AB6A56F000101C911A5:')
+    expect(child).toContain('"name":"娃娃"')
+    expect(child).toContain('"skills":(["bufeng-zhuoying":100,]),])')
+  })
+})
+
+describe('safe integers', () => {
+  it.each([
+    ['9007199254740991', Number.MAX_SAFE_INTEGER],
+    ['-9007199254740991', Number.MIN_SAFE_INTEGER],
+  ])(
+    'accepts the safe integer boundary %s as a value and mapping key',
+    (source, value) => {
+      expect(parseLpcValue(source)).toBe(value)
+      expect(mapping(parseLpcValue(`([${source}:1,])`)).get(value)).toBe(1)
+    },
+  )
+
+  it.each([
+    '9007199254740992',
+    '9007199254740993',
+    '-9007199254740992',
+    '-9007199254740993',
+  ])(
+    'rejects unsafe integer %s in values, keys and nested containers',
+    (number) => {
+      for (const [source, offset] of [
+        [number, 0],
+        [`([${number}:1,])`, 2],
+        [`({([]),({${number},}),})`, 9],
+        [`(["nested":(["value":${number},]),])`, 21],
+      ] as const) {
+        expect(() => parseLpcValue(source)).toThrow(LpcParseError)
+        expect(() => parseLpcValue(source)).toThrow(
+          expect.objectContaining({ offset }),
+        )
+      }
+    },
+  )
+
+  it.each([
+    '12.5',
+    '-12.5',
+    '9007199254740992.0',
+    '-9007199254740992.0',
+    '9007199254740993.5',
+  ])('preserves existing finite floating-point behavior for %s', (source) => {
+    expect(parseLpcValue(source)).toBe(Number(source))
   })
 })
 

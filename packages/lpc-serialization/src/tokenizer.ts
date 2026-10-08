@@ -73,6 +73,8 @@ export class Tokenizer {
     const value = Number(text)
     if (!/^-?\d+(?:\.\d+)?$/.test(text) || !Number.isFinite(value))
       throw new LpcParseError('Invalid number', offset)
+    if (!text.includes('.') && !Number.isSafeInteger(value))
+      throw new LpcParseError('Integer exceeds safe integer range', offset)
     return { type: 'number', value, offset }
   }
 
