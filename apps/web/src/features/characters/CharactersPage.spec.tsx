@@ -75,7 +75,7 @@ describe('characters page', () => {
       screen.getByRole('heading', { name: '角色管理' }),
     ).toBeInTheDocument()
     expect(screen.getByText('查询游戏角色')).toBeInTheDocument()
-    for (const name of ['GID', '角色名', '相性', '性别', '时间']) {
+    for (const name of ['GID', '角色名', '相性', '性别', '创建时间']) {
       expect(screen.getByRole('columnheader', { name })).toBeInTheDocument()
     }
     expect(screen.getAllByRole('columnheader')).toHaveLength(5)

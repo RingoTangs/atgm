@@ -33,7 +33,7 @@ const columns: TableProps<CharacterListItem>['columns'] = [
       `未知(${value})`,
   },
   {
-    title: '时间',
+    title: '创建时间',
     dataIndex: 'time',
     key: 'time',
     align: 'center',
