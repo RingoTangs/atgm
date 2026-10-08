@@ -302,12 +302,18 @@ describe('account associated characters', () => {
     expect(within(rows[0]).getByText('女')).toBeInTheDocument()
     expect(within(rows[1]).getByText('土')).toBeInTheDocument()
     expect(within(rows[1]).getByText('男')).toBeInTheDocument()
-    expect(within(rows[1]).getByText('-')).toBeInTheDocument()
+    const firstCells = within(rows[0]).getAllByRole('cell')
+    const secondCells = within(rows[1]).getAllByRole('cell')
+    expect(firstCells[1]).toHaveTextContent(/^女金$/)
+    expect(firstCells[2]).toHaveTextContent(/^最近登陆$/)
+    expect(secondCells[1]).toHaveTextContent(/^龙宫守卫$/)
+    expect(secondCells[2]).toHaveTextContent(/^-$/)
+    expect(secondCells[5]).toHaveTextContent(/^-$/)
     expect(
       within(section)
         .getAllByRole('columnheader')
         .map((cell) => cell.textContent),
-    ).toEqual(['GID', '角色名', '相性', '性别', '创建时间'])
+    ).toEqual(['GID', '角色名', '最近登陆', '相性', '性别', '创建时间'])
     expect(section.querySelector('.ant-pagination')).toBeNull()
     const content = screen
       .getByText('基本信息')
@@ -331,15 +337,24 @@ describe('account associated characters', () => {
     },
   )
 
-  it('does not mark other characters as last login when recRole is absent from the list', async () => {
-    charactersResponse = async () =>
-      jsonResponse({ ...accountCharacters, recRole: 'missing' })
-    renderPage()
-    const section = await screen.findByRole('region', { name: '关联角色' })
-    expect(await within(section).findByText('女金')).toBeInTheDocument()
-    expect(within(section).queryByText(/最近登陆角色 GID/)).toBeNull()
-    expect(within(section).queryByText('最近登陆')).toBeNull()
-  })
+  it.each([null, '', 'missing'])(
+    'shows no last login character when recRole is %s',
+    async (recRole) => {
+      charactersResponse = async () =>
+        jsonResponse({ ...accountCharacters, recRole })
+      renderPage()
+      const section = await screen.findByRole('region', { name: '关联角色' })
+      expect(await within(section).findByText('女金')).toBeInTheDocument()
+      expect(within(section).queryByText(/最近登陆角色 GID/)).toBeNull()
+      expect(
+        within(section).getByRole('columnheader', { name: '最近登陆' }),
+      ).toBeInTheDocument()
+      for (const row of within(section).getAllByRole('row').slice(1)) {
+        expect(within(row).queryByText('最近登陆')).toBeNull()
+        expect(within(row).getAllByRole('cell')[2]).toHaveTextContent(/^-$/)
+      }
+    },
+  )
 
   it.each([
     { polar: 1, label: '金' },
@@ -436,9 +451,13 @@ describe('account associated characters', () => {
     await waitFor(() =>
       expect(within(section).getAllByText('女金')).toHaveLength(2),
     )
-    expect(within(section).getAllByText('最近登陆')).toHaveLength(2)
     const rows = within(section).getAllByRole('row').slice(1)
     expect(rows).toHaveLength(2)
+    for (const row of rows) {
+      expect(within(row).getAllByRole('cell')[2]).toHaveTextContent(
+        /^最近登陆$/,
+      )
+    }
     expect(rows[0]).toHaveAttribute('data-row-key', '0000000000000003-0')
     expect(rows[1]).toHaveAttribute('data-row-key', '0000000000000003-1')
     expect(consoleError.mock.calls.flat().join(' ')).not.toMatch(

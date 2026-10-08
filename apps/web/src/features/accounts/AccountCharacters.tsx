@@ -28,16 +28,18 @@ export const AccountCharacters: React.FC<{ account: string }> = ({
       dataIndex: 'name',
       key: 'name',
       align: 'center',
-      render: (name: string, character: CharacterListItem) => (
-        <span>
-          {name}
-          {character.gid === data?.recRole && (
-            <Tag className="ml-2" color="blue">
-              最近登陆
-            </Tag>
-          )}
-        </span>
-      ),
+    },
+    {
+      title: '最近登陆',
+      key: 'recentLogin',
+      align: 'center',
+      width: 120,
+      render: (_, character) =>
+        data?.recRole && character.gid === data.recRole ? (
+          <Tag color="blue">最近登陆</Tag>
+        ) : (
+          '-'
+        ),
     },
     {
       title: '相性',
