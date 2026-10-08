@@ -13,6 +13,7 @@ export default antfu(
     ignores: ['**/pnpm-lock.yaml', '**/routeTree.gen.ts'],
     pnpm: {
       catalogs: false,
+      sort: true,
     },
   },
 
