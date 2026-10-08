@@ -3,8 +3,8 @@ import type { TableProps } from 'antd'
 import {
   CHARACTER_GENDER_LABELS,
   CHARACTER_POLAR_LABELS,
-  PAGINATION_DEFAULT_PAGE,
-  PAGINATION_DEFAULT_PAGE_SIZE,
+  DEFAULT_PAGE,
+  DEFAULT_PAGE_SIZE,
 } from '@atgm/contracts'
 import { useQuery } from '@tanstack/react-query'
 import { Alert, Button, Table } from 'antd'
@@ -43,8 +43,8 @@ const columns: TableProps<CharacterListItem>['columns'] = [
 ]
 
 export const CharactersPage: React.FC = () => {
-  const [page, setPage] = useState(PAGINATION_DEFAULT_PAGE)
-  const [pageSize, setPageSize] = useState(PAGINATION_DEFAULT_PAGE_SIZE)
+  const [page, setPage] = useState(DEFAULT_PAGE)
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
   const charactersQuery = useQuery(charactersQueryOptions({ page, pageSize }))
 
   return (
@@ -79,7 +79,7 @@ export const CharactersPage: React.FC = () => {
             current: page,
             onChange: (nextPage, nextPageSize) => {
               if (nextPageSize !== pageSize) {
-                setPage(PAGINATION_DEFAULT_PAGE)
+                setPage(DEFAULT_PAGE)
                 setPageSize(nextPageSize)
                 return
               }
