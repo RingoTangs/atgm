@@ -28,6 +28,19 @@ const setup = () => {
 
 beforeEach(() => {
   vi.stubGlobal(
+    'matchMedia',
+    vi.fn((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  )
+  vi.stubGlobal(
     'ResizeObserver',
     class ResizeObserver {
       observe = vi.fn()
@@ -116,5 +129,47 @@ describe('lpc formatter', () => {
     await user.click(copy)
     expect(await screen.findByText('复制失败，请手动复制')).toBeInTheDocument()
     expect(output).toHaveValue(formatted)
+  })
+})
+
+describe('lpc analysis integration', () => {
+  it('parses on entering the tab, preserves input and manually refreshes after editing', async () => {
+    const { user, input } = setup()
+    await user.click(input)
+    await user.paste('(["me":(["level":33,]),])')
+    await user.click(screen.getByRole('tab', { name: '深度解析' }))
+    expect(screen.getByRole('tree')).toBeInTheDocument()
+    await user.click(screen.getByText('level', { exact: true }))
+    expect(screen.getByText('$.me.level')).toBeInTheDocument()
+    expect(input).toHaveValue('(["me":(["level":33,]),])')
+    await user.clear(input)
+    await user.paste('({2,})')
+    expect(screen.queryByRole('tree')).not.toBeInTheDocument()
+    expect(screen.getByText('点击解析查看结果')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '解析' }))
+    expect(screen.getByRole('tree')).toBeInTheDocument()
+    expect(screen.getByText('Array')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '清空' }))
+    expect(input).toHaveValue('')
+    expect(screen.queryByRole('tree')).not.toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('tab', { name: '格式化' }))
+    expect(screen.getByLabelText('格式化结果')).toHaveValue('')
+    expect(screen.getByRole('button', { name: '复制结果' })).toBeDisabled()
+  })
+
+  it('shows parsing errors in the analysis tab and clears them on retry', async () => {
+    const { user, input } = setup()
+    await user.click(input)
+    await user.paste('(["name":')
+    await user.click(screen.getByRole('tab', { name: '深度解析' }))
+    expect(screen.getByRole('alert')).toHaveTextContent('offset: 9')
+    expect(screen.getByRole('alert')).toHaveTextContent('Expected LPC value')
+    expect(screen.queryByRole('tree')).not.toBeInTheDocument()
+    await user.clear(input)
+    await user.paste('([])')
+    await user.click(screen.getByRole('button', { name: '解析' }))
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.getByRole('tree')).toBeInTheDocument()
   })
 })
