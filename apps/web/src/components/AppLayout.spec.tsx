@@ -335,6 +335,15 @@ describe('app layout', () => {
 
   it('保持根路由的 Error Boundary 行为', async () => {
     installMatchMedia(1280)
+    const originalWarn = console.warn.bind(console)
+    vi.spyOn(console, 'warn').mockImplementation((...args: unknown[]) => {
+      if (
+        args.length === 1 &&
+        args[0] === 'Warning: Error in route match: __root__/'
+      )
+        return
+      originalWarn(...args)
+    })
     const onCaughtError = vi.fn()
     renderApplication('/broken', onCaughtError)
 
