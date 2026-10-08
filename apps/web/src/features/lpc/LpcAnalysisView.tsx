@@ -4,6 +4,8 @@ import {
   Button,
   Card,
   Descriptions,
+  Drawer,
+  Grid,
   message,
   Tag,
   Tree,
@@ -78,13 +80,25 @@ function initialExpanded(root: LpcAnalysisNode): string[] {
 }
 
 export const LpcAnalysisView: React.FC<LpcAnalysisViewProps> = ({ root }) => {
+  const screens = Grid.useBreakpoint()
+  const inlineDetails = Boolean(screens.xxl)
   const [state, setState] = useState(() => ({
     root,
     selected: root,
     expanded: initialExpanded(root),
+    drawerOpen: false,
+    inlineDetails,
   }))
   if (state.root !== root) {
-    setState({ root, selected: root, expanded: initialExpanded(root) })
+    setState({
+      root,
+      selected: root,
+      expanded: initialExpanded(root),
+      drawerOpen: false,
+      inlineDetails,
+    })
+  } else if (state.inlineDetails !== inlineDetails) {
+    setState({ ...state, inlineDetails, drawerOpen: false })
   }
   const [messageApi, messageContext] = message.useMessage()
   const nodes = useMemo(() => {
@@ -141,44 +155,83 @@ export const LpcAnalysisView: React.FC<LpcAnalysisViewProps> = ({ root }) => {
     }
   }
 
+  const details = (
+    <>
+      <Descriptions column={1} items={items} />
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Button onClick={() => void copy(selected.path)}>复制 Path</Button>
+        <Button
+          disabled={selected.value === undefined}
+          onClick={() => {
+            if (selected.value !== undefined) void copy(selected.value)
+          }}
+        >
+          复制值
+        </Button>
+      </div>
+    </>
+  )
+
   return (
-    <div className="grid min-w-0 gap-4 lg:grid-cols-2">
+    <div
+      className="grid h-full min-h-0 min-w-0 gap-4"
+      style={{
+        gridTemplateColumns: inlineDetails
+          ? 'minmax(0, 3fr) minmax(0, 2fr)'
+          : 'minmax(0, 1fr)',
+      }}
+    >
       {messageContext}
-      <Card title="解析树" className="min-w-0">
-        <div className="overflow-x-auto">
-          <Tree
-            treeData={data}
-            virtual={false}
-            expandedKeys={state.expanded}
-            selectedKeys={[selected.id]}
-            onExpand={(keys) =>
+      <Card
+        title="解析树"
+        className="flex min-h-0 min-w-0 flex-col"
+        styles={{ body: { minHeight: 0, flex: 1, overflow: 'auto' } }}
+      >
+        <Tree
+          treeData={data}
+          virtual={false}
+          expandedKeys={state.expanded}
+          selectedKeys={[selected.id]}
+          onExpand={(keys) =>
+            setState((previous) => ({
+              ...previous,
+              expanded: keys.map(String),
+            }))
+          }
+          onSelect={(_, info) => {
+            const node = nodes.get(String(info.node.key))
+            if (node)
               setState((previous) => ({
                 ...previous,
-                expanded: keys.map(String),
+                selected: node,
+                drawerOpen: !inlineDetails,
               }))
-            }
-            onSelect={(keys) => {
-              const node = nodes.get(String(keys[0]))
-              if (node)
-                setState((previous) => ({ ...previous, selected: node }))
-            }}
-          />
-        </div>
+          }}
+        />
       </Card>
-      <Card title="节点详情" className="min-w-0">
-        <Descriptions column={1} items={items} />
-        <div className="mt-4 flex gap-2">
-          <Button onClick={() => void copy(selected.path)}>复制 Path</Button>
-          <Button
-            disabled={selected.value === undefined}
-            onClick={() => {
-              if (selected.value !== undefined) void copy(selected.value)
-            }}
-          >
-            复制值
-          </Button>
-        </div>
-      </Card>
+      {inlineDetails ? (
+        <Card
+          title="节点详情"
+          className="flex min-h-0 min-w-0 flex-col"
+          styles={{ body: { minHeight: 0, flex: 1, overflow: 'auto' } }}
+        >
+          {details}
+        </Card>
+      ) : (
+        <Drawer
+          title="节点详情"
+          closable={{ 'aria-label': '关闭节点详情' }}
+          destroyOnHidden
+          placement={screens.md ? 'right' : 'bottom'}
+          size={screens.md ? 480 : '60vh'}
+          open={state.drawerOpen}
+          onClose={() =>
+            setState((previous) => ({ ...previous, drawerOpen: false }))
+          }
+        >
+          {details}
+        </Drawer>
+      )}
     </div>
   )
 }

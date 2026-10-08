@@ -1,24 +1,19 @@
 import { parseLpcValue } from '@atgm/lpc'
-import { cleanup, render, screen, within } from '@testing-library/react'
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { buildLpcAnalysisTree } from './buildLpcAnalysisTree'
 import { LpcAnalysisView } from './LpcAnalysisView'
+import { installMatchMedia } from './lpcTestUtils'
 
 beforeEach(() => {
-  vi.stubGlobal(
-    'matchMedia',
-    vi.fn((query: string) => ({
-      matches: false,
-      media: query,
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    })),
-  )
+  installMatchMedia()
   vi.stubGlobal(
     'ResizeObserver',
     class ResizeObserver {
@@ -159,4 +154,143 @@ describe('lpc analysis view', () => {
     await user.click(screen.getByRole('button', { name: '复制值' }))
     expect(await screen.findByText('复制失败，请手动复制')).toBeInTheDocument()
   })
+})
+
+describe('responsive node details', () => {
+  it.each([767, 768, 1599, 1600])(
+    'uses the expected detail presentation at width %s',
+    async (width) => {
+      installMatchMedia(width)
+      const user = userEvent.setup()
+      const write = vi
+        .spyOn(navigator.clipboard, 'writeText')
+        .mockResolvedValue()
+      render(
+        <LpcAnalysisView
+          root={buildLpcAnalysisTree(new Map([['level', 33]]))}
+        />,
+      )
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      if (width < 1600)
+        expect(screen.queryByText('节点详情')).not.toBeInTheDocument()
+      else expect(screen.getByText('节点详情')).toBeInTheDocument()
+      await user.click(treeLabel('level'))
+      const details =
+        width < 1600
+          ? await screen.findByRole('dialog', { name: '节点详情' })
+          : screen.getByText('节点详情').closest<HTMLElement>('.ant-card')!
+      expect(within(details).getByText('Number')).toBeInTheDocument()
+      expect(within(details).getByText('$.level')).toBeInTheDocument()
+      await user.click(within(details).getByRole('button', { name: '复制值' }))
+      expect(write).toHaveBeenCalledWith('33')
+      if (width >= 1600) {
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+        return
+      }
+      expect(details.closest('.ant-drawer')).toHaveClass(
+        width < 768 ? 'ant-drawer-bottom' : 'ant-drawer-right',
+      )
+      const wrapper = details.closest<HTMLElement>(
+        '.ant-drawer-content-wrapper',
+      )!
+      expect(width < 768 ? wrapper.style.height : wrapper.style.width).toBe(
+        width < 768 ? '60vh' : '480px',
+      )
+      await user.click(
+        within(details).getByRole('button', { name: '关闭节点详情' }),
+      )
+      await waitFor(() =>
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
+      )
+      expect(treeLabel('level').closest('.ant-tree-treenode')).toHaveClass(
+        'ant-tree-treenode-selected',
+      )
+      await user.click(treeLabel('level'))
+      expect(
+        await screen.findByRole('dialog', { name: '节点详情' }),
+      ).toHaveTextContent('$.level')
+    },
+  )
+
+  it('adapts an open drawer on resize and requires selection after returning from inline details', async () => {
+    const resize = installMatchMedia(1599)
+    const user = userEvent.setup()
+    render(<LpcAnalysisView root={buildLpcAnalysisTree([1])} />)
+    await user.click(treeLabel('[0]'))
+    expect(
+      (await screen.findByRole('dialog')).closest('.ant-drawer'),
+    ).toHaveClass('ant-drawer-right')
+    resize(767)
+    expect(screen.getByRole('dialog').closest('.ant-drawer')).toHaveClass(
+      'ant-drawer-bottom',
+    )
+    expect(screen.getByRole('dialog')).toHaveTextContent('$[0]')
+    resize(1600)
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.getByText('$[0]')).toBeInTheDocument()
+    resize(768)
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.queryByText('节点详情')).not.toBeInTheDocument()
+    await user.click(treeLabel('[0]'))
+    expect(await screen.findByRole('dialog')).toHaveTextContent('$[0]')
+  })
+
+  it('closes the drawer and resets selected and expanded nodes for a replacement result', async () => {
+    installMatchMedia(768)
+    const user = userEvent.setup()
+    const { rerender } = render(
+      <LpcAnalysisView root={buildLpcAnalysisTree(new Map([['level', 33]]))} />,
+    )
+    await user.click(treeLabel('level'))
+    expect(await screen.findByRole('dialog')).toHaveTextContent('$.level')
+    rerender(<LpcAnalysisView root={buildLpcAnalysisTree([2])} />)
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
+    )
+    await user.click(treeLabel('root'))
+    const details = await screen.findByRole('dialog')
+    expect(within(details).getByText('$', { exact: true })).toBeInTheDocument()
+    expect(within(details).getByText('Array')).toBeInTheDocument()
+    expect(treeLabel('[0]')).toBeInTheDocument()
+  })
+
+  it.each([767, 768])(
+    'preserves Embedded LPC details and children with a drawer at width %s',
+    async (width) => {
+      installMatchMedia(width)
+      const user = userEvent.setup()
+      render(
+        <LpcAnalysisView
+          root={buildLpcAnalysisTree(parseLpcValue(embeddedSource))}
+        />,
+      )
+      await user.click(treeLabel('103'))
+      const details = await screen.findByRole('dialog')
+      expect(within(details).getByText('Embedded LPC')).toBeInTheDocument()
+      expect(within(details).getByText('中级法玲珑:')).toBeInTheDocument()
+      expect(
+        within(details).getByText('中级法玲珑:([255:36,"type":8,])'),
+      ).toBeInTheDocument()
+      expect(
+        within(details).getByText('([255:36,"type":8,])'),
+      ).toBeInTheDocument()
+      await user.click(
+        within(details).getByRole('button', { name: '关闭节点详情' }),
+      )
+      await waitFor(() =>
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
+      )
+      await expand(user, '103')
+      expect(treeLabel('255')).toBeInTheDocument()
+      expect(
+        within(screen.getByRole('tree')).queryByText('embedded', {
+          exact: true,
+        }),
+      ).not.toBeInTheDocument()
+      await user.click(treeLabel('255'))
+      expect(await screen.findByRole('dialog')).toHaveTextContent(
+        '$.carry[103].embedded[255]',
+      )
+    },
+  )
 })

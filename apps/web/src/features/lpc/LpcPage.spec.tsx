@@ -1,8 +1,10 @@
 import { LpcParseError, parseLpcValue } from '@atgm/lpc'
+import * as lpc from '@atgm/lpc'
 import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { LpcPage } from './LpcPage'
+import { installMatchMedia } from './lpcTestUtils'
 
 const source = '(["name":"测试","items":({1,2,3,})])'
 const formatted = `([
@@ -21,25 +23,13 @@ const setup = () => {
     user,
     input: screen.getByLabelText('原始 LPC'),
     output: screen.getByLabelText('格式化结果'),
-    format: screen.getByRole('button', { name: '格式化' }),
+    format: screen.getByRole('button', { name: '执行' }),
     copy: screen.getByRole('button', { name: '复制结果' }),
   }
 }
 
 beforeEach(() => {
-  vi.stubGlobal(
-    'matchMedia',
-    vi.fn((query: string) => ({
-      matches: false,
-      media: query,
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    })),
-  )
+  installMatchMedia()
   vi.stubGlobal(
     'ResizeObserver',
     class ResizeObserver {
@@ -85,6 +75,8 @@ describe('lpc formatter', () => {
     await user.paste(source)
     await user.click(format)
     await user.clear(input)
+    expect(output).toHaveValue('')
+    expect(copy).toBeDisabled()
     const invalid = '(["name":'
     await user.paste(invalid)
     await user.click(format)
@@ -113,6 +105,8 @@ describe('lpc formatter', () => {
     expect(screen.getByRole('alert')).toBeInTheDocument()
     await user.click(input)
     await user.paste(source)
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(output).toHaveValue('')
     await user.click(format)
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     expect(output).toHaveValue(formatted)
@@ -133,11 +127,80 @@ describe('lpc formatter', () => {
 })
 
 describe('lpc analysis integration', () => {
-  it('parses on entering the tab, preserves input and manually refreshes after editing', async () => {
+  it('only executes the selected mode and preserves results when switching modes', async () => {
+    const formatSpy = vi.spyOn(lpc, 'formatLpc')
+    const parseSpy = vi.spyOn(lpc, 'parseLpcValue')
+    const { user, input, format: execute } = setup()
+    await user.click(input)
+    await user.paste(source)
+    await user.click(
+      screen.getByRole('radio', { name: '深度解析' }).closest('label')!,
+    )
+    await user.click(
+      screen.getByRole('radio', { name: '格式化' }).closest('label')!,
+    )
+    expect(formatSpy).not.toHaveBeenCalled()
+    expect(parseSpy).not.toHaveBeenCalled()
+    await user.click(execute)
+    expect(formatSpy).toHaveBeenCalledExactlyOnceWith(source)
+    expect(parseSpy).not.toHaveBeenCalled()
+    await user.click(
+      screen.getByRole('radio', { name: '深度解析' }).closest('label')!,
+    )
+    expect(screen.queryByRole('tree')).not.toBeInTheDocument()
+    expect(parseSpy).not.toHaveBeenCalled()
+    await user.click(execute)
+    expect(parseSpy).toHaveBeenCalledExactlyOnceWith(source)
+    expect(formatSpy).toHaveBeenCalledTimes(1)
+    await user.click(
+      screen.getByRole('radio', { name: '格式化' }).closest('label')!,
+    )
+    expect(screen.getByLabelText('格式化结果')).toHaveValue(formatted)
+    await user.click(
+      screen.getByRole('radio', { name: '深度解析' }).closest('label')!,
+    )
+    expect(screen.getByRole('tree')).toBeInTheDocument()
+    expect(parseSpy).toHaveBeenCalledTimes(1)
+    await user.type(input, ' ')
+    expect(screen.queryByRole('tree')).not.toBeInTheDocument()
+    await user.click(
+      screen.getByRole('radio', { name: '格式化' }).closest('label')!,
+    )
+    expect(screen.getByLabelText('格式化结果')).toHaveValue('')
+    expect(screen.getByRole('button', { name: '复制结果' })).toBeDisabled()
+    expect(formatSpy).toHaveBeenCalledTimes(1)
+    expect(parseSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('clears both cached results while retaining the selected mode', async () => {
+    const { user, input, format: execute } = setup()
+    await user.click(input)
+    await user.paste(source)
+    await user.click(execute)
+    await user.click(
+      screen.getByRole('radio', { name: '深度解析' }).closest('label')!,
+    )
+    await user.click(execute)
+    await user.click(screen.getByRole('button', { name: '清空' }))
+    expect(input).toHaveValue('')
+    expect(screen.getByRole('radio', { name: '深度解析' })).toBeChecked()
+    expect(screen.queryByRole('tree')).not.toBeInTheDocument()
+    await user.click(
+      screen.getByRole('radio', { name: '格式化' }).closest('label')!,
+    )
+    expect(screen.getByLabelText('格式化结果')).toHaveValue('')
+    expect(screen.getByRole('button', { name: '复制结果' })).toBeDisabled()
+  })
+
+  it('executes analysis explicitly, preserves input and clears both results after editing', async () => {
     const { user, input } = setup()
     await user.click(input)
     await user.paste('(["me":(["level":33,]),])')
-    await user.click(screen.getByRole('tab', { name: '深度解析' }))
+    await user.click(
+      screen.getByRole('radio', { name: '深度解析' }).closest('label')!,
+    )
+    expect(screen.queryByRole('tree')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '执行' }))
     expect(screen.getByRole('tree')).toBeInTheDocument()
     await user.click(screen.getByText('level', { exact: true }))
     expect(screen.getByText('$.me.level')).toBeInTheDocument()
@@ -145,15 +208,18 @@ describe('lpc analysis integration', () => {
     await user.clear(input)
     await user.paste('({2,})')
     expect(screen.queryByRole('tree')).not.toBeInTheDocument()
-    expect(screen.getByText('点击解析查看结果')).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: '解析' }))
+    expect(screen.getByText('点击执行查看结果')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '执行' }))
     expect(screen.getByRole('tree')).toBeInTheDocument()
+    await user.click(screen.getByText('root', { exact: true }))
     expect(screen.getByText('Array')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: '清空' }))
     expect(input).toHaveValue('')
     expect(screen.queryByRole('tree')).not.toBeInTheDocument()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
-    await user.click(screen.getByRole('tab', { name: '格式化' }))
+    await user.click(
+      screen.getByRole('radio', { name: '格式化' }).closest('label')!,
+    )
     expect(screen.getByLabelText('格式化结果')).toHaveValue('')
     expect(screen.getByRole('button', { name: '复制结果' })).toBeDisabled()
   })
@@ -162,14 +228,62 @@ describe('lpc analysis integration', () => {
     const { user, input } = setup()
     await user.click(input)
     await user.paste('(["name":')
-    await user.click(screen.getByRole('tab', { name: '深度解析' }))
+    await user.click(
+      screen.getByRole('radio', { name: '深度解析' }).closest('label')!,
+    )
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '执行' }))
     expect(screen.getByRole('alert')).toHaveTextContent('offset: 9')
     expect(screen.getByRole('alert')).toHaveTextContent('Expected LPC value')
     expect(screen.queryByRole('tree')).not.toBeInTheDocument()
     await user.clear(input)
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     await user.paste('([])')
-    await user.click(screen.getByRole('button', { name: '解析' }))
+    await user.click(screen.getByRole('button', { name: '执行' }))
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     expect(screen.getByRole('tree')).toBeInTheDocument()
+  })
+})
+
+describe('lpc workspace layout', () => {
+  it.each([767, 768, 1599, 1600])(
+    'adapts the workspace at width %s',
+    (width) => {
+      installMatchMedia(width)
+      setup()
+      expect(screen.getByLabelText('LPC 工作台')).toHaveStyle({
+        gridTemplateColumns:
+          width >= 768 ? 'minmax(0, 2fr) minmax(0, 3fr)' : 'minmax(0, 1fr)',
+      })
+      expect(screen.getByRole('region', { name: '输入' })).toHaveClass(
+        'h-[60vh]',
+        'min-h-0',
+        'min-w-0',
+      )
+      expect(screen.getByRole('region', { name: '结果' })).toHaveClass(
+        'h-[60vh]',
+        'min-h-0',
+        'min-w-0',
+      )
+      for (const name of ['原始 LPC', '格式化结果']) {
+        expect(screen.getByRole('textbox', { name })).toHaveStyle({
+          overflow: 'auto',
+          resize: 'none',
+        })
+      }
+    },
+  )
+
+  it('switches between desktop columns and mobile rows on resize', () => {
+    const resize = installMatchMedia(768)
+    setup()
+    resize(767)
+    expect(screen.getByLabelText('LPC 工作台')).toHaveStyle({
+      gridTemplateColumns: 'minmax(0, 1fr)',
+    })
+    resize(1600)
+    expect(screen.getByLabelText('LPC 工作台')).toHaveStyle({
+      gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 3fr)',
+    })
   })
 })
