@@ -121,7 +121,7 @@ export const LpcPage: React.FC = () => {
       >
         <section
           aria-label="输入"
-          className="flex h-[60vh] min-h-0 min-w-0 flex-col gap-2"
+          className="flex h-[70vh] min-h-0 min-w-0 flex-col gap-2"
         >
           <div className="flex h-8 shrink-0 items-center">
             <label
@@ -148,7 +148,7 @@ export const LpcPage: React.FC = () => {
         </section>
         <section
           aria-label="结果"
-          className="flex h-[60vh] min-h-0 min-w-0 flex-col gap-2"
+          className="flex h-[70vh] min-h-0 min-w-0 flex-col gap-2"
         >
           {mode === 'format' ? (
             <>
