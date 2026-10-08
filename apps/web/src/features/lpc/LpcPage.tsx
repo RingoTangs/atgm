@@ -10,7 +10,9 @@ import {
   Radio,
   Result,
   theme,
+  Tooltip,
 } from 'antd'
+import { Copy } from 'lucide-react'
 import { useState } from 'react'
 import { buildLpcAnalysisTree } from './buildLpcAnalysisTree'
 import { LpcAnalysisView } from './LpcAnalysisView'
@@ -159,25 +161,34 @@ export const LpcPage: React.FC = () => {
                 >
                   格式化结果
                 </label>
-                <Button disabled={!output} onClick={() => void copy()}>
-                  复制结果
-                </Button>
               </div>
               <div className="min-h-0 flex-1 overflow-auto">
                 {error ? (
                   errorResult
                 ) : output ? (
-                  <Input.TextArea
-                    id="lpc-output"
-                    className="h-full min-h-0"
-                    readOnly
-                    style={{
-                      fontFamily: 'monospace',
-                      resize: 'none',
-                      overflow: 'auto',
-                    }}
-                    value={output}
-                  />
+                  <div className="group relative h-full min-h-0">
+                    <Input.TextArea
+                      id="lpc-output"
+                      className="h-full min-h-0"
+                      readOnly
+                      style={{
+                        fontFamily: 'monospace',
+                        resize: 'none',
+                        overflow: 'auto',
+                        paddingRight: 56,
+                      }}
+                      value={output}
+                    />
+                    <span className="pointer-events-none absolute top-2 right-4 z-10 opacity-0 transition-opacity group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100 [@media(hover:none)]:pointer-events-auto [@media(hover:none)]:opacity-100">
+                      <Tooltip title="复制结果">
+                        <Button
+                          aria-label="复制结果"
+                          icon={<Copy size={16} aria-hidden />}
+                          onClick={() => void copy()}
+                        />
+                      </Tooltip>
+                    </span>
+                  </div>
                 ) : (
                   <div
                     className="flex min-h-full min-w-0"

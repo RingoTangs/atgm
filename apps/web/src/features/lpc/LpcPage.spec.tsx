@@ -34,7 +34,9 @@ const expectFormatEmpty = () => {
   expect(
     screen.queryByRole('textbox', { name: '格式化结果' }),
   ).not.toBeInTheDocument()
-  expect(screen.getByRole('button', { name: '复制结果' })).toBeDisabled()
+  expect(
+    screen.queryByRole('button', { name: '复制结果' }),
+  ).not.toBeInTheDocument()
   expect(
     within(screen.getByRole('region', { name: '结果' })).queryByRole('alert'),
   ).not.toBeInTheDocument()
@@ -47,7 +49,6 @@ const setup = () => {
     user,
     input: screen.getByLabelText('原始 LPC'),
     format: screen.getByRole('button', { name: '执行' }),
-    copy: screen.getByRole('button', { name: '复制结果' }),
   }
 }
 
@@ -102,8 +103,10 @@ describe('lpc formatter', () => {
   })
 
   it('formats LPC without replacing the input and copies the readonly result', async () => {
-    const { user, input, format, copy } = setup()
-    expect(copy).toBeDisabled()
+    const { user, input, format } = setup()
+    expect(
+      screen.queryByRole('button', { name: '复制结果' }),
+    ).not.toBeInTheDocument()
     const writeText = vi
       .spyOn(navigator.clipboard, 'writeText')
       .mockResolvedValue()
@@ -124,24 +127,29 @@ describe('lpc formatter', () => {
     expect(screen.getByRole('textbox', { name: '格式化结果' })).toHaveAttribute(
       'readonly',
     )
-    expect(copy).toBeEnabled()
-    await user.click(copy)
+    expect(screen.getByRole('button', { name: '复制结果' })).toBeEnabled()
+    await user.hover(screen.getByRole('textbox', { name: '格式化结果' }))
+    await user.click(screen.getByRole('button', { name: '复制结果' }))
     expect(writeText).toHaveBeenCalledWith(formatted)
     expect(await screen.findByText('复制成功')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: '清空' }))
     expect(input).toHaveValue('')
     expectFormatEmpty()
-    expect(copy).toBeDisabled()
+    expect(
+      screen.queryByRole('button', { name: '复制结果' }),
+    ).not.toBeInTheDocument()
   })
 
   it('shows the parser message and offset, clears stale output, and clears all state', async () => {
-    const { user, input, format, copy } = setup()
+    const { user, input, format } = setup()
     await user.click(input)
     await user.paste(source)
     await user.click(format)
     await user.clear(input)
     expectFormatEmpty()
-    expect(copy).toBeDisabled()
+    expect(
+      screen.queryByRole('button', { name: '复制结果' }),
+    ).not.toBeInTheDocument()
     const invalid = '(["name":'
     await user.paste(invalid)
     await user.click(format)
@@ -166,7 +174,9 @@ describe('lpc formatter', () => {
     expect(
       screen.getByRole('alert').querySelector('.ant-result-error'),
     ).toBeInTheDocument()
-    expect(copy).toBeDisabled()
+    expect(
+      screen.queryByRole('button', { name: '复制结果' }),
+    ).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: '清空' }))
     expect(input).toHaveValue('')
     expectFormatEmpty()
@@ -187,14 +197,15 @@ describe('lpc formatter', () => {
   })
 
   it('reports clipboard failure while preserving the result', async () => {
-    const { user, input, format, copy } = setup()
+    const { user, input, format } = setup()
     vi.spyOn(navigator.clipboard, 'writeText').mockRejectedValue(
       new Error('Denied'),
     )
     await user.click(input)
     await user.paste(source)
     await user.click(format)
-    await user.click(copy)
+    await user.hover(screen.getByRole('textbox', { name: '格式化结果' }))
+    await user.click(screen.getByRole('button', { name: '复制结果' }))
     expect(await screen.findByText('复制失败，请手动复制')).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: '格式化结果' })).toHaveValue(
       formatted,
@@ -243,7 +254,9 @@ describe('lpc analysis integration', () => {
       screen.getByRole('radio', { name: '格式化' }).closest('label')!,
     )
     expectFormatEmpty()
-    expect(screen.getByRole('button', { name: '复制结果' })).toBeDisabled()
+    expect(
+      screen.queryByRole('button', { name: '复制结果' }),
+    ).not.toBeInTheDocument()
     expect(formatSpy).toHaveBeenCalledTimes(1)
     expect(parseSpy).toHaveBeenCalledTimes(1)
   })
@@ -265,7 +278,9 @@ describe('lpc analysis integration', () => {
       screen.getByRole('radio', { name: '格式化' }).closest('label')!,
     )
     expectFormatEmpty()
-    expect(screen.getByRole('button', { name: '复制结果' })).toBeDisabled()
+    expect(
+      screen.queryByRole('button', { name: '复制结果' }),
+    ).not.toBeInTheDocument()
   })
 
   it('executes analysis explicitly, preserves input and clears both results after editing', async () => {
@@ -299,7 +314,9 @@ describe('lpc analysis integration', () => {
       screen.getByRole('radio', { name: '格式化' }).closest('label')!,
     )
     expectFormatEmpty()
-    expect(screen.getByRole('button', { name: '复制结果' })).toBeDisabled()
+    expect(
+      screen.queryByRole('button', { name: '复制结果' }),
+    ).not.toBeInTheDocument()
   })
 
   it('shows parsing errors in the analysis tab and clears them on retry', async () => {
@@ -338,12 +355,12 @@ describe('lpc workspace layout', () => {
           width >= 768 ? 'minmax(0, 2fr) minmax(0, 3fr)' : 'minmax(0, 1fr)',
       })
       expect(screen.getByRole('region', { name: '输入' })).toHaveClass(
-        'h-[60vh]',
+        'h-[70vh]',
         'min-h-0',
         'min-w-0',
       )
       expect(screen.getByRole('region', { name: '结果' })).toHaveClass(
-        'h-[60vh]',
+        'h-[70vh]',
         'min-h-0',
         'min-w-0',
       )
@@ -451,7 +468,9 @@ describe('lpc result states', () => {
       await selectMode(user, '格式化')
       expect(screen.queryByRole('alert')).not.toBeInTheDocument()
       expectFormatEmpty()
-      expect(screen.getByRole('button', { name: '复制结果' })).toBeDisabled()
+      expect(
+        screen.queryByRole('button', { name: '复制结果' }),
+      ).not.toBeInTheDocument()
     },
   )
 
@@ -467,7 +486,9 @@ describe('lpc result states', () => {
     await selectMode(user, '格式化')
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     expectFormatEmpty()
-    expect(screen.getByRole('button', { name: '复制结果' })).toBeDisabled()
+    expect(
+      screen.queryByRole('button', { name: '复制结果' }),
+    ).not.toBeInTheDocument()
   })
 
   it.each([
@@ -493,7 +514,7 @@ describe('lpc result states', () => {
       const initialClass = region.className
       const content = region.lastElementChild!
       const contentClass = content.className
-      expect(region).toHaveClass('h-[60vh]', 'min-h-0', 'min-w-0')
+      expect(region).toHaveClass('h-[70vh]', 'min-h-0', 'min-w-0')
       expect(content).toHaveClass('min-h-0', 'flex-1', 'overflow-auto')
       await user.click(execute)
       expect(within(region).getByRole('alert')).toHaveTextContent(
@@ -550,7 +571,7 @@ describe('workspace title alignment', () => {
             .querySelector('.ant-card-head'),
         ).not.toBeInTheDocument()
         expect(screen.getByRole('region', { name: '结果' })).toHaveClass(
-          'h-[60vh]',
+          'h-[70vh]',
         )
       }
       assertTitles()
@@ -576,4 +597,47 @@ describe('workspace title alignment', () => {
       }
     },
   )
+})
+
+describe('floating result copy', () => {
+  it('places an icon over the output with hover, keyboard and touch visibility rules', async () => {
+    const { user, input, format } = setup()
+    const write = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue()
+    await user.click(input)
+    await user.paste(source)
+    await user.click(format)
+    const output = screen.getByRole('textbox', { name: '格式化结果' })
+    const copy = screen.getByRole('button', { name: '复制结果' })
+    expect(copy.textContent).toBe('')
+    expect(copy.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
+    expect(output.parentElement).toHaveClass('group', 'relative', 'h-full')
+    expect(output).toHaveStyle({ paddingRight: '56px', overflow: 'auto' })
+    expect(copy.parentElement).toHaveClass(
+      'absolute',
+      'top-2',
+      'right-4',
+      'opacity-0',
+      'pointer-events-none',
+      'group-hover:opacity-100',
+      'group-hover:pointer-events-auto',
+      'group-focus-within:opacity-100',
+      'group-focus-within:pointer-events-auto',
+      '[@media(hover:none)]:opacity-100',
+      '[@media(hover:none)]:pointer-events-auto',
+    )
+    await user.hover(output)
+    await user.unhover(output)
+    await user.click(output)
+    await user.tab()
+    expect(copy).toHaveFocus()
+    await user.keyboard('{Enter}')
+    expect(write).toHaveBeenCalledWith(formatted)
+    expect(await screen.findByText('复制成功')).toBeInTheDocument()
+    await user.click(
+      screen.getByRole('radio', { name: '深度解析' }).closest('label')!,
+    )
+    expect(
+      screen.queryByRole('button', { name: '复制结果' }),
+    ).not.toBeInTheDocument()
+  })
 })
