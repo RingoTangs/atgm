@@ -22,7 +22,7 @@ export const createCharacterColumns = ({
         {name}
         {character.gid === recRole && (
           <Tag className="ml-2" color="blue">
-            推荐
+            最近登陆
           </Tag>
         )}
       </span>

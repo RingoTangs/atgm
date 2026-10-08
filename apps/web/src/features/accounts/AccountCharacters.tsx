@@ -30,7 +30,7 @@ export const AccountCharacters: React.FC<{ account: string }> = ({
           }
         />
       )}
-      {data && <p>推荐角色 GID：{data.recRole ?? '-'}</p>}
+      {data && <p>最近登陆角色 GID：{data.recRole ?? '-'}</p>}
       {(!charactersQuery.isError || data) && (
         <Table<CharacterListItem>
           columns={createCharacterColumns({ recRole: data?.recRole })}

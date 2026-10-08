@@ -285,7 +285,7 @@ describe('account detail page', () => {
 })
 
 describe('account associated characters', () => {
-  it('requests characters and renders recommendation and rows in API order', async () => {
+  it('requests characters and renders the last login character and rows in API order', async () => {
     renderPage()
     const section = await screen.findByRole('region', { name: '关联角色' })
     expect(await within(section).findByText('女金')).toBeInTheDocument()
@@ -293,13 +293,13 @@ describe('account associated characters', () => {
       '/_api/accounts/server-account/characters',
     )
     expect(
-      within(section).getByText('推荐角色 GID：0000000000000003'),
+      within(section).getByText('最近登陆角色 GID：0000000000000003'),
     ).toBeInTheDocument()
     const rows = within(section).getAllByRole('row').slice(1)
     expect(within(rows[0]).getByText('0000000000000003')).toBeInTheDocument()
     expect(within(rows[1]).getByText('0000000000000004')).toBeInTheDocument()
-    expect(within(rows[0]).getByText('推荐')).toBeInTheDocument()
-    expect(within(rows[1]).queryByText('推荐')).toBeNull()
+    expect(within(rows[0]).getByText('最近登陆')).toBeInTheDocument()
+    expect(within(rows[1]).queryByText('最近登陆')).toBeNull()
     expect(within(rows[0]).getByText('金')).toBeInTheDocument()
     expect(within(rows[0]).getByText('女')).toBeInTheDocument()
     expect(within(rows[1]).getByText('土')).toBeInTheDocument()
@@ -328,20 +328,20 @@ describe('account associated characters', () => {
     const section = await screen.findByRole('region', { name: '关联角色' })
     expect(await within(section).findByText('暂无角色')).toBeInTheDocument()
     expect(
-      within(section).getByText(`推荐角色 GID：${response.recRole ?? '-'}`),
+      within(section).getByText(`最近登陆角色 GID：${response.recRole ?? '-'}`),
     ).toBeInTheDocument()
   })
 
-  it('does not recommend other characters when recRole is absent from the list', async () => {
+  it('does not mark other characters as last login when recRole is absent from the list', async () => {
     charactersResponse = async () =>
       jsonResponse({ ...accountCharacters, recRole: 'missing' })
     renderPage()
     const section = await screen.findByRole('region', { name: '关联角色' })
     expect(await within(section).findByText('女金')).toBeInTheDocument()
     expect(
-      within(section).getByText('推荐角色 GID：missing'),
+      within(section).getByText('最近登陆角色 GID：missing'),
     ).toBeInTheDocument()
-    expect(within(section).queryByText('推荐')).toBeNull()
+    expect(within(section).queryByText('最近登陆')).toBeNull()
   })
 
   it.each([
@@ -439,7 +439,7 @@ describe('account associated characters', () => {
     await waitFor(() =>
       expect(within(section).getAllByText('女金')).toHaveLength(2),
     )
-    expect(within(section).getAllByText('推荐')).toHaveLength(2)
+    expect(within(section).getAllByText('最近登陆')).toHaveLength(2)
     expect(consoleError.mock.calls.flat().join(' ')).not.toMatch(
       /same key|unique.*key/i,
     )
