@@ -72,18 +72,20 @@ describe('serializeLpcValue', () => {
     expect(parseLpcValue(serializeLpcValue(value))).toEqual(value)
   })
 
-  it.each(['login', 'salary', 'complex-me'])(
-    'round-trips the complete %s fixture',
-    (name) => {
-      const value = parseLpcValue(
-        readFileSync(
-          new URL(`./fixtures/${name}.txt`, import.meta.url),
-          'utf8',
-        ),
-      )
-      expect(parseLpcValue(serializeLpcValue(value))).toEqual(value)
-    },
-  )
+  it.each([
+    'login',
+    'salary',
+    'complex-me',
+    'gid-03',
+    'gid-03-achieve',
+    'gid-03-carry',
+    'gid-03-patch',
+  ])('round-trips the complete %s fixture', (name) => {
+    const value = parseLpcValue(
+      readFileSync(new URL(`./fixtures/${name}.txt`, import.meta.url), 'utf8'),
+    )
+    expect(parseLpcValue(serializeLpcValue(value))).toEqual(value)
+  })
 
   it.each([Number.NaN, Infinity, -Infinity])(
     'rejects non-finite number %s',

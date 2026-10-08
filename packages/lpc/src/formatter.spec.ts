@@ -58,20 +58,27 @@ describe('LPC formatter', () => {
     expect(parseLpcValue(text)).toEqual(value)
   })
 
-  it.each(['login', 'salary', 'complex-me'])(
-    'round-trips the complete %s fixture',
-    (name) => {
-      const text = readFileSync(
-        new URL(`./fixtures/${name}.txt`, import.meta.url),
-        'utf8',
-      )
-      const value = parseLpcValue(text)
-      expect(parseLpcValue(formatLpc(text))).toEqual(value)
-      expect(parseLpcValue(formatLpcValue(value, { indentSize: 4 }))).toEqual(
-        value,
-      )
-    },
-  )
+  it.each([
+    'login',
+    'salary',
+    'complex-me',
+    'gid-03',
+    'gid-03-achieve',
+    'gid-03-carry',
+    'gid-03-patch',
+  ])('round-trips the complete %s fixture', (name) => {
+    const text = readFileSync(
+      new URL(`./fixtures/${name}.txt`, import.meta.url),
+      'utf8',
+    )
+    const value = parseLpcValue(text)
+    const formatted = formatLpc(text)
+    expect(parseLpcValue(formatted)).toEqual(value)
+    expect(formatLpc(formatted)).toBe(formatted)
+    expect(parseLpcValue(formatLpcValue(value, { indentSize: 4 }))).toEqual(
+      value,
+    )
+  })
 
   it.each([-1, 1.5, Number.NaN, Infinity, -Infinity])(
     'rejects indentSize %s',

@@ -217,6 +217,77 @@ describe('real content', () => {
 })
 
 describe('complete real fixtures', () => {
+  it('parses the complete gid-03 character fixture', () => {
+    const root = mapping(
+      parseLpcValue(
+        readFileSync(new URL('./fixtures/gid-03.txt', import.meta.url), 'utf8'),
+      ),
+    )
+    const me = mapping(root.get('me'))
+    expect(me.get('gid')).toBe('0000000000000003')
+    expect(me.get('name')).toBe('女金')
+    expect(me.get('level')).toBe(33)
+    expect(me.get('polar')).toBe(1)
+    expect(me.get('gender')).toBe(2)
+    expect(me.get('gold_coin')).toBe(1999995004)
+    expect(me.get('silver_coin')).toBe(2000000000)
+    expect(mapping(root.get('position')).get('room')).toBe(
+      '/tianyongcheng/tianyongcheng.c',
+    )
+    expect(array(mapping(me.get('stat_coin_cost')).get('winfo'))).toEqual([])
+  })
+
+  it('parses the complete gid-03-achieve fixture with numeric keys and arrays', () => {
+    const root = mapping(
+      parseLpcValue(
+        readFileSync(
+          new URL('./fixtures/gid-03-achieve.txt', import.meta.url),
+          'utf8',
+        ),
+      ),
+    )
+    expect(root.get('total')).toBe(832)
+    expect(root.get('ver')).toBe(2)
+    expect(root.has(90102)).toBe(true)
+    expect(root.has('90102')).toBe(false)
+    const achievement = mapping(root.get(90102))
+    expect(achievement.get(5)).toBe(29)
+    expect(achievement.has('5')).toBe(false)
+    expect(array(root.get('appellation'))).toEqual(['道', '誉满三界'])
+  })
+
+  it('keeps item LPC inside the gid-03-carry fixture as a string', () => {
+    const root = mapping(
+      parseLpcValue(
+        readFileSync(
+          new URL('./fixtures/gid-03-carry.txt', import.meta.url),
+          'utf8',
+        ),
+      ),
+    )
+    const item = mapping(root.get('carry')).get(103)
+    expect(typeof item).toBe('string')
+    expect(item).toContain('中级法玲珑')
+    expect(item).toContain('([255:36,')
+    expect(item).toContain('"recover":([12:19999315,])')
+  })
+
+  it('keeps pet LPC inside the gid-03-patch fixture as a string', () => {
+    const root = mapping(
+      parseLpcValue(
+        readFileSync(
+          new URL('./fixtures/gid-03-patch.txt', import.meta.url),
+          'utf8',
+        ),
+      ),
+    )
+    const pet = mapping(root.get('pets')).get(1)
+    expect(typeof pet).toBe('string')
+    expect(pet).toContain('松鼠')
+    expect(pet).toContain('(["attrib":([')
+    expect(pet).toContain('"skills_map":([])')
+  })
+
   it('parses the complete login fixture', () => {
     const source = readFileSync(
       new URL('./fixtures/login.txt', import.meta.url),
