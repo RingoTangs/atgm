@@ -2,9 +2,11 @@ import type { CharacterItem } from '@atgm/contracts'
 import type { TableProps } from 'antd'
 import { useQuery } from '@tanstack/react-query'
 import { Alert, Button, Table } from 'antd'
+import { useState } from 'react'
+import { CharacterItemDetail } from './CharacterItemDetail'
 import { characterItemsQueryOptions } from './characters-queries'
 
-const columns: TableProps<CharacterItem>['columns'] = [
+const columns: NonNullable<TableProps<CharacterItem>['columns']> = [
   {
     title: '记录 Key',
     dataIndex: 'entryKey',
@@ -22,6 +24,7 @@ const columns: TableProps<CharacterItem>['columns'] = [
 ]
 
 export function CharacterItems({ gid }: { gid: string }) {
+  const [entryKey, setEntryKey] = useState<number | null>(null)
   const query = useQuery(characterItemsQueryOptions(gid))
   return (
     <section aria-labelledby="character-items-heading" className="space-y-4">
@@ -42,7 +45,19 @@ export function CharacterItems({ gid }: { gid: string }) {
       )}
       {(!query.isError || query.data) && (
         <Table<CharacterItem>
-          columns={columns}
+          columns={[
+            ...columns,
+            {
+              title: '操作',
+              key: 'actions',
+              align: 'center',
+              render: (_, item) => (
+                <Button type="link" onClick={() => setEntryKey(item.entryKey)}>
+                  查看详情
+                </Button>
+              ),
+            },
+          ]}
           dataSource={query.data?.items ?? []}
           loading={query.isPending || query.isFetching}
           locale={{ emptyText: query.isPending ? '加载中' : '暂无物品' }}
@@ -51,6 +66,14 @@ export function CharacterItems({ gid }: { gid: string }) {
           pagination={false}
           rowKey="entryKey"
           scroll={{ x: 'max-content' }}
+        />
+      )}
+      {entryKey !== null && (
+        <CharacterItemDetail
+          key={`${gid}:${entryKey}`}
+          gid={gid}
+          entryKey={entryKey}
+          onClose={() => setEntryKey(null)}
         />
       )}
     </section>

@@ -679,3 +679,102 @@ describe('GET /characters/:gid/items', () => {
     },
   )
 })
+
+// eslint-disable-next-line test/prefer-lowercase-title
+describe('GET /characters/:gid/items/:entryKey', () => {
+  const url = (key: string | number) =>
+    `/characters/${character.gid}/items/${encodeURIComponent(String(key))}`
+  it('returns the real target item and uses the carry branch query', async () => {
+    dataRows = [{ name: character.gid, content: carryFixture }]
+    const response = await app.inject(url(103))
+    expect(response.statusCode).toBe(200)
+    expect(response.json()).toMatchObject({
+      entryKey: 103,
+      name: '中级法玲珑',
+      alias: null,
+    })
+    expect(response.json().lpc).toContain('233::6ABD337600010147A4F4:')
+    expect(
+      compileQuery.mock.results.map((result) => result.value),
+    ).toContainEqual(
+      expect.objectContaining({
+        sql: 'select `content` from `dl_ddb_1`.`data` where `path` = ? and `name` = ? and `branch` = ?',
+        parameters: ['user', character.gid, 'carry'],
+      }),
+    )
+  })
+  it('returns character not found before querying carry', async () => {
+    items = []
+    const response = await app.inject(url(1))
+    expect(response.statusCode).toBe(404)
+    expect(response.json().code).toBe(errorCodes.CHARACTER_NOT_FOUND)
+    expect(transformResult).toHaveBeenCalledTimes(1)
+  })
+  it.each([undefined, '(["carry":([]),])', carryFixture])(
+    'returns item not found (case %#)',
+    async (content) => {
+      dataRows = content ? [{ name: character.gid, content }] : []
+      const response = await app.inject(url(999))
+      expect(response.statusCode).toBe(404)
+      expect(response.json().code).toBe(errorCodes.CHARACTER_ITEM_NOT_FOUND)
+    },
+  )
+  it.each([0, -1, -1.5])('accepts numeric key %s', async (key) => {
+    dataRows = [
+      {
+        name: character.gid,
+        content: `(["carry":([${key}:"测试:([])",2:"invalid",]),])`,
+      },
+    ]
+    const response = await app.inject(url(key))
+    expect(response.statusCode).toBe(200)
+    expect(response.json()).toEqual({
+      entryKey: key,
+      name: '测试',
+      alias: null,
+      lpc: '([])',
+    })
+  })
+  it.each(['abc', ' ', 'NaN', 'Infinity', '1e999'])(
+    'rejects invalid key %s before querying',
+    async (key) => {
+      const response = await app.inject(url(key))
+      expect(response.statusCode).toBe(400)
+      expect(response.json().code).toBe(errorCodes.VALIDATION_ERROR)
+      expect(transformResult).not.toHaveBeenCalled()
+    },
+  )
+  it.each(['PRIVATE LPC', '(["carry":([7:"PRIVATE LPC",]),])'])(
+    'logs safe context on damage (case %#)',
+    async (content) => {
+      const errorLog = vi.fn()
+      app.addHook('onRequest', async (request) => {
+        vi.spyOn(request.log, 'error').mockImplementation(errorLog)
+      })
+      dataRows = [{ name: character.gid, content }]
+      const response = await app.inject(url(7))
+      expect(response.statusCode).toBe(500)
+      expect(response.json()).toEqual({
+        code: errorCodes.INTERNAL_SERVER_ERROR,
+        message: 'Internal Server Error',
+      })
+      expect(errorLog).toHaveBeenCalledWith(
+        expect.objectContaining({
+          gid: character.gid,
+          entryKey: 7,
+          reason: expect.any(String),
+        }),
+        'Invalid character carry item data',
+      )
+      expect(JSON.stringify(errorLog.mock.calls)).not.toContain('PRIVATE LPC')
+      expect(response.body).not.toContain('PRIVATE LPC')
+    },
+  )
+  it('handles database failures without leaking content', async () => {
+    dataError = new Error('PRIVATE LPC')
+    const response = await app.inject(url(1))
+    expect(response.statusCode).toBe(500)
+    expect(response.json().code).toBe(errorCodes.INTERNAL_SERVER_ERROR)
+    expect(response.body).not.toContain('PRIVATE LPC')
+  })
+})

@@ -1,6 +1,10 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { CharacterCarryError, parseCharacterCarry } from './character-carry'
+import {
+  CharacterCarryError,
+  parseCharacterCarry,
+  parseCharacterCarryItem,
+} from './character-carry'
 
 const fixture = readFileSync(
   new URL(
@@ -63,5 +67,50 @@ describe('character carry', () => {
     expect(() =>
       parseCharacterCarry('(["carry":([1:"长枪:([])",2:"invalid",]),])'),
     ).toThrow(CharacterCarryError)
+  })
+})
+
+describe('carry item detail', () => {
+  it('preserves original nested mappings, numeric keys and special values', () => {
+    const item = parseCharacterCarryItem(fixture, 103)!
+    expect(item).toMatchObject({
+      entryKey: 103,
+      name: '中级法玲珑',
+      alias: null,
+    })
+    expect(item.lpc).toContain('233::6ABD337600010147A4F4:')
+    expect(item.lpc).toContain('"recover":([12:19999315,])')
+    expect(item.lpc.startsWith('([')).toBe(true)
+  })
+  it.each([0, -1, -1.5])('preserves numeric key %s', (key) => {
+    expect(
+      parseCharacterCarryItem(`(["carry":([${key}:"测试:([])",]),])`, key),
+    ).toEqual({ entryKey: key, name: '测试', alias: null, lpc: '([])' })
+  })
+  it('only parses the target inner LPC', () => {
+    expect(
+      parseCharacterCarryItem('(["carry":([1:"长枪:([])",2:"invalid",]),])', 1)
+        ?.name,
+    ).toBe('长枪')
+    expect(() =>
+      parseCharacterCarryItem('(["carry":([1:"长枪:([])",2:"invalid",]),])', 2),
+    ).toThrow(CharacterCarryError)
+  })
+  it.each(['(["carry":([]),])', '(["carry":([1:"长枪:([])",]),])'])(
+    'returns null for missing keys',
+    (content) => {
+      expect(parseCharacterCarryItem(content, 99)).toBeNull()
+    },
+  )
+  it.each([
+    'invalid',
+    '(["carry":1,])',
+    '(["carry":([7:1,]),])',
+    '(["carry":([7:"测试:({})",]),])',
+    '(["carry":([7:"测试:([\\"alias\\":1,])",]),])',
+  ])('rejects damaged target data (case %#)', (content) => {
+    expect(() => parseCharacterCarryItem(content, 7)).toThrow(
+      CharacterCarryError,
+    )
   })
 })

@@ -111,3 +111,24 @@ export const characterItemsResponseSchema = z.object({
 export type CharacterItemsResponse = z.infer<
   typeof characterItemsResponseSchema
 >
+
+export const characterItemDetailParamsSchema =
+  characterDetailParamsSchema.extend({
+    entryKey: z
+      .string()
+      .regex(/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i)
+      .transform(Number)
+      .pipe(z.number()),
+  })
+
+export type CharacterItemDetailParams = z.infer<
+  typeof characterItemDetailParamsSchema
+>
+
+export const characterItemDetailResponseSchema = characterItemSchema.extend({
+  lpc: z.string().min(1),
+})
+
+export type CharacterItemDetailResponse = z.infer<
+  typeof characterItemDetailResponseSchema
+>

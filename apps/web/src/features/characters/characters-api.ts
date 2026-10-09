@@ -1,5 +1,6 @@
 import type {
   CharacterDetailResponse,
+  CharacterItemDetailResponse,
   CharacterItemsResponse,
   CharactersQuery,
   CharactersResponse,
@@ -36,5 +37,16 @@ export async function getCharacterItems(
     `${API_PREFIX}/characters/${encodeURIComponent(gid)}/items`,
   )
   await checkApiResponse(response, '物品信息请求失败')
+  return response.json()
+}
+
+export async function getCharacterItem(
+  gid: string,
+  entryKey: number,
+): Promise<CharacterItemDetailResponse> {
+  const response = await fetch(
+    `${API_PREFIX}/characters/${encodeURIComponent(gid)}/items/${encodeURIComponent(String(entryKey))}`,
+  )
+  await checkApiResponse(response, '物品详情请求失败')
   return response.json()
 }

@@ -416,7 +416,7 @@ describe('character items section', () => {
       within(section)
         .getAllByRole('columnheader')
         .map((cell) => cell.textContent),
-    ).toEqual(['记录 Key', '物品名称', '别名'])
+    ).toEqual(['记录 Key', '物品名称', '别名', '操作'])
     const rows = within(section).getAllByRole('row').slice(1)
     expect(rows.map((row) => row.getAttribute('data-row-key'))).toEqual([
       '1',
