@@ -5,6 +5,7 @@ import {
   CHARACTER_POLAR_LABELS,
 } from '@atgm/contracts'
 import { useQuery } from '@tanstack/react-query'
+import { Link } from '@tanstack/react-router'
 import { Alert, Button, Table, Tag } from 'antd'
 import { accountCharactersQueryOptions } from './accounts-queries'
 
@@ -67,6 +68,16 @@ export const AccountCharacters: React.FC<{ account: string }> = ({
         ) : (
           '-'
         ),
+    },
+    {
+      title: '操作',
+      key: 'actions',
+      align: 'center',
+      render: (_, character) => (
+        <Link to="/characters/$gid" params={{ gid: character.gid }}>
+          查看详情
+        </Link>
+      ),
     },
   ]
 

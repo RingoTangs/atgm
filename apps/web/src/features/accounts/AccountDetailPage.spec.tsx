@@ -142,11 +142,20 @@ const renderPage = () => {
     path: '/accounts/$account',
     component: () => <AccountDetailPage account="server-account" />,
   })
+  const characterDetailRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/characters/$gid',
+    component: () => <h1>角色详情测试页</h1>,
+  })
   const router = createRouter({
     history: createMemoryHistory({
       initialEntries: ['/accounts/server-account'],
     }),
-    routeTree: rootRoute.addChildren([accountsRoute, detailRoute]),
+    routeTree: rootRoute.addChildren([
+      accountsRoute,
+      detailRoute,
+      characterDetailRoute,
+    ]),
   })
 
   return render(
@@ -305,6 +314,7 @@ describe('account associated characters', () => {
     const firstCells = within(rows[0]).getAllByRole('cell')
     const secondCells = within(rows[1]).getAllByRole('cell')
     expect(firstCells[1]).toHaveTextContent(/^女金$/)
+    expect(within(firstCells[1]).queryByRole('link')).toBeNull()
     expect(firstCells[5]).toHaveTextContent(/^是$/)
     expect(within(firstCells[5]).getByText('是')).toHaveClass('ant-tag-green')
     expect(secondCells[1]).toHaveTextContent(/^龙宫守卫$/)
@@ -314,7 +324,14 @@ describe('account associated characters', () => {
       within(section)
         .getAllByRole('columnheader')
         .map((cell) => cell.textContent),
-    ).toEqual(['GID', '角色名', '相性', '性别', '创建时间', '最近登陆'])
+    ).toEqual(['GID', '角色名', '相性', '性别', '创建时间', '最近登陆', '操作'])
+    for (const [index, row] of rows.entries()) {
+      const link = within(row).getByRole('link', { name: '查看详情' })
+      expect(link).toHaveAttribute(
+        'href',
+        `/characters/${accountCharacters.chars[index].gid}`,
+      )
+    }
     expect(section.querySelector('.ant-pagination')).toBeNull()
     const content = screen
       .getByText('基本信息')
@@ -322,6 +339,20 @@ describe('account associated characters', () => {
     expect(content.textContent).toMatch(
       /基本信息.*资产.*关联角色.*登录信息.*封禁信息/s,
     )
+  })
+
+  it('opens character details from the action column', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    const section = await screen.findByRole('region', { name: '关联角色' })
+    const row = (await within(section).findByText('女金')).closest('tr')!
+    const cells = within(row).getAllByRole('cell')
+    await user.click(
+      within(cells[cells.length - 1]).getByRole('link', { name: '查看详情' }),
+    )
+    expect(
+      await screen.findByRole('heading', { name: '角色详情测试页' }),
+    ).toBeInTheDocument()
   })
 
   it.each([
@@ -456,6 +487,9 @@ describe('account associated characters', () => {
     expect(rows).toHaveLength(2)
     for (const row of rows) {
       expect(within(row).getAllByRole('cell')[5]).toHaveTextContent(/^是$/)
+      expect(
+        within(row).getByRole('link', { name: '查看详情' }),
+      ).toHaveAttribute('href', '/characters/0000000000000003')
     }
     expect(rows[0]).toHaveAttribute('data-row-key', '0000000000000003-0')
     expect(rows[1]).toHaveAttribute('data-row-key', '0000000000000003-1')
