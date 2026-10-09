@@ -54,7 +54,7 @@ const columns: TableProps<CharacterWithAccount>['columns'] = [
           to="/accounts/$account"
           params={{ account }}
         >
-          <span className='text-base'>{account}</span>
+          <span className="text-base">{account}</span>
           <ExternalLink size={14} aria-hidden="true" />
         </Link>
       ) : (
