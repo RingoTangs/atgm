@@ -4,6 +4,7 @@ import { ACCOUNT_PRIVILEGES, errorCodes } from '@atgm/contracts'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Alert, Badge, Button, Descriptions, Skeleton, Tooltip } from 'antd'
+import { UserCog, Wallet } from 'lucide-react'
 import { useState } from 'react'
 import { descriptionsTableStyles } from '@/components/descriptionsStyles'
 import { ApiError } from '@/lib/apiError'
@@ -196,6 +197,7 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = ({
               <Button
                 aria-label="充值"
                 disabled={detail.online}
+                icon={<Wallet size={16} aria-hidden="true" />}
                 onClick={() => setRechargeOpen(true)}
                 type="primary"
               >
@@ -208,6 +210,7 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = ({
               <Button
                 aria-label="变更权限"
                 disabled={detail.online}
+                icon={<UserCog size={16} aria-hidden="true" />}
                 onClick={() => setPrivilegeOpen(true)}
                 type="primary"
               >
