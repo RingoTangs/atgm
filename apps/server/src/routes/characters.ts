@@ -3,12 +3,17 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import {
   characterDetailParamsSchema,
   characterDetailResponseSchema,
+  characterItemsResponseSchema,
   charactersQuerySchema,
   charactersResponseSchema,
   errorCodes,
   errorResponseSchema,
 } from '@atgm/contracts'
 import { LpcParseError } from '@atgm/lpc'
+import {
+  CharacterCarryError,
+  parseCharacterCarry,
+} from '../lib/character-carry'
 import {
   readCharacterMe,
   readCharacterNumber,
@@ -17,6 +22,66 @@ import {
 import { formatDisplayTime } from '../lib/game-time'
 
 export async function characterRoutes(app: FastifyInstance) {
+  app.withTypeProvider<ZodTypeProvider>().get(
+    '/characters/:gid/items',
+    {
+      schema: {
+        tags: ['Character'],
+        summary: '查询角色物品列表',
+        params: characterDetailParamsSchema,
+        response: {
+          200: characterItemsResponseSchema,
+          400: errorResponseSchema,
+          404: errorResponseSchema,
+          500: errorResponseSchema,
+          default: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { gid } = request.params
+      const character = await app.db.ddb
+        .selectFrom('basic_char_info')
+        .select('gid')
+        .where('gid', '=', gid)
+        .executeTakeFirst()
+      if (!character) {
+        return reply.code(404).send({
+          code: errorCodes.CHARACTER_NOT_FOUND,
+          message: '角色不存在',
+        })
+      }
+      const row = await app.db.ddb
+        .selectFrom('data')
+        .select('content')
+        .where('path', '=', 'user')
+        .where('name', '=', gid)
+        .where('branch', '=', 'carry')
+        .executeTakeFirst()
+      if (!row) return { branchExists: false, items: [] }
+      try {
+        return { branchExists: true, items: parseCharacterCarry(row.content) }
+      } catch (cause) {
+        request.log.error(
+          {
+            gid,
+            entryKey:
+              cause instanceof CharacterCarryError ? cause.entryKey : null,
+            reason:
+              cause instanceof CharacterCarryError
+                ? cause.message
+                : 'Invalid carry data',
+          },
+          'Invalid character carry data',
+        )
+        return reply.code(500).send({
+          code: errorCodes.INTERNAL_SERVER_ERROR,
+          message: 'Internal Server Error',
+        })
+      }
+    },
+  )
+
   app.withTypeProvider<ZodTypeProvider>().get(
     '/characters/:gid',
     {

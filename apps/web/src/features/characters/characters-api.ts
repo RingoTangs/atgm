@@ -1,5 +1,6 @@
 import type {
   CharacterDetailResponse,
+  CharacterItemsResponse,
   CharactersQuery,
   CharactersResponse,
 } from '@atgm/contracts'
@@ -22,5 +23,15 @@ export async function getCharacter(
 ): Promise<CharacterDetailResponse> {
   const response = await fetch(`/_api/characters/${encodeURIComponent(gid)}`)
   await checkApiResponse(response, '角色详情请求失败')
+  return response.json()
+}
+
+export async function getCharacterItems(
+  gid: string,
+): Promise<CharacterItemsResponse> {
+  const response = await fetch(
+    `/_api/characters/${encodeURIComponent(gid)}/items`,
+  )
+  await checkApiResponse(response, '物品信息请求失败')
   return response.json()
 }

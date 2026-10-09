@@ -60,6 +60,7 @@ const jsonResponse = (body: unknown, status = 200) =>
     headers: { 'Content-Type': 'application/json' },
   })
 const fetchMock = vi.fn<typeof fetch>()
+const itemsFetchMock = vi.fn<typeof fetch>()
 let queryClient: QueryClient
 
 beforeEach(() => {
@@ -67,7 +68,24 @@ beforeEach(() => {
     defaultOptions: { queries: { retry: false } },
   })
   fetchMock.mockReset().mockImplementation(async () => jsonResponse(detail))
-  vi.stubGlobal('fetch', fetchMock)
+  itemsFetchMock
+    .mockReset()
+    .mockImplementation(async () =>
+      jsonResponse({ branchExists: false, items: [] }),
+    )
+  vi.stubGlobal('fetch', (...args: Parameters<typeof fetch>) =>
+    String(args[0]).endsWith('/items')
+      ? itemsFetchMock(...args)
+      : fetchMock(...args),
+  )
+  vi.stubGlobal(
+    'ResizeObserver',
+    class ResizeObserver {
+      observe = vi.fn()
+      unobserve = vi.fn()
+      disconnect = vi.fn()
+    },
+  )
   vi.stubGlobal(
     'matchMedia',
     vi.fn((query: string) => ({
@@ -361,5 +379,130 @@ describe('character detail page', () => {
       ),
     ).toBeInTheDocument()
     expect(screen.queryByText('基本信息')).toBeNull()
+  })
+})
+
+describe('character items section', () => {
+  it('requests items independently and renders the carry rows and empty aliases', async () => {
+    itemsFetchMock.mockResolvedValue(
+      jsonResponse({
+        branchExists: true,
+        items: [
+          { entryKey: 1, name: '长枪', alias: '被强化的长枪' },
+          { entryKey: 2, name: '簪子', alias: '被强化的簪子' },
+          { entryKey: 3, name: '布裙', alias: '被强化的布裙' },
+          { entryKey: 10, name: '麻鞋', alias: '被强化的麻鞋' },
+          { entryKey: 51, name: '布带', alias: '被强化的布带' },
+          { entryKey: 101, name: '新手礼包（35级）', alias: null },
+          { entryKey: 102, name: '驯兽诀', alias: null },
+          { entryKey: 103, name: '中级法玲珑', alias: null },
+          { entryKey: 104, name: '特级八卦阴阳令', alias: null },
+          { entryKey: 105, name: '中级血玲珑', alias: null },
+        ],
+      }),
+    )
+    renderPage()
+    const section = await screen.findByRole('region', { name: '物品信息' })
+    await within(section).findByText('长枪')
+    expect(itemsFetchMock).toHaveBeenCalledWith(`/_api/characters/${gid}/items`)
+    expect(
+      within(section)
+        .getAllByRole('columnheader')
+        .map((cell) => cell.textContent),
+    ).toEqual(['记录 Key', '物品名称', '别名'])
+    const rows = within(section).getAllByRole('row').slice(1)
+    expect(rows.map((row) => row.getAttribute('data-row-key'))).toEqual([
+      '1',
+      '2',
+      '3',
+      '10',
+      '51',
+      '101',
+      '102',
+      '103',
+      '104',
+      '105',
+    ])
+    expect(within(rows[0]).getByText('被强化的长枪')).toBeInTheDocument()
+    expect(within(rows[9]).getByText('中级血玲珑')).toBeInTheDocument()
+    expect(within(rows[9]).getAllByRole('cell')[2]).toHaveTextContent(/^-$/)
+    expect(section.querySelector('.ant-pagination')).toBeNull()
+    expect(screen.getByText('女金')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: '1' })).toHaveAttribute(
+      'href',
+      '/accounts/1',
+    )
+  })
+
+  it.each([false, true])(
+    'shows an empty list with branchExists %s',
+    async (branchExists) => {
+      itemsFetchMock.mockResolvedValue(
+        jsonResponse({ branchExists, items: [] }),
+      )
+      renderPage()
+      const section = await screen.findByRole('region', { name: '物品信息' })
+      expect(await within(section).findByText('暂无物品')).toBeInTheDocument()
+    },
+  )
+
+  it('loads items without hiding the character details', async () => {
+    let resolve!: (response: Response) => void
+    itemsFetchMock.mockImplementation(
+      () =>
+        new Promise<Response>((done) => {
+          resolve = done
+        }),
+    )
+    renderPage()
+    const section = await screen.findByRole('region', { name: '物品信息' })
+    expect(within(section).getByText('加载中')).toBeInTheDocument()
+    expect(section.querySelector('.ant-spin-spinning')).not.toBeNull()
+    expect(screen.getByText('女金')).toBeInTheDocument()
+    expect(screen.getByText('基本信息')).toBeInTheDocument()
+    resolve(jsonResponse({ branchExists: true, items: [] }))
+    expect(await within(section).findByText('暂无物品')).toBeInTheDocument()
+  })
+
+  it('isolates item errors and retries only the items query', async () => {
+    itemsFetchMock
+      .mockResolvedValueOnce(
+        jsonResponse(
+          { code: 'INTERNAL_SERVER_ERROR', message: 'Internal Server Error' },
+          500,
+        ),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({
+          branchExists: true,
+          items: [{ entryKey: 1, name: '长枪', alias: null }],
+        }),
+      )
+    const user = userEvent.setup()
+    renderPage()
+    const section = await screen.findByRole('region', { name: '物品信息' })
+    expect(
+      await within(section).findByText('物品信息加载失败'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('女金')).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: '返回角色列表' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: '1' })).toBeInTheDocument()
+    expect(within(section).queryByText('暂无物品')).toBeNull()
+    await user.click(within(section).getByRole('button', { name: '重试' }))
+    expect(await within(section).findByText('长枪')).toBeInTheDocument()
+    expect(itemsFetchMock).toHaveBeenCalledTimes(2)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not request items when the character does not exist', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse({ code: 'CHARACTER_NOT_FOUND', message: '角色不存在' }, 404),
+    )
+    renderPage()
+    await screen.findByText('角色不存在')
+    expect(itemsFetchMock).not.toHaveBeenCalled()
+    expect(screen.queryByRole('region', { name: '物品信息' })).toBeNull()
   })
 })

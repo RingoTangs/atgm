@@ -569,3 +569,113 @@ describe('GET /characters/:gid', () => {
     },
   )
 })
+
+const carryFixture = readFileSync(
+  new URL(
+    '../../../../packages/lpc/src/fixtures/gid-03-carry.txt',
+    import.meta.url,
+  ),
+  'utf8',
+)
+
+// eslint-disable-next-line test/prefer-lowercase-title
+describe('GET /characters/:gid/items', () => {
+  it('returns all carry entries sorted by key using the exact branch query', async () => {
+    dataRows = [{ name: character.gid, content: carryFixture }]
+    const response = await app.inject(`/characters/${character.gid}/items`)
+    expect(response.statusCode).toBe(200)
+    const body = response.json()
+    expect(body.branchExists).toBe(true)
+    expect(
+      body.items.map((item: { entryKey: number }) => item.entryKey),
+    ).toEqual([1, 2, 3, 10, 51, 101, 102, 103, 104, 105])
+    expect(body.items[0]).toEqual({
+      entryKey: 1,
+      name: '长枪',
+      alias: '被强化的长枪',
+    })
+    expect(body.items[9]).toEqual({
+      entryKey: 105,
+      name: '中级血玲珑',
+      alias: null,
+    })
+    expect(compileQuery.mock.results.map((result) => result.value)).toEqual([
+      expect.objectContaining({
+        sql: 'select `gid` from `dl_ddb_1`.`basic_char_info` where `gid` = ?',
+        parameters: [character.gid],
+      }),
+      expect.objectContaining({
+        sql: 'select `content` from `dl_ddb_1`.`data` where `path` = ? and `name` = ? and `branch` = ?',
+        parameters: ['user', character.gid, 'carry'],
+      }),
+    ])
+  })
+  it('returns 404 and skips the carry query for a missing character', async () => {
+    items = []
+    const response = await app.inject('/characters/missing/items')
+    expect(response.statusCode).toBe(404)
+    expect(response.json()).toEqual({
+      code: errorCodes.CHARACTER_NOT_FOUND,
+      message: '角色不存在',
+    })
+    expect(transformResult).toHaveBeenCalledTimes(1)
+  })
+  it.each([undefined, '(["carry":([]),])'])(
+    'returns an empty list when content is %s',
+    async (content) => {
+      if (content !== undefined) dataRows = [{ name: character.gid, content }]
+      const response = await app.inject(`/characters/${character.gid}/items`)
+      expect(response.statusCode).toBe(200)
+      expect(response.json()).toEqual({
+        branchExists: content !== undefined,
+        items: [],
+      })
+    },
+  )
+  it.each([
+    {
+      content: 'invalid PRIVATE LPC',
+      entryKey: null,
+      reason: 'Invalid outer LPC',
+    },
+    {
+      content: '(["carry":([1:"长枪:([])",7:"PRIVATE LPC",]),])',
+      entryKey: 7,
+      reason: 'Carry entry must contain an LPC mapping',
+    },
+  ])(
+    'returns a unified error and logs GID/key without raw content (case %#)',
+    async ({ content, entryKey, reason }) => {
+      const errorLog = vi.fn()
+      app.addHook('onRequest', async (request) => {
+        vi.spyOn(request.log, 'error').mockImplementation(errorLog)
+      })
+      dataRows = [{ name: character.gid, content }]
+      const response = await app.inject(`/characters/${character.gid}/items`)
+      expect(response.statusCode).toBe(500)
+      expect(response.json()).toEqual({
+        code: errorCodes.INTERNAL_SERVER_ERROR,
+        message: 'Internal Server Error',
+      })
+      expect(errorLog).toHaveBeenCalledWith(
+        { gid: character.gid, entryKey, reason },
+        'Invalid character carry data',
+      )
+      expect(JSON.stringify(errorLog.mock.calls)).not.toContain('PRIVATE LPC')
+      expect(response.body).not.toContain('PRIVATE LPC')
+    },
+  )
+  it.each(['basic', 'carry'])(
+    'returns the unified error on %s database failure',
+    async (query) => {
+      if (query === 'basic') databaseError = new Error('database unavailable')
+      else dataError = new Error('database unavailable')
+      const response = await app.inject(`/characters/${character.gid}/items`)
+      expect(response.statusCode).toBe(500)
+      expect(response.json()).toEqual({
+        code: errorCodes.INTERNAL_SERVER_ERROR,
+        message: 'Internal Server Error',
+      })
+    },
+  )
+})

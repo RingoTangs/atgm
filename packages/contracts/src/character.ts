@@ -94,3 +94,20 @@ export const characterDetailResponseSchema = z.object({
 export type CharacterDetailResponse = z.infer<
   typeof characterDetailResponseSchema
 >
+
+export const characterItemSchema = z.object({
+  entryKey: z.number(),
+  name: z.string().min(1),
+  alias: z.string().nullable(),
+})
+
+export type CharacterItem = z.infer<typeof characterItemSchema>
+
+export const characterItemsResponseSchema = z.object({
+  branchExists: z.boolean(),
+  items: z.array(characterItemSchema),
+})
+
+export type CharacterItemsResponse = z.infer<
+  typeof characterItemsResponseSchema
+>

@@ -10,6 +10,7 @@ import { Link } from '@tanstack/react-router'
 import { Alert, Button, Descriptions, Skeleton } from 'antd'
 import { descriptionsTableStyles } from '@/components/descriptionsStyles'
 import { ApiError } from '@/lib/apiError'
+import { CharacterItems } from './CharacterItems'
 import { characterDetailQueryOptions } from './characters-queries'
 
 const labels: Record<keyof CharacterDetailResponse, Record<string, string>> = {
@@ -120,37 +121,40 @@ export function CharacterDetailPage({ gid }: { gid: string }) {
           }
         />
       ) : (
-        (Object.keys(labels) as (keyof CharacterDetailResponse)[]).map(
-          (group) => {
-            const items: DescriptionsProps['items'] = Object.entries(
-              query.data[group],
-            ).map(([key, value]) => ({
-              key,
-              label: labels[group][key],
-              children: displayValue(key, value),
-            }))
-            return (
-              <Descriptions
-                key={group}
-                title={moduleConfigs[group].title}
-                bordered
-                size="small"
-                column={moduleConfigs[group].column}
-                items={items}
-                styles={{
-                  label: {
-                    width: 130,
-                    textAlign: 'center',
-                  },
-                  content: {
-                    minWidth: 0,
-                    textAlign: 'center',
-                  },
-                }}
-              />
-            )
-          },
-        )
+        <>
+          {(Object.keys(labels) as (keyof CharacterDetailResponse)[]).map(
+            (group) => {
+              const items: DescriptionsProps['items'] = Object.entries(
+                query.data[group],
+              ).map(([key, value]) => ({
+                key,
+                label: labels[group][key],
+                children: displayValue(key, value),
+              }))
+              return (
+                <Descriptions
+                  key={group}
+                  title={moduleConfigs[group].title}
+                  bordered
+                  size="small"
+                  column={moduleConfigs[group].column}
+                  items={items}
+                  styles={{
+                    label: {
+                      width: 130,
+                      textAlign: 'center',
+                    },
+                    content: {
+                      minWidth: 0,
+                      textAlign: 'center',
+                    },
+                  }}
+                />
+              )
+            },
+          )}
+          <CharacterItems gid={gid} />
+        </>
       )}
     </div>
   )
