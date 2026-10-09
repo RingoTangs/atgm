@@ -8,6 +8,7 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Alert, Badge, Button, Input, Table, Tooltip } from 'antd'
+import { Plus } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { AccountRegisterModal } from './AccountRegisterModal'
 import { accountsQueryOptions } from './accounts-queries'
@@ -174,6 +175,7 @@ export const AccountsPage: React.FC = () => {
             />
             <Button
               className="w-full sm:w-auto"
+              icon={<Plus size={16} aria-hidden="true" />}
               onClick={() => setRegisterOpen(true)}
               type="primary"
             >
