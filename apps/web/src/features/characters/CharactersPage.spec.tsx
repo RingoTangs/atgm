@@ -1,4 +1,13 @@
+import type { CharacterWithAccount } from '@atgm/contracts'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import {
+  createMemoryHistory,
+  createRootRoute,
+  createRoute,
+  createRouter,
+  Outlet,
+  RouterProvider,
+} from '@tanstack/react-router'
 import {
   cleanup,
   render,
@@ -10,12 +19,13 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { CharactersPage } from './CharactersPage'
 
-const character = {
+const character: CharacterWithAccount = {
   gid: 'character-gid',
   name: '中文角色',
   polar: 1,
   gender: 2,
   time: '2018-04-13 15:53:02',
+  account: 'linked-account',
 }
 const fetchMock = vi.fn<typeof fetch>()
 let queryClient: QueryClient
@@ -24,12 +34,28 @@ const response = (items = [character], total = 21, page = 1, pageSize = 10) =>
     status: 200,
     headers: { 'Content-Type': 'application/json' },
   })
-const renderPage = () =>
-  render(
+const renderPage = () => {
+  const rootRoute = createRootRoute({ component: Outlet })
+  const charactersRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/characters',
+    component: CharactersPage,
+  })
+  const accountDetailRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/accounts/$account',
+    component: () => <h1>账号详情测试页</h1>,
+  })
+  const router = createRouter({
+    history: createMemoryHistory({ initialEntries: ['/characters'] }),
+    routeTree: rootRoute.addChildren([charactersRoute, accountDetailRoute]),
+  })
+  return render(
     <QueryClientProvider client={queryClient}>
-      <CharactersPage />
+      <RouterProvider router={router} />
     </QueryClientProvider>,
   )
+}
 
 beforeEach(() => {
   queryClient = new QueryClient({
@@ -69,25 +95,54 @@ afterEach(() => {
 })
 
 describe('characters page', () => {
-  it('renders the title, five columns and server data with the default request', async () => {
+  it('renders the title, six columns and server data with the default request', async () => {
     renderPage()
     expect(
-      screen.getByRole('heading', { name: '角色管理' }),
+      await screen.findByRole('heading', { name: '角色管理' }),
     ).toBeInTheDocument()
     expect(screen.getByText('查询游戏角色')).toBeInTheDocument()
-    for (const name of ['GID', '角色名', '相性', '性别', '创建时间']) {
+    for (const name of [
+      'GID',
+      '角色名',
+      '关联账号',
+      '相性',
+      '性别',
+      '创建时间',
+    ]) {
       expect(screen.getByRole('columnheader', { name })).toBeInTheDocument()
     }
-    expect(screen.getAllByRole('columnheader')).toHaveLength(5)
+    expect(screen.getAllByRole('columnheader')).toHaveLength(6)
     expect(screen.queryByText('最近登陆')).toBeNull()
     const row = (await screen.findByText('中文角色')).closest('tr')!
     expect(row).toHaveAttribute('data-row-key', character.gid)
     expect(within(row).getByText(character.time)).toBeInTheDocument()
     expect(within(row).getByText('金')).toBeInTheDocument()
     expect(within(row).getByText('女')).toBeInTheDocument()
+    expect(
+      within(row).getByRole('link', { name: 'linked-account' }),
+    ).toHaveAttribute('href', '/accounts/linked-account')
     expect(fetchMock).toHaveBeenCalledWith(
       '/_api/characters?page=1&pageSize=10',
     )
+  })
+
+  it('navigates to the existing account details route', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await user.click(
+      await screen.findByRole('link', { name: 'linked-account' }),
+    )
+    expect(
+      await screen.findByRole('heading', { name: '账号详情测试页' }),
+    ).toBeInTheDocument()
+  })
+
+  it('shows a dash without a link when the character has no account', async () => {
+    fetchMock.mockResolvedValue(response([{ ...character, account: null }]))
+    renderPage()
+    const row = (await screen.findByText(character.name)).closest('tr')!
+    expect(within(row).getByText('-')).toBeInTheDocument()
+    expect(within(row).queryByRole('link')).not.toBeInTheDocument()
   })
 
   it.each([

@@ -28,8 +28,14 @@ export const characterListItemSchema = z.object({
 
 export type CharacterListItem = z.infer<typeof characterListItemSchema>
 
+export const characterWithAccountSchema = characterListItemSchema.extend({
+  account: z.string().nullable(),
+})
+
+export type CharacterWithAccount = z.infer<typeof characterWithAccountSchema>
+
 export const charactersResponseSchema = paginatedResponseSchema(
-  characterListItemSchema,
+  characterWithAccountSchema,
 )
 
 export type CharactersResponse = z.infer<typeof charactersResponseSchema>

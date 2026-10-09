@@ -1,4 +1,4 @@
-import type { CharacterListItem } from '@atgm/contracts'
+import type { CharacterWithAccount } from '@atgm/contracts'
 import type { TableProps } from 'antd'
 import {
   CHARACTER_GENDER_LABELS,
@@ -7,13 +7,28 @@ import {
   DEFAULT_PAGE_SIZE,
 } from '@atgm/contracts'
 import { useQuery } from '@tanstack/react-query'
+import { Link } from '@tanstack/react-router'
 import { Alert, Button, Table } from 'antd'
 import { useState } from 'react'
 import { charactersQueryOptions } from './characters-queries'
 
-const columns: TableProps<CharacterListItem>['columns'] = [
+const columns: TableProps<CharacterWithAccount>['columns'] = [
   { title: 'GID', dataIndex: 'gid', key: 'gid', align: 'center' },
   { title: '角色名', dataIndex: 'name', key: 'name', align: 'center' },
+  {
+    title: '关联账号',
+    dataIndex: 'account',
+    key: 'account',
+    align: 'center',
+    render: (account: string | null) =>
+      account ? (
+        <Link to="/accounts/$account" params={{ account }}>
+          {account}
+        </Link>
+      ) : (
+        '-'
+      ),
+  },
   {
     title: '相性',
     dataIndex: 'polar',
@@ -69,7 +84,7 @@ export const CharactersPage: React.FC = () => {
             type="error"
           />
         )}
-        <Table<CharacterListItem>
+        <Table<CharacterWithAccount>
           className="mt-4"
           columns={columns}
           dataSource={charactersQuery.data?.items ?? []}

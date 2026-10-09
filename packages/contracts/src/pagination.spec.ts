@@ -3,9 +3,9 @@ import type {
   AccountListItem,
   AccountsQuery,
   AccountsResponse,
-  CharacterListItem,
   CharactersQuery,
   CharactersResponse,
+  CharacterWithAccount,
   PaginationQuery,
 } from '.'
 import { describe, expect, expectTypeOf, it } from 'vitest'
@@ -29,12 +29,13 @@ const account: AccountListItem = {
   lastLoginIp: '',
   regDate: '',
 }
-const character: CharacterListItem = {
+const character: CharacterWithAccount = {
   gid: 'character-gid',
   name: '中文',
   polar: 1,
   gender: 2,
   time: '20180413155302',
+  account: null,
 }
 
 describe.each([
@@ -148,7 +149,7 @@ it('preserves the exported query and response type inference', () => {
     page: number
     pageSize: number
     total: number
-    items: CharacterListItem[]
+    items: CharacterWithAccount[]
   }>()
   const schema = paginatedResponseSchema(accountListItemSchema)
   expect(

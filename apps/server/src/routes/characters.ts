@@ -5,7 +5,22 @@ import {
   charactersResponseSchema,
   errorResponseSchema,
 } from '@atgm/contracts'
+import { LpcParseError, parseLpcValue } from '@atgm/lpc'
 import { formatDisplayTime } from '../lib/game-time'
+
+function readCharacterAccount(content: string): string | null {
+  const root = parseLpcValue(content)
+  if (!(root instanceof Map))
+    throw new Error('Character data root must be a mapping')
+  const me = root.get('me')
+  if (me === undefined) return null
+  if (!(me instanceof Map)) throw new Error('me must be a mapping')
+  const account = me.get('account')
+  if (account === undefined || account === '') return null
+  if (typeof account !== 'string')
+    throw new Error('me.account must be a string')
+  return account
+}
 
 export async function characterRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().get(
@@ -47,6 +62,34 @@ export async function characterRoutes(app: FastifyInstance) {
         throw new Error('Invalid character count returned by database')
       }
 
+      const accounts = new Map<string, string | null>()
+      if (items.length > 0) {
+        const rows = await app.db.ddb
+          .selectFrom('data')
+          .select(['name', 'content'])
+          .where('path', '=', 'user')
+          .where('branch', '=', '')
+          .where(
+            'name',
+            'in',
+            items.map((item) => item.gid),
+          )
+          .execute()
+        for (const row of rows) {
+          try {
+            accounts.set(row.name, readCharacterAccount(row.content))
+          } catch (cause) {
+            const message =
+              cause instanceof Error ? cause.message : String(cause)
+            const offset =
+              cause instanceof LpcParseError ? ` (offset: ${cause.offset})` : ''
+            throw new Error(
+              `Invalid character data for GID ${row.name}: ${message}${offset}`,
+            )
+          }
+        }
+      }
+
       return {
         page,
         pageSize,
@@ -54,6 +97,7 @@ export async function characterRoutes(app: FastifyInstance) {
         items: items.map((item) => ({
           ...item,
           time: formatDisplayTime(item.time),
+          account: accounts.get(item.gid) ?? null,
         })),
       }
     },

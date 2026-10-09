@@ -1,5 +1,6 @@
 import type { CompiledQuery } from 'kysely'
 import type { AdbDatabase, DdbDatabase } from '../db'
+import { readFileSync } from 'node:fs'
 import { errorCodes } from '@atgm/contracts'
 import {
   DummyDriver,
@@ -18,11 +19,17 @@ const character = {
   gender: 2,
   time: '20180413155302',
 }
-const characterResponse = { ...character, time: '2018-04-13 15:53:02' }
+const characterResponse = {
+  ...character,
+  time: '2018-04-13 15:53:02',
+  account: null,
+}
 const compiler = new MysqlQueryCompiler()
 const compileQuery = vi.spyOn(compiler, 'compileQuery')
 let total: number | string | bigint
 let items: (typeof character)[]
+let dataRows: { name: string; content: string }[]
+let dataError: Error | undefined
 let databaseError: Error | undefined
 let ddb: Kysely<AdbDatabase & DdbDatabase>
 let app: ReturnType<typeof buildApp>
@@ -31,6 +38,10 @@ const transformResult = vi.fn(async ({ queryId }: { queryId: unknown }) => {
   const compiled = compileQuery.mock.results
     .map((result) => result.value as CompiledQuery)
     .find((query) => query.queryId === queryId)
+  if (compiled?.sql.includes('`.`data`')) {
+    if (dataError) throw dataError
+    return { rows: dataRows }
+  }
   return { rows: compiled?.sql.includes('count(*)') ? [{ total }] : items }
 })
 
@@ -38,6 +49,8 @@ beforeEach(() => {
   vi.clearAllMocks()
   total = '125'
   items = [{ ...character }]
+  dataRows = []
+  dataError = undefined
   databaseError = undefined
   ddb = new Kysely<AdbDatabase & DdbDatabase>({
     dialect: {
@@ -71,7 +84,7 @@ describe('GET /characters', () => {
       total: 125,
       items: [characterResponse],
     })
-    expect(transformResult).toHaveBeenCalledTimes(2)
+    expect(transformResult).toHaveBeenCalledTimes(3)
     const queries = compileQuery.mock.results.map((result) => result.value)
     expect(queries).toEqual(
       expect.arrayContaining([
@@ -82,6 +95,10 @@ describe('GET /characters', () => {
         expect.objectContaining({
           sql: 'select `gid`, `name`, `polar`, `gender`, `time` from `dl_ddb_1`.`basic_char_info` order by `gid` limit ? offset ?',
           parameters: [10, 0],
+        }),
+        expect.objectContaining({
+          sql: 'select `name`, `content` from `dl_ddb_1`.`data` where `path` = ? and `branch` = ? and `name` in (?)',
+          parameters: ['user', '', character.gid],
         }),
       ]),
     )
@@ -112,7 +129,9 @@ describe('GET /characters', () => {
       items = [{ ...character, time }]
       const response = await app.inject('/characters')
       expect(response.statusCode).toBe(200)
-      expect(response.json().items).toEqual([{ ...character, time }])
+      expect(response.json().items).toEqual([
+        { ...character, time, account: null },
+      ])
     },
   )
 
@@ -155,6 +174,7 @@ describe('GET /characters', () => {
       total: input.total,
       items: [],
     })
+    expect(transformResult).toHaveBeenCalledTimes(2)
   })
 
   it.each([125, '125', 125n])(
@@ -188,5 +208,135 @@ describe('GET /characters', () => {
       code: errorCodes.INTERNAL_SERVER_ERROR,
       message: 'Internal Server Error',
     })
+  })
+
+  it('reads the account string from the real character content fixture', async () => {
+    dataRows = [
+      {
+        name: character.gid,
+        content: readFileSync(
+          new URL(
+            '../../../../packages/lpc/src/fixtures/gid-03.txt',
+            import.meta.url,
+          ),
+          'utf8',
+        ),
+      },
+    ]
+    const response = await app.inject('/characters')
+    expect(response.statusCode).toBe(200)
+    expect(response.json().items).toEqual([
+      { ...characterResponse, account: '1' },
+    ])
+  })
+
+  it('batches accounts for all page gids and preserves character order', async () => {
+    items = [
+      character,
+      { ...character, gid: 'second-gid' },
+      { ...character, gid: 'third-gid' },
+      { ...character, gid: 'fourth-gid' },
+    ]
+    dataRows = [
+      {
+        name: 'second-gid',
+        content: '(["me":(["account":"other-account",]),])',
+      },
+      {
+        name: 'third-gid',
+        content: '(["me":(["account":"shared-account",]),])',
+      },
+      {
+        name: character.gid,
+        content: '(["me":(["account":"shared-account",]),])',
+      },
+    ]
+    const response = await app.inject('/characters')
+    expect(response.statusCode).toBe(200)
+    expect(response.json().items).toEqual([
+      { ...characterResponse, account: 'shared-account' },
+      { ...characterResponse, gid: 'second-gid', account: 'other-account' },
+      { ...characterResponse, gid: 'third-gid', account: 'shared-account' },
+      { ...characterResponse, gid: 'fourth-gid' },
+    ])
+    expect(transformResult).toHaveBeenCalledTimes(3)
+    expect(
+      compileQuery.mock.results.map((result) => result.value),
+    ).toContainEqual(
+      expect.objectContaining({
+        sql: 'select `name`, `content` from `dl_ddb_1`.`data` where `path` = ? and `branch` = ? and `name` in (?, ?, ?, ?)',
+        parameters: [
+          'user',
+          '',
+          character.gid,
+          'second-gid',
+          'third-gid',
+          'fourth-gid',
+        ],
+      }),
+    )
+  })
+
+  it.each(['([])', '(["me":([]),])', '(["me":(["account":"",]),])'])(
+    'returns null for a missing account in %s',
+    async (content) => {
+      dataRows = [{ name: character.gid, content }]
+      const response = await app.inject('/characters')
+      expect(response.statusCode).toBe(200)
+      expect(response.json().items[0].account).toBeNull()
+    },
+  )
+
+  it.each([
+    { content: 'invalid', message: 'Unknown token (offset: 0)' },
+    { content: '', message: 'Expected LPC value (offset: 0)' },
+    { content: '({})', message: 'Character data root must be a mapping' },
+    { content: '(["me":1,])', message: 'me must be a mapping' },
+    {
+      content: '(["me":(["account":1,]),])',
+      message: 'me.account must be a string',
+    },
+  ])(
+    'fails and logs the gid for invalid character data: $content',
+    async ({ content, message }) => {
+      const errorLog = vi.fn()
+      app.addHook('onRequest', async (request) => {
+        vi.spyOn(request.log, 'error').mockImplementation(errorLog)
+      })
+      dataRows = [{ name: character.gid, content }]
+      const response = await app.inject('/characters')
+      expect(response.statusCode).toBe(500)
+      expect(response.json()).toEqual({
+        code: errorCodes.INTERNAL_SERVER_ERROR,
+        message: 'Internal Server Error',
+      })
+      expect(errorLog).toHaveBeenCalledWith(
+        {
+          err: expect.objectContaining({
+            message: `Invalid character data for GID ${character.gid}: ${message}`,
+          }),
+        },
+        'Unhandled server error',
+      )
+    },
+  )
+
+  it('fails the whole page when one character has invalid LPC', async () => {
+    items = [character, { ...character, gid: 'second-gid' }]
+    dataRows = [
+      { name: character.gid, content: '(["me":(["account":"valid",]),])' },
+      { name: 'second-gid', content: 'invalid' },
+    ]
+    const response = await app.inject('/characters')
+    expect(response.statusCode).toBe(500)
+    expect(response.json().code).toBe(errorCodes.INTERNAL_SERVER_ERROR)
+  })
+
+  it('returns a server error when the account batch query fails', async () => {
+    dataError = new Error('account query unavailable')
+    const response = await app.inject('/characters')
+    expect(response.statusCode).toBe(500)
+    expect(response.json().code).toBe(errorCodes.INTERNAL_SERVER_ERROR)
+    expect(transformResult).toHaveBeenCalledTimes(3)
   })
 })
