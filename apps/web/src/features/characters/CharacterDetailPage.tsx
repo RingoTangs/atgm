@@ -5,11 +5,19 @@ import {
   CHARACTER_POLAR_LABELS,
   errorCodes,
 } from '@atgm/contracts'
+import { css } from '@emotion/react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Alert, Button, Descriptions, Skeleton } from 'antd'
 import { ApiError } from '@/lib/apiError'
 import { characterDetailQueryOptions } from './characters-queries'
+
+const pageStyles = css`
+  .ant-descriptions-view > table {
+    width: 100%;
+    table-layout: fixed;
+  }
+`
 
 const labels: Record<keyof CharacterDetailResponse, Record<string, string>> = {
   basicInfo: {
@@ -87,7 +95,7 @@ export function CharacterDetailPage({ gid }: { gid: string }) {
     query.error instanceof ApiError &&
     query.error.code === errorCodes.CHARACTER_NOT_FOUND
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" css={pageStyles}>
       <div>
         <Link to="/characters">返回角色列表</Link>
         <h1 className="mt-2 text-2xl font-semibold">角色详情</h1>
