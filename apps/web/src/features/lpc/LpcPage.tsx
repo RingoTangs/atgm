@@ -1,6 +1,7 @@
 import type { LpcAnalysisNode } from './buildLpcAnalysisTree'
 import { formatLpc, LpcParseError, parseLpcValue } from '@atgm/lpc'
 import {
+  Alert,
   Button,
   Card,
   Empty,
@@ -27,11 +28,22 @@ interface LpcError {
 interface LpcPageProps {
   mode: LpcMode
   onModeChange: (mode: LpcMode) => void
+  initialInput?: string
+  inputError?: string
+  onSaveInput?: (input: string) => void
+  onClearInput?: () => void
 }
 
-export const LpcPage: React.FC<LpcPageProps> = ({ mode, onModeChange }) => {
+export const LpcPage: React.FC<LpcPageProps> = ({
+  mode,
+  onModeChange,
+  initialInput = '',
+  inputError,
+  onSaveInput,
+  onClearInput,
+}) => {
   const [analysis, setAnalysis] = useState<LpcAnalysisNode | null>(null)
-  const [input, setInput] = useState('')
+  const [input, setInput] = useState(initialInput)
   const [output, setOutput] = useState('')
   const [errors, setErrors] = useState<Partial<Record<LpcMode, LpcError>>>({})
   const [messageApi, messageContext] = message.useMessage()
@@ -54,6 +66,7 @@ export const LpcPage: React.FC<LpcPageProps> = ({ mode, onModeChange }) => {
   }
 
   const execute = () => {
+    onSaveInput?.(input)
     try {
       if (mode === 'format') setOutput(formatLpc(input))
       else setAnalysis(buildLpcAnalysisTree(parseLpcValue(input)))
@@ -129,11 +142,13 @@ export const LpcPage: React.FC<LpcPageProps> = ({ mode, onModeChange }) => {
           onClick={() => {
             setInput('')
             resetResults()
+            onClearInput?.()
           }}
         >
           清空
         </Button>
       </div>
+      {inputError && <Alert type="error" showIcon title={inputError} />}
       <div
         aria-label="LPC 工作台"
         className="grid min-w-0 gap-4"
