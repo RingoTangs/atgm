@@ -17,6 +17,7 @@ import { Route as AppLpcRouteImport } from './../../routes/_app/lpc'
 import { Route as AppAccountsIndexRouteImport } from './../../routes/_app/accounts.index'
 import { Route as AppAccountsAccountRouteImport } from './../../routes/_app/accounts.$account'
 import { Route as AppCharactersIndexRouteImport } from './../../routes/_app/characters.index'
+import { Route as AppCharactersGidRouteImport } from './../../routes/_app/characters.$gid'
 
 const SplatRoute = SplatRouteImport.update({
   id: '/$',
@@ -57,6 +58,11 @@ const AppCharactersIndexRoute = AppCharactersIndexRouteImport.update({
   path: '/characters/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCharactersGidRoute = AppCharactersGidRouteImport.update({
+  id: '/characters/$gid',
+  path: '/characters/$gid',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/$': typeof SplatRoute
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/accounts': typeof AppAccountsRouteWithChildren
   '/lpc': typeof AppLpcRoute
   '/accounts/$account': typeof AppAccountsAccountRoute
+  '/characters/$gid': typeof AppCharactersGidRoute
   '/accounts/': typeof AppAccountsIndexRoute
   '/characters/': typeof AppCharactersIndexRoute
 }
@@ -72,6 +79,7 @@ export interface FileRoutesByTo {
   '/lpc': typeof AppLpcRoute
   '/': typeof AppIndexRoute
   '/accounts/$account': typeof AppAccountsAccountRoute
+  '/characters/$gid': typeof AppCharactersGidRoute
   '/accounts': typeof AppAccountsIndexRoute
   '/characters': typeof AppCharactersIndexRoute
 }
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   '/_app/lpc': typeof AppLpcRoute
   '/_app/': typeof AppIndexRoute
   '/_app/accounts/$account': typeof AppAccountsAccountRoute
+  '/_app/characters/$gid': typeof AppCharactersGidRoute
   '/_app/accounts/': typeof AppAccountsIndexRoute
   '/_app/characters/': typeof AppCharactersIndexRoute
 }
@@ -94,10 +103,18 @@ export interface FileRouteTypes {
     | '/accounts'
     | '/lpc'
     | '/accounts/$account'
+    | '/characters/$gid'
     | '/accounts/'
     | '/characters/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/$' | '/lpc' | '/' | '/accounts/$account' | '/accounts' | '/characters'
+  to:
+    | '/$'
+    | '/lpc'
+    | '/'
+    | '/accounts/$account'
+    | '/characters/$gid'
+    | '/accounts'
+    | '/characters'
   id:
     | '__root__'
     | '/$'
@@ -106,6 +123,7 @@ export interface FileRouteTypes {
     | '/_app/lpc'
     | '/_app/'
     | '/_app/accounts/$account'
+    | '/_app/characters/$gid'
     | '/_app/accounts/'
     | '/_app/characters/'
   fileRoutesById: FileRoutesById
@@ -173,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCharactersIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/characters/$gid': {
+      id: '/_app/characters/$gid'
+      path: '/characters/$gid'
+      fullPath: '/characters/$gid'
+      preLoaderRoute: typeof AppCharactersGidRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -194,6 +219,7 @@ interface AppRouteChildren {
   AppAccountsRoute: typeof AppAccountsRouteWithChildren
   AppLpcRoute: typeof AppLpcRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppCharactersGidRoute: typeof AppCharactersGidRoute
   AppCharactersIndexRoute: typeof AppCharactersIndexRoute
 }
 
@@ -201,6 +227,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAccountsRoute: AppAccountsRouteWithChildren,
   AppLpcRoute: AppLpcRoute,
   AppIndexRoute: AppIndexRoute,
+  AppCharactersGidRoute: AppCharactersGidRoute,
   AppCharactersIndexRoute: AppCharactersIndexRoute,
 }
 

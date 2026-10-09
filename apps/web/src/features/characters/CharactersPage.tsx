@@ -15,7 +15,17 @@ import { charactersQueryOptions } from './characters-queries'
 
 const columns: TableProps<CharacterWithAccount>['columns'] = [
   { title: 'GID', dataIndex: 'gid', key: 'gid', align: 'center' },
-  { title: '角色名', dataIndex: 'name', key: 'name', align: 'center' },
+  {
+    title: '角色名',
+    dataIndex: 'name',
+    key: 'name',
+    align: 'center',
+    render: (name: string, character) => (
+      <Link to="/characters/$gid" params={{ gid: character.gid }}>
+        {name}
+      </Link>
+    ),
+  },
   {
     title: '相性',
     dataIndex: 'polar',

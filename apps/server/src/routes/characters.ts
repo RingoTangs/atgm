@@ -1,28 +1,125 @@
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import {
+  characterDetailParamsSchema,
+  characterDetailResponseSchema,
   charactersQuerySchema,
   charactersResponseSchema,
+  errorCodes,
   errorResponseSchema,
 } from '@atgm/contracts'
-import { LpcParseError, parseLpcValue } from '@atgm/lpc'
+import { LpcParseError } from '@atgm/lpc'
+import {
+  readCharacterMe,
+  readCharacterNumber,
+  readCharacterString,
+} from '../lib/character-data'
 import { formatDisplayTime } from '../lib/game-time'
 
-function readCharacterAccount(content: string): string | null {
-  const root = parseLpcValue(content)
-  if (!(root instanceof Map))
-    throw new Error('Character data root must be a mapping')
-  const me = root.get('me')
-  if (me === undefined) return null
-  if (!(me instanceof Map)) throw new Error('me must be a mapping')
-  const account = me.get('account')
-  if (account === undefined || account === '') return null
-  if (typeof account !== 'string')
-    throw new Error('me.account must be a string')
-  return account
-}
-
 export async function characterRoutes(app: FastifyInstance) {
+  app.withTypeProvider<ZodTypeProvider>().get(
+    '/characters/:gid',
+    {
+      schema: {
+        tags: ['Character'],
+        summary: '查询角色详情',
+        params: characterDetailParamsSchema,
+        response: {
+          200: characterDetailResponseSchema,
+          400: errorResponseSchema,
+          404: errorResponseSchema,
+          500: errorResponseSchema,
+          default: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { gid } = request.params
+      const basic = await app.db.ddb
+        .selectFrom('basic_char_info')
+        .select(['gid', 'name', 'polar', 'gender', 'time'])
+        .where('gid', '=', gid)
+        .executeTakeFirst()
+      if (!basic) {
+        return reply.code(404).send({
+          code: errorCodes.CHARACTER_NOT_FOUND,
+          message: '角色不存在',
+        })
+      }
+      const row = await app.db.ddb
+        .selectFrom('data')
+        .select('content')
+        .where('path', '=', 'user')
+        .where('name', '=', gid)
+        .where('branch', '=', '')
+        .executeTakeFirst()
+      try {
+        const me = row ? readCharacterMe(row.content) : undefined
+        if (row && readCharacterString(me, 'gid') !== gid)
+          throw new Error('me.gid must match the requested GID')
+        const number = (key: string) => readCharacterNumber(me, key)
+        const string = (key: string) => readCharacterString(me, key)
+        return {
+          basicInfo: {
+            gid: basic.gid,
+            name: basic.name ?? null,
+            account: string('account'),
+            level: number('level'),
+            polar: basic.polar ?? null,
+            gender: basic.gender ?? null,
+            createTime:
+              basic.time == null ? null : formatDisplayTime(basic.time),
+          },
+          sectInfo: {
+            family: string('family'),
+            master: string('master'),
+            title: string('title'),
+          },
+          attributes: {
+            strength: number('str'),
+            constitution: number('con'),
+            dexterity: number('dex'),
+            spirit: number('wiz'),
+          },
+          combat: {
+            life: number('life'),
+            maxLife: number('max_life'),
+            mana: number('mana'),
+            maxMana: number('max_mana'),
+            speed: number('speed'),
+            defense: number('def'),
+            physicalDamage: number('phy_power'),
+            magicDamage: number('mag_power'),
+          },
+          cultivation: {
+            experience: number('exp'),
+            experienceToNextLevel: number('exp_to_next_level'),
+            tao: number('tao'),
+            potential: number('pot'),
+          },
+          assets: {
+            cash: number('cash'),
+            goldCoin: number('gold_coin'),
+            silverCoin: number('silver_coin'),
+            voucher: number('voucher'),
+          },
+        }
+      } catch (cause) {
+        const message = cause instanceof Error ? cause.message : String(cause)
+        const offset =
+          cause instanceof LpcParseError ? ` (offset: ${cause.offset})` : ''
+        request.log.error(
+          { err: cause, gid },
+          `Invalid character data: ${message}${offset}`,
+        )
+        return reply.code(500).send({
+          code: errorCodes.CHARACTER_DATA_INVALID,
+          message: `角色数据损坏：${message}${offset}`,
+        })
+      }
+    },
+  )
+
   app.withTypeProvider<ZodTypeProvider>().get(
     '/characters',
     {
@@ -77,7 +174,10 @@ export async function characterRoutes(app: FastifyInstance) {
           .execute()
         for (const row of rows) {
           try {
-            accounts.set(row.name, readCharacterAccount(row.content))
+            accounts.set(
+              row.name,
+              readCharacterString(readCharacterMe(row.content), 'account'),
+            )
           } catch (cause) {
             const message =
               cause instanceof Error ? cause.message : String(cause)

@@ -48,7 +48,15 @@ const renderPage = () => {
   })
   const router = createRouter({
     history: createMemoryHistory({ initialEntries: ['/characters'] }),
-    routeTree: rootRoute.addChildren([charactersRoute, accountDetailRoute]),
+    routeTree: rootRoute.addChildren([
+      charactersRoute,
+      accountDetailRoute,
+      createRoute({
+        getParentRoute: () => rootRoute,
+        path: '/characters/$gid',
+        component: () => <h1>角色详情测试页</h1>,
+      }),
+    ]),
   })
   return render(
     <QueryClientProvider client={queryClient}>
@@ -123,6 +131,17 @@ describe('characters page', () => {
     )
   })
 
+  it('navigates from the character name to its details', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    const link = await screen.findByRole('link', { name: character.name })
+    expect(link).toHaveAttribute('href', `/characters/${character.gid}`)
+    await user.click(link)
+    expect(
+      await screen.findByRole('heading', { name: '角色详情测试页' }),
+    ).toBeInTheDocument()
+  })
+
   it('navigates to the existing account details route', async () => {
     const user = userEvent.setup()
     renderPage()
@@ -140,7 +159,12 @@ describe('characters page', () => {
     renderPage()
     const row = (await screen.findByText(character.name)).closest('tr')!
     expect(within(row).getByText('-')).toBeInTheDocument()
-    expect(within(row).queryByRole('link')).not.toBeInTheDocument()
+    expect(
+      within(row).queryByRole('link', { name: 'linked-account' }),
+    ).not.toBeInTheDocument()
+    expect(
+      within(row).getByRole('link', { name: character.name }),
+    ).toHaveAttribute('href', `/characters/${character.gid}`)
   })
 
   it.each([

@@ -1,6 +1,10 @@
-import type { CharacterWithAccount } from '.'
+import type { CharacterDetailResponse, CharacterWithAccount } from '.'
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { characterWithAccountSchema } from '.'
+import {
+  characterDetailParamsSchema,
+  characterDetailResponseSchema,
+  characterWithAccountSchema,
+} from '.'
 
 const character = {
   gid: '0000000000000003',
@@ -26,5 +30,82 @@ describe('character with account', () => {
     expectTypeOf<CharacterWithAccount['account']>().toEqualTypeOf<
       string | null
     >()
+  })
+})
+
+const detail: CharacterDetailResponse = {
+  basicInfo: {
+    gid: '0000000000000003',
+    name: '女金',
+    account: null,
+    level: null,
+    polar: 1,
+    gender: 2,
+    createTime: null,
+  },
+  sectInfo: { family: null, master: null, title: null },
+  attributes: {
+    strength: null,
+    constitution: null,
+    dexterity: null,
+    spirit: null,
+  },
+  combat: {
+    life: null,
+    maxLife: null,
+    mana: null,
+    maxMana: null,
+    speed: null,
+    defense: null,
+    physicalDamage: null,
+    magicDamage: null,
+  },
+  cultivation: {
+    experience: null,
+    experienceToNextLevel: null,
+    tao: null,
+    potential: null,
+  },
+  assets: { cash: 0, goldCoin: null, silverCoin: null, voucher: null },
+}
+
+describe('character detail contract', () => {
+  it.each(['0000000000000003', 'character-gid'])(
+    'accepts a nonempty GID: %s',
+    (gid) => {
+      expect(characterDetailParamsSchema.parse({ gid })).toEqual({ gid })
+    },
+  )
+  it.each(['', undefined, 3])('rejects an invalid GID: %s', (gid) => {
+    expect(characterDetailParamsSchema.safeParse({ gid }).success).toBe(false)
+  })
+  it('accepts nullable fields and preserves a real zero', () => {
+    expect(characterDetailResponseSchema.parse(detail)).toEqual(detail)
+    expectTypeOf<CharacterDetailResponse['assets']['cash']>().toEqualTypeOf<
+      number | null
+    >()
+  })
+  it.each([undefined, '0', [], Number.NaN, Number.POSITIVE_INFINITY])(
+    'rejects missing or invalid cash: %s',
+    (cash) => {
+      expect(
+        characterDetailResponseSchema.safeParse({
+          ...detail,
+          assets: { ...detail.assets, cash },
+        }).success,
+      ).toBe(false)
+    },
+  )
+  it('requires all business modules and rejects invalid string fields', () => {
+    expect(
+      characterDetailResponseSchema.safeParse({ basicInfo: detail.basicInfo })
+        .success,
+    ).toBe(false)
+    expect(
+      characterDetailResponseSchema.safeParse({
+        ...detail,
+        sectInfo: { ...detail.sectInfo, family: 1 },
+      }).success,
+    ).toBe(false)
   })
 })

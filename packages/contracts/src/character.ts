@@ -39,3 +39,58 @@ export const charactersResponseSchema = paginatedResponseSchema(
 )
 
 export type CharactersResponse = z.infer<typeof charactersResponseSchema>
+
+export const characterDetailParamsSchema = z.object({
+  gid: z.string().min(1),
+})
+
+export type CharacterDetailParams = z.infer<typeof characterDetailParamsSchema>
+
+export const characterDetailResponseSchema = z.object({
+  basicInfo: z.object({
+    gid: z.string(),
+    name: z.string().nullable(),
+    account: z.string().nullable(),
+    level: z.number().nullable(),
+    polar: z.number().int().nullable(),
+    gender: z.number().int().nullable(),
+    createTime: z.string().nullable(),
+  }),
+  sectInfo: z.object({
+    family: z.string().nullable(),
+    master: z.string().nullable(),
+    title: z.string().nullable(),
+  }),
+  attributes: z.object({
+    strength: z.number().nullable(),
+    constitution: z.number().nullable(),
+    dexterity: z.number().nullable(),
+    spirit: z.number().nullable(),
+  }),
+  combat: z.object({
+    life: z.number().nullable(),
+    maxLife: z.number().nullable(),
+    mana: z.number().nullable(),
+    maxMana: z.number().nullable(),
+    speed: z.number().nullable(),
+    defense: z.number().nullable(),
+    physicalDamage: z.number().nullable(),
+    magicDamage: z.number().nullable(),
+  }),
+  cultivation: z.object({
+    experience: z.number().nullable(),
+    experienceToNextLevel: z.number().nullable(),
+    tao: z.number().nullable(),
+    potential: z.number().nullable(),
+  }),
+  assets: z.object({
+    cash: z.number().nullable(),
+    goldCoin: z.number().nullable(),
+    silverCoin: z.number().nullable(),
+    voucher: z.number().nullable(),
+  }),
+})
+
+export type CharacterDetailResponse = z.infer<
+  typeof characterDetailResponseSchema
+>
