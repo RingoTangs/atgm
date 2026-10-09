@@ -12,7 +12,7 @@ import {
   theme,
   Tooltip,
 } from 'antd'
-import { Copy } from 'lucide-react'
+import { Copy, Eraser, Play } from 'lucide-react'
 import { useState } from 'react'
 import { buildLpcAnalysisTree } from './buildLpcAnalysisTree'
 import { LpcAnalysisView } from './LpcAnalysisView'
@@ -111,11 +111,17 @@ export const LpcPage: React.FC = () => {
           <Radio.Button value="format">格式化</Radio.Button>
           <Radio.Button value="analysis">深度解析</Radio.Button>
         </Radio.Group>
-        <Button aria-label="执行" onClick={execute} type="primary">
+        <Button
+          aria-label="执行"
+          icon={<Play size={16} aria-hidden="true" />}
+          onClick={execute}
+          type="primary"
+        >
           执行
         </Button>
         <Button
           aria-label="清空"
+          icon={<Eraser size={16} aria-hidden="true" />}
           onClick={() => {
             setInput('')
             resetResults()
