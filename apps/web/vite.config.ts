@@ -7,11 +7,12 @@ import { defineConfig, loadEnv } from 'vite'
 const PORT = 3000
 const PROJECT_ROOT = import.meta.dirname
 const API_TARGET = 'http://127.0.0.1:8080'
+const API_PREFIX = '/_api'
 const API_PROXY = {
-  '/_api': {
+  [API_PREFIX]: {
     target: API_TARGET,
     changeOrigin: true,
-    rewrite: (requestPath: string) => requestPath.replace(/^\/_api/, ''),
+    rewrite: (requestPath: string) => requestPath.slice(API_PREFIX.length),
   },
 }
 
@@ -70,6 +71,9 @@ export default defineConfig(({ mode }) => {
 
   return {
     base: basePath,
+    define: {
+      __API_PREFIX__: JSON.stringify(API_PREFIX),
+    },
     plugins: [
       // Please make sure that '@tanstack/router-plugin' is passed before '@vitejs/plugin-react'
       tanstackRouter({

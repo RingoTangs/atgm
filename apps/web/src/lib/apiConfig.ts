@@ -1,1 +1,1 @@
-export const API_PREFIX = '/_api'
+export const API_PREFIX = __API_PREFIX__

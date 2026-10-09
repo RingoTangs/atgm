@@ -1,3 +1,5 @@
+declare const __API_PREFIX__: string
+
 interface ImportMetaEnv {
   readonly VITE_BASE_PATH: string
   readonly VITE_ROUTER_HISTORY: 'browser' | 'hash'
