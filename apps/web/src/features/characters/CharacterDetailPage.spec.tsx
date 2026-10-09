@@ -311,7 +311,14 @@ describe('character detail page', () => {
     await screen.findByText('女金')
     const element = screen.getByRole('link', { name: link })
     expect(element).toHaveAttribute('href', href)
-    await user.click(element)
+    if (link === '1') {
+      const icon = element.querySelector('svg')!
+      expect(icon).toHaveAttribute('aria-hidden', 'true')
+      expect(icon).toHaveAttribute('width', '14')
+      await user.click(icon)
+    } else {
+      await user.click(element)
+    }
     expect(
       await screen.findByRole('heading', { name: heading }),
     ).toBeInTheDocument()

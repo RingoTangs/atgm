@@ -8,6 +8,7 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Alert, Button, Descriptions, Skeleton } from 'antd'
+import { ExternalLink } from 'lucide-react'
 import { descriptionsTableStyles } from '@/components/descriptionsStyles'
 import { ApiError } from '@/lib/apiError'
 import { CharacterItems } from './CharacterItems'
@@ -71,8 +72,13 @@ function displayValue(key: string, value: string | number | null) {
   if (value === null || value === '') return '-'
   if (key === 'account')
     return (
-      <Link to="/accounts/$account" params={{ account: String(value) }}>
-        {value}
+      <Link
+        className="inline-flex items-center space-x-1"
+        to="/accounts/$account"
+        params={{ account: String(value) }}
+      >
+        <span className="text-base">{value}</span>
+        <ExternalLink size={14} aria-hidden="true" />
       </Link>
     )
   if (key === 'polar')
