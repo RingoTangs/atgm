@@ -130,8 +130,18 @@ export function CharacterDetailPage({ gid }: { gid: string }) {
                 title={titles[group]}
                 bordered
                 size="small"
-                column={{ xs: 1, sm: 2 }}
+                column={{ xs: 1, sm: 2}}
                 items={items}
+                styles={{
+                  label: {
+                    width: 130,
+                    textAlign: 'center',
+                  },
+                  content: {
+                    minWidth: 0,
+                    textAlign: 'center',
+                  },
+                }}
               />
             )
           },
