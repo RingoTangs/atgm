@@ -1,7 +1,12 @@
 import type { PoolOptions } from 'mysql2'
 import { decodeGb18030 } from '../lib/gb18030'
 
-const GB18030_FIELDS = new Set(['basic_char_info.name'])
+const GB18030_FIELDS = new Set([
+  'basic_char_info.name',
+  'data.name',
+  'data.branch',
+  'data.content',
+])
 
 export const mysqlTypeCast: Exclude<
   NonNullable<PoolOptions['typeCast']>,

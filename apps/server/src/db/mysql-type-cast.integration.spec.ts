@@ -12,7 +12,7 @@ import { decodeGb18030 } from '../lib/gb18030'
 // Run from the repository root with an existing character gid:
 // pnpm --filter atgm-server exec cross-env MYSQL_TYPE_CAST_DB_TEST=1 MYSQL_TYPE_CAST_TEST_GID=<gid> node --env-file=.env.local ../../node_modules/vitest/vitest.mjs run src/db/mysql-type-cast.integration.spec.ts
 it.skipIf(process.env.MYSQL_TYPE_CAST_DB_TEST !== '1')(
-  'decodes only the whitelisted field through a real mysql2 connection',
+  'decodes whitelisted fields through a real mysql2 connection',
   async () => {
     const gid = process.env.MYSQL_TYPE_CAST_TEST_GID
     if (!gid)
@@ -71,7 +71,18 @@ it.skipIf(process.env.MYSQL_TYPE_CAST_DB_TEST !== '1')(
 
       const dataQuery = ddbDb
         .selectFrom('data')
-        .select(['path', 'name', 'branch'])
+        .select([
+          'path',
+          'name',
+          'branch',
+          'content',
+          'memo',
+          'time',
+          'checksum',
+        ])
+        .select(sql<string>`HEX(${sql.ref('name')})`.as('nameHex'))
+        .select(sql<string>`HEX(${sql.ref('branch')})`.as('branchHex'))
+        .select(sql<string>`HEX(${sql.ref('content')})`.as('contentHex'))
         .orderBy('path')
         .orderBy('name')
         .orderBy('branch')
@@ -79,15 +90,30 @@ it.skipIf(process.env.MYSQL_TYPE_CAST_DB_TEST !== '1')(
       const data = await dataQuery.executeTakeFirst()
       if (!data)
         throw new Error(
-          'data must contain an existing record for the default decoding comparison',
+          'data must contain an existing record for the raw bytes comparison',
         )
       const dataCompiled = dataQuery.compile()
       const [defaultData] = await baseline.query<RowDataPacket[]>(
         dataCompiled.sql,
         [...dataCompiled.parameters],
       )
-      expect(typeof data.name).toBe('string')
-      expect(data).toEqual(defaultData[0])
+      for (const [value, hex] of [
+        [data.name, data.nameHex],
+        [data.branch, data.branchHex],
+        [data.content, data.contentHex],
+      ]) {
+        expect(typeof value).toBe('string')
+        expect(value).toBe(decodeGb18030(Buffer.from(hex!, 'hex')))
+      }
+      expect(defaultData[0]).toMatchObject({
+        path: data.path,
+        memo: data.memo,
+        time: data.time,
+        checksum: data.checksum,
+        nameHex: data.nameHex,
+        branchHex: data.branchHex,
+        contentHex: data.contentHex,
+      })
     } finally {
       await Promise.all([db.destroy(), baseline?.end()])
     }
