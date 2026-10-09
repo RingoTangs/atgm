@@ -9,9 +9,8 @@ import type {
   UpdateAccountPrivilegeRequest,
   UpdateAccountPrivilegeResponse,
 } from '@atgm/contracts'
+import { API_PREFIX } from '@/lib/apiConfig'
 import { checkApiResponse } from '@/lib/apiError'
-
-const API_PREFIX = '/_api'
 
 export async function rechargeAccount(
   account: string,
