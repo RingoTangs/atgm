@@ -9,26 +9,13 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Alert, Button, Table } from 'antd'
+import { ArrowUpRight } from 'lucide-react'
 import { useState } from 'react'
 import { charactersQueryOptions } from './characters-queries'
 
 const columns: TableProps<CharacterWithAccount>['columns'] = [
   { title: 'GID', dataIndex: 'gid', key: 'gid', align: 'center' },
   { title: '角色名', dataIndex: 'name', key: 'name', align: 'center' },
-  {
-    title: '关联账号',
-    dataIndex: 'account',
-    key: 'account',
-    align: 'center',
-    render: (account: string | null) =>
-      account ? (
-        <Link to="/accounts/$account" params={{ account }}>
-          {account}
-        </Link>
-      ) : (
-        '-'
-      ),
-  },
   {
     title: '相性',
     dataIndex: 'polar',
@@ -54,6 +41,25 @@ const columns: TableProps<CharacterWithAccount>['columns'] = [
     align: 'center',
     className: 'whitespace-nowrap',
     render: (value: string) => value || '-',
+  },
+  {
+    title: '关联账号',
+    dataIndex: 'account',
+    key: 'account',
+    align: 'center',
+    render: (account: string | null) =>
+      account ? (
+        <Link
+          className="inline-flex items-center gap-1"
+          to="/accounts/$account"
+          params={{ account }}
+        >
+          {account}
+          <ArrowUpRight size={14} aria-hidden="true" />
+        </Link>
+      ) : (
+        '-'
+      ),
   },
 ]
 

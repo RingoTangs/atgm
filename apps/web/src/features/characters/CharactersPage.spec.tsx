@@ -101,26 +101,23 @@ describe('characters page', () => {
       await screen.findByRole('heading', { name: '角色管理' }),
     ).toBeInTheDocument()
     expect(screen.getByText('查询游戏角色')).toBeInTheDocument()
-    for (const name of [
-      'GID',
-      '角色名',
-      '关联账号',
-      '相性',
-      '性别',
-      '创建时间',
-    ]) {
-      expect(screen.getByRole('columnheader', { name })).toBeInTheDocument()
-    }
-    expect(screen.getAllByRole('columnheader')).toHaveLength(6)
+    expect(
+      screen.getAllByRole('columnheader').map((header) => header.textContent),
+    ).toEqual(['GID', '角色名', '相性', '性别', '创建时间', '关联账号'])
     expect(screen.queryByText('最近登陆')).toBeNull()
     const row = (await screen.findByText('中文角色')).closest('tr')!
     expect(row).toHaveAttribute('data-row-key', character.gid)
     expect(within(row).getByText(character.time)).toBeInTheDocument()
     expect(within(row).getByText('金')).toBeInTheDocument()
     expect(within(row).getByText('女')).toBeInTheDocument()
-    expect(
-      within(row).getByRole('link', { name: 'linked-account' }),
-    ).toHaveAttribute('href', '/accounts/linked-account')
+    const accountLink = within(row).getByRole('link', {
+      name: 'linked-account',
+    })
+    expect(accountLink).toHaveAttribute('href', '/accounts/linked-account')
+    expect(accountLink.querySelector('svg')).toHaveAttribute(
+      'aria-hidden',
+      'true',
+    )
     expect(fetchMock).toHaveBeenCalledWith(
       '/_api/characters?page=1&pageSize=10',
     )
@@ -129,9 +126,10 @@ describe('characters page', () => {
   it('navigates to the existing account details route', async () => {
     const user = userEvent.setup()
     renderPage()
-    await user.click(
-      await screen.findByRole('link', { name: 'linked-account' }),
-    )
+    const accountLink = await screen.findByRole('link', {
+      name: 'linked-account',
+    })
+    await user.click(accountLink.querySelector('svg')!)
     expect(
       await screen.findByRole('heading', { name: '账号详情测试页' }),
     ).toBeInTheDocument()
