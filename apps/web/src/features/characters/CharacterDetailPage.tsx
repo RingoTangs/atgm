@@ -52,13 +52,18 @@ const labels: Record<keyof CharacterDetailResponse, Record<string, string>> = {
     voucher: '代金券',
   },
 }
-const titles: Record<keyof CharacterDetailResponse, string> = {
-  basicInfo: '基本信息',
-  sectInfo: '门派信息',
-  attributes: '人物属性',
-  combat: '战斗属性',
-  cultivation: '修炼信息',
-  assets: '资产信息',
+interface ModuleConfig {
+  title: string
+  column: DescriptionsProps['column']
+}
+
+const moduleConfigs: Record<keyof CharacterDetailResponse, ModuleConfig> = {
+  basicInfo: { title: '基本信息', column: { xs: 1, sm: 2, md: 3 } },
+  sectInfo: { title: '门派信息', column: { xs: 1, sm: 2, md: 3 } },
+  attributes: { title: '人物属性', column: { xs: 1, sm: 2, md: 4 } },
+  combat: { title: '战斗属性', column: { xs: 1, sm: 2, md: 4 } },
+  cultivation: { title: '修炼信息', column: { xs: 1, sm: 2, md: 4 } },
+  assets: { title: '资产信息', column: { xs: 1, sm: 2, md: 4 } },
 }
 
 function displayValue(key: string, value: string | number | null) {
@@ -127,10 +132,10 @@ export function CharacterDetailPage({ gid }: { gid: string }) {
             return (
               <Descriptions
                 key={group}
-                title={titles[group]}
+                title={moduleConfigs[group].title}
                 bordered
                 size="small"
-                column={{ xs: 1, sm: 2 }}
+                column={moduleConfigs[group].column}
                 items={items}
                 styles={{
                   label: {
