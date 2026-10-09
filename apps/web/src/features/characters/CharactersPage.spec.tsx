@@ -103,7 +103,7 @@ afterEach(() => {
 })
 
 describe('characters page', () => {
-  it('renders the title, six columns and server data with the default request', async () => {
+  it('renders the title, seven columns and server data with the default request', async () => {
     renderPage()
     expect(
       await screen.findByRole('heading', { name: '角色管理' }),
@@ -111,7 +111,7 @@ describe('characters page', () => {
     expect(screen.getByText('查询游戏角色')).toBeInTheDocument()
     expect(
       screen.getAllByRole('columnheader').map((header) => header.textContent),
-    ).toEqual(['GID', '角色名', '相性', '性别', '创建时间', '关联账号'])
+    ).toEqual(['GID', '角色名', '相性', '性别', '创建时间', '关联账号', '操作'])
     expect(screen.queryByText('最近登陆')).toBeNull()
     const row = (await screen.findByText('中文角色')).closest('tr')!
     expect(row).toHaveAttribute('data-row-key', character.gid)
@@ -153,6 +153,24 @@ describe('characters page', () => {
       await screen.findByRole('heading', { name: '账号详情测试页' }),
     ).toBeInTheDocument()
   })
+
+  it.each(['linked-account', null])(
+    'opens character details from the action column with account %s',
+    async (account) => {
+      fetchMock.mockResolvedValue(response([{ ...character, account }]))
+      const user = userEvent.setup()
+      renderPage()
+      const row = (await screen.findByText(character.name)).closest('tr')!
+      const cells = within(row).getAllByRole('cell')
+      const actionCell = cells[cells.length - 1]
+      const link = within(actionCell).getByRole('link', { name: '查看详情' })
+      expect(link).toHaveAttribute('href', `/characters/${character.gid}`)
+      await user.click(link)
+      expect(
+        await screen.findByRole('heading', { name: '角色详情测试页' }),
+      ).toBeInTheDocument()
+    },
+  )
 
   it('shows a dash without a link when the character has no account', async () => {
     fetchMock.mockResolvedValue(response([{ ...character, account: null }]))

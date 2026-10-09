@@ -71,6 +71,16 @@ const columns: TableProps<CharacterWithAccount>['columns'] = [
         '-'
       ),
   },
+  {
+    title: '操作',
+    key: 'actions',
+    align: 'center',
+    render: (_, character) => (
+      <Link to="/characters/$gid" params={{ gid: character.gid }}>
+        查看详情
+      </Link>
+    ),
+  },
 ]
 
 export const CharactersPage: React.FC = () => {
