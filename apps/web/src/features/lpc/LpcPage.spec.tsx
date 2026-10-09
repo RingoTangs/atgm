@@ -1,11 +1,18 @@
+import type { LpcMode } from './LpcPage'
 import { LpcParseError, parseLpcValue } from '@atgm/lpc'
 import * as lpc from '@atgm/lpc'
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ConfigProvider, theme } from 'antd'
+import { useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { LpcPage } from './LpcPage'
 import { installMatchMedia } from './lpcTestUtils'
+
+function TestLpcPage() {
+  const [mode, setMode] = useState<LpcMode>('format')
+  return <LpcPage mode={mode} onModeChange={setMode} />
+}
 
 const source = '(["name":"测试","items":({1,2,3,})])'
 const formatted = `([
@@ -44,7 +51,7 @@ const expectFormatEmpty = () => {
 
 const setup = () => {
   const user = userEvent.setup()
-  render(<LpcPage />)
+  render(<TestLpcPage />)
   return {
     user,
     input: screen.getByLabelText('原始 LPC'),
@@ -80,7 +87,7 @@ describe('lpc formatter', () => {
       const user = userEvent.setup()
       render(
         <ConfigProvider theme={{ algorithm }}>
-          <LpcPage />
+          <TestLpcPage />
         </ConfigProvider>,
       )
       expectFormatEmpty()

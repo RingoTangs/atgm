@@ -17,15 +17,19 @@ import { useState } from 'react'
 import { buildLpcAnalysisTree } from './buildLpcAnalysisTree'
 import { LpcAnalysisView } from './LpcAnalysisView'
 
-type LpcMode = 'format' | 'analysis'
+export type LpcMode = 'format' | 'analysis'
 
 interface LpcError {
   mode: LpcMode
   message: string
 }
 
-export const LpcPage: React.FC = () => {
-  const [mode, setMode] = useState<LpcMode>('format')
+interface LpcPageProps {
+  mode: LpcMode
+  onModeChange: (mode: LpcMode) => void
+}
+
+export const LpcPage: React.FC<LpcPageProps> = ({ mode, onModeChange }) => {
   const [analysis, setAnalysis] = useState<LpcAnalysisNode | null>(null)
   const [input, setInput] = useState('')
   const [output, setOutput] = useState('')
@@ -106,7 +110,7 @@ export const LpcPage: React.FC = () => {
         <Radio.Group
           aria-label="执行模式"
           value={mode}
-          onChange={(event) => setMode(event.target.value as LpcMode)}
+          onChange={(event) => onModeChange(event.target.value as LpcMode)}
         >
           <Radio.Button value="format">格式化</Radio.Button>
           <Radio.Button value="analysis">深度解析</Radio.Button>
