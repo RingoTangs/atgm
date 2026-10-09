@@ -9,7 +9,7 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Alert, Button, Table } from 'antd'
-import { ArrowUpRight } from 'lucide-react'
+import { ExternalLink } from 'lucide-react'
 import { useState } from 'react'
 import { charactersQueryOptions } from './characters-queries'
 
@@ -50,12 +50,12 @@ const columns: TableProps<CharacterWithAccount>['columns'] = [
     render: (account: string | null) =>
       account ? (
         <Link
-          className="inline-flex items-center gap-1"
+          className="inline-flex items-center space-x-1"
           to="/accounts/$account"
           params={{ account }}
         >
-          {account}
-          <ArrowUpRight size={14} aria-hidden="true" />
+          <span className='text-base'>{account}</span>
+          <ExternalLink size={14} aria-hidden="true" />
         </Link>
       ) : (
         '-'
