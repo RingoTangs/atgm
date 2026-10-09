@@ -27,7 +27,7 @@ const labels: Record<keyof CharacterDetailResponse, Record<string, string>> = {
     strength: '力量',
     constitution: '体质',
     dexterity: '敏捷',
-    spirit: '灵力',
+    wiz: '灵力',
   },
   combat: {
     life: '气血',
@@ -36,8 +36,8 @@ const labels: Record<keyof CharacterDetailResponse, Record<string, string>> = {
     maxMana: '最大法力',
     speed: '速度',
     defense: '防御',
-    physicalDamage: '物伤',
-    magicDamage: '法伤',
+    physicalPower: '物伤',
+    magPower: '法伤',
   },
   cultivation: {
     experience: '经验',

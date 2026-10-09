@@ -48,7 +48,7 @@ const detail: CharacterDetailResponse = {
     strength: null,
     constitution: null,
     dexterity: null,
-    spirit: null,
+    wiz: null,
   },
   combat: {
     life: null,
@@ -57,8 +57,8 @@ const detail: CharacterDetailResponse = {
     maxMana: null,
     speed: null,
     defense: null,
-    physicalDamage: null,
-    magicDamage: null,
+    physicalPower: null,
+    magPower: null,
   },
   cultivation: {
     experience: null,

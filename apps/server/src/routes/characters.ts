@@ -79,7 +79,7 @@ export async function characterRoutes(app: FastifyInstance) {
             strength: number('str'),
             constitution: number('con'),
             dexterity: number('dex'),
-            spirit: number('wiz'),
+            wiz: number('wiz'),
           },
           combat: {
             life: number('life'),
@@ -88,8 +88,8 @@ export async function characterRoutes(app: FastifyInstance) {
             maxMana: number('max_mana'),
             speed: number('speed'),
             defense: number('def'),
-            physicalDamage: number('phy_power'),
-            magicDamage: number('mag_power'),
+            physicalPower: number('phy_power'),
+            magPower: number('mag_power'),
           },
           cultivation: {
             experience: number('exp'),

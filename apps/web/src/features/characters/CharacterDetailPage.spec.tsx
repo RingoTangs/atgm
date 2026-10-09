@@ -30,7 +30,7 @@ const detail: CharacterDetailResponse = {
     createTime: '2018-04-13 15:53:02',
   },
   sectInfo: { family: '五龙山云霄洞', master: '云霄童子', title: '金系精英' },
-  attributes: { strength: 33, constitution: 33, dexterity: 33, spirit: 33 },
+  attributes: { strength: 33, constitution: 33, dexterity: 33, wiz: 33 },
   combat: {
     life: 2109,
     maxLife: 1804,
@@ -38,8 +38,8 @@ const detail: CharacterDetailResponse = {
     maxMana: 1233,
     speed: 114,
     defense: 185,
-    physicalDamage: 205,
-    magicDamage: 205,
+    physicalPower: 205,
+    magPower: 205,
   },
   cultivation: {
     experience: 2827,
@@ -215,7 +215,7 @@ describe('character detail page', () => {
           strength: null,
           constitution: null,
           dexterity: null,
-          spirit: null,
+          wiz: null,
         },
         combat: {
           life: null,
@@ -224,8 +224,8 @@ describe('character detail page', () => {
           maxMana: null,
           speed: null,
           defense: null,
-          physicalDamage: null,
-          magicDamage: null,
+          physicalPower: null,
+          magPower: null,
         },
         cultivation: {
           experience: null,

@@ -356,7 +356,7 @@ const fixtureDetail = {
     createTime: '2018-04-13 15:53:02',
   },
   sectInfo: { family: '五龙山云霄洞', master: '云霄童子', title: '金系精英' },
-  attributes: { strength: 33, constitution: 33, dexterity: 33, spirit: 33 },
+  attributes: { strength: 33, constitution: 33, dexterity: 33, wiz: 33 },
   combat: {
     life: 2109,
     maxLife: 1804,
@@ -364,8 +364,8 @@ const fixtureDetail = {
     maxMana: 1233,
     speed: 114,
     defense: 185,
-    physicalDamage: 205,
-    magicDamage: 205,
+    physicalPower: 205,
+    magPower: 205,
   },
   cultivation: {
     experience: 2827,
@@ -388,6 +388,13 @@ describe('GET /characters/:gid', () => {
     const response = await app.inject(`/characters/${character.gid}`)
     expect(response.statusCode).toBe(200)
     expect(response.json()).toEqual(fixtureDetail)
+    const detail = response.json()
+    expect(detail.attributes.wiz).toBe(33)
+    expect(detail.combat.physicalPower).toBe(205)
+    expect(detail.combat.magPower).toBe(205)
+    expect(detail.attributes).not.toHaveProperty('spirit')
+    expect(detail.combat).not.toHaveProperty('physicalDamage')
+    expect(detail.combat).not.toHaveProperty('magicDamage')
     expect(compileQuery.mock.results.map((result) => result.value)).toEqual([
       expect.objectContaining({
         sql: 'select `gid`, `name`, `polar`, `gender`, `time` from `dl_ddb_1`.`basic_char_info` where `gid` = ?',

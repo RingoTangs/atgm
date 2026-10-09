@@ -65,7 +65,7 @@ export const characterDetailResponseSchema = z.object({
     strength: z.number().nullable(),
     constitution: z.number().nullable(),
     dexterity: z.number().nullable(),
-    spirit: z.number().nullable(),
+    wiz: z.number().nullable(),
   }),
   combat: z.object({
     life: z.number().nullable(),
@@ -74,8 +74,8 @@ export const characterDetailResponseSchema = z.object({
     maxMana: z.number().nullable(),
     speed: z.number().nullable(),
     defense: z.number().nullable(),
-    physicalDamage: z.number().nullable(),
-    magicDamage: z.number().nullable(),
+    physicalPower: z.number().nullable(),
+    magPower: z.number().nullable(),
   }),
   cultivation: z.object({
     experience: z.number().nullable(),
