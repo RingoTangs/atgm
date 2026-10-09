@@ -47,6 +47,7 @@ async function renderRoute(url: string) {
     history,
     routeTree: root.addChildren([app.addChildren([lpc])]),
   })
+  await router.load()
   const view = render(<RouterProvider router={router} />)
   await screen.findByRole('radio', { name: '格式化' })
   return { ...view, router, history }
