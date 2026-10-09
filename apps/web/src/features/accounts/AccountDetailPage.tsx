@@ -1,24 +1,17 @@
 import type { Privilege } from '@atgm/contracts'
 import type { DescriptionsProps } from 'antd'
 import { ACCOUNT_PRIVILEGES, errorCodes } from '@atgm/contracts'
-import { css } from '@emotion/react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Alert, Badge, Button, Descriptions, Skeleton, Tooltip } from 'antd'
 import { useState } from 'react'
+import { descriptionsTableStyles } from '@/components/descriptionsStyles'
 import { ApiError } from '@/lib/apiError'
 import { AccountCharacters } from './AccountCharacters'
 import { formatAccountPrivilegeLabel } from './accountPrivilege'
 import { AccountPrivilegeModal } from './AccountPrivilegeModal'
 import { AccountRechargeModal } from './AccountRechargeModal'
 import { accountDetailQueryOptions } from './accounts-queries'
-
-const pageStyles = css`
-  .ant-descriptions-view > table {
-    width: 100%;
-    table-layout: fixed;
-  }
-`
 
 interface AccountDetailPageProps {
   account: string
@@ -188,7 +181,10 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = ({
   ]
 
   return (
-    <div className="account-detail-page space-y-6" css={pageStyles}>
+    <div
+      className="account-detail-page space-y-6"
+      css={descriptionsTableStyles}
+    >
       <div className="flex items-end justify-between gap-4">
         <div>
           <Link to="/accounts">返回账号列表</Link>
