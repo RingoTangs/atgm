@@ -20,11 +20,6 @@ const columns: TableProps<CharacterWithAccount>['columns'] = [
     dataIndex: 'name',
     key: 'name',
     align: 'center',
-    render: (name: string, character) => (
-      <Link to="/characters/$gid" params={{ gid: character.gid }}>
-        {name}
-      </Link>
-    ),
   },
   {
     title: '相性',

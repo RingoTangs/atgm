@@ -131,15 +131,13 @@ describe('characters page', () => {
     )
   })
 
-  it('navigates from the character name to its details', async () => {
-    const user = userEvent.setup()
+  it('renders the character name as plain text', async () => {
     renderPage()
-    const link = await screen.findByRole('link', { name: character.name })
-    expect(link).toHaveAttribute('href', `/characters/${character.gid}`)
-    await user.click(link)
+    const name = await screen.findByText(character.name)
+    expect(name.closest('a')).toBeNull()
     expect(
-      await screen.findByRole('heading', { name: '角色详情测试页' }),
-    ).toBeInTheDocument()
+      screen.queryByRole('link', { name: character.name }),
+    ).not.toBeInTheDocument()
   })
 
   it('navigates to the existing account details route', async () => {
@@ -180,9 +178,10 @@ describe('characters page', () => {
     expect(
       within(row).queryByRole('link', { name: 'linked-account' }),
     ).not.toBeInTheDocument()
-    expect(
-      within(row).getByRole('link', { name: character.name }),
-    ).toHaveAttribute('href', `/characters/${character.gid}`)
+    expect(within(row).getByRole('link', { name: '查看详情' })).toHaveAttribute(
+      'href',
+      `/characters/${character.gid}`,
+    )
   })
 
   it.each([
