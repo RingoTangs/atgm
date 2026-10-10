@@ -14,7 +14,7 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@ringotangs/api-shapes": "^0.1.1",
+    "@ringotangs/api-shapes": "^0.1.2",
     "zod": "catalog:"
   }
 }
