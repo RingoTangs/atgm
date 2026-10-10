@@ -1,12 +1,12 @@
 import { z } from 'zod'
 import { characterListItemSchema } from './character'
 import { errorCodes, errorResponseSchema } from './error'
-import { paginatedResponseSchema, paginationQuerySchema } from './pagination'
+import { createPageSchema, pageQuerySchema } from './pagination'
 
 export const ACCOUNT_COIN_MIN = 0
 export const ACCOUNT_COIN_MAX = 2_000_000_000
 
-export const accountsQuerySchema = paginationQuerySchema.extend({
+export const accountsQuerySchema = pageQuerySchema.extend({
   account: z.string().trim().optional(),
 })
 
@@ -25,9 +25,7 @@ export const accountListItemSchema = z.object({
 
 export type AccountListItem = z.infer<typeof accountListItemSchema>
 
-export const accountsResponseSchema = paginatedResponseSchema(
-  accountListItemSchema,
-)
+export const accountsResponseSchema = createPageSchema(accountListItemSchema)
 
 export type AccountsResponse = z.infer<typeof accountsResponseSchema>
 

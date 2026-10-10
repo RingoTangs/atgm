@@ -6,7 +6,7 @@ import type {
   CharactersQuery,
   CharactersResponse,
   CharacterWithAccount,
-  PaginationQuery,
+  PageQuery,
 } from '.'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import {
@@ -15,8 +15,8 @@ import {
   accountsResponseSchema,
   charactersQuerySchema,
   charactersResponseSchema,
-  paginatedResponseSchema,
-  paginationQuerySchema,
+  createPageSchema,
+  pageQuerySchema,
 } from '.'
 
 const account: AccountListItem = {
@@ -39,7 +39,7 @@ const character: CharacterWithAccount = {
 }
 
 describe.each([
-  ['pagination', paginationQuerySchema],
+  ['pagination', pageQuerySchema],
   ['accounts', accountsQuerySchema],
   ['characters', charactersQuerySchema],
 ] as const)('%s query pagination', (_name, schema) => {
@@ -133,11 +133,11 @@ describe.each([
 })
 
 it('preserves the exported query and response type inference', () => {
-  expectTypeOf<PaginationQuery>().toEqualTypeOf<{
+  expectTypeOf<PageQuery>().toEqualTypeOf<{
     page: number
     pageSize: number
   }>()
-  expectTypeOf<CharactersQuery>().toEqualTypeOf<PaginationQuery>()
+  expectTypeOf<CharactersQuery>().toEqualTypeOf<PageQuery>()
   expectTypeOf<AccountsQuery>().toEqualTypeOf<{
     page: number
     pageSize: number
@@ -155,7 +155,7 @@ it('preserves the exported query and response type inference', () => {
     total: number
     items: CharacterWithAccount[]
   }>()
-  const schema = paginatedResponseSchema(accountListItemSchema)
+  const schema = createPageSchema(accountListItemSchema)
   expect(
     schema.parse({ page: 1, pageSize: 20, total: 1, items: [account] }).items,
   ).toEqual([account])

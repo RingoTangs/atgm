@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { paginatedResponseSchema, paginationQuerySchema } from './pagination'
+import { createPageSchema, pageQuerySchema } from './pagination'
 
 export const CHARACTER_POLAR_LABELS = {
   1: '金',
@@ -14,7 +14,7 @@ export const CHARACTER_GENDER_LABELS = {
   2: '女',
 } as const
 
-export const charactersQuerySchema = paginationQuerySchema
+export const charactersQuerySchema = pageQuerySchema
 
 export type CharactersQuery = z.infer<typeof charactersQuerySchema>
 
@@ -34,7 +34,7 @@ export const characterWithAccountSchema = characterListItemSchema.extend({
 
 export type CharacterWithAccount = z.infer<typeof characterWithAccountSchema>
 
-export const charactersResponseSchema = paginatedResponseSchema(
+export const charactersResponseSchema = createPageSchema(
   characterWithAccountSchema,
 )
 
