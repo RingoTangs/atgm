@@ -6,9 +6,6 @@ settings:
 
 catalogs:
   default:
-    '@ringotangs/api-shapes':
-      specifier: ^0.1.1
-      version: 0.1.1
     dayjs:
       specifier: ^1.11.23
       version: 1.11.23
@@ -71,9 +68,6 @@ importers:
       '@fastify/swagger-ui':
         specifier: ^5.2.6
         version: 5.2.6
-      '@ringotangs/api-shapes':
-        specifier: 'catalog:'
-        version: 0.1.1(zod@4.6.5)
       cross-env:
         specifier: ^10.1.0
         version: 10.1.0
@@ -117,9 +111,6 @@ importers:
       '@emotion/react':
         specifier: ^11.14.0
         version: 11.14.0(@types/react@19.3.0)(react@19.3.0)
-      '@ringotangs/api-shapes':
-        specifier: 'catalog:'
-        version: 0.1.1(zod@4.6.5)
       '@tanstack/react-query':
         specifier: ^5.103.2
         version: 5.103.2(react@19.3.0)
@@ -203,7 +194,7 @@ importers:
   packages/contracts:
     dependencies:
       '@ringotangs/api-shapes':
-        specifier: 'catalog:'
+        specifier: ^0.1.1
         version: 0.1.1(zod@4.6.5)
       zod:
         specifier: 'catalog:'
