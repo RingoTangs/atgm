@@ -15,6 +15,7 @@
     "@atgm/contracts": "workspace:*",
     "@atgm/lpc": "workspace:*",
     "@emotion/react": "^11.14.0",
+    "@ringotangs/api-shapes": "catalog:",
     "@tanstack/react-query": "^5.103.2",
     "@tanstack/react-router": "^1.170.38",
     "antd": "^6.6.5",
