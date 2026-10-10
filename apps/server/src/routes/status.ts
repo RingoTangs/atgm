@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
-import { errorResponseSchema } from '@atgm/contracts'
+import { errorSchema } from '@atgm/contracts'
 import { z } from 'zod'
 
 export async function statusRoutes(app: FastifyInstance) {
@@ -15,9 +15,9 @@ export async function statusRoutes(app: FastifyInstance) {
           200: z.object({
             status: z.literal('ok'),
           }),
-          400: errorResponseSchema,
-          500: errorResponseSchema,
-          default: errorResponseSchema,
+          400: errorSchema,
+          500: errorSchema,
+          default: errorSchema,
         },
       },
     },

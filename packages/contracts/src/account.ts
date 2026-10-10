@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { characterListItemSchema } from './character'
-import { errorCodes, errorResponseSchema } from './error'
+import { errorCodes, errorSchema } from './error'
 import { createPageSchema, pageQuerySchema } from './pagination'
 
 export const ACCOUNT_COIN_MIN = 0
@@ -64,7 +64,7 @@ export const accountDetailResponseSchema = z.object({
 
 export type AccountDetailResponse = z.infer<typeof accountDetailResponseSchema>
 
-export const accountNotFoundResponseSchema = errorResponseSchema.extend({
+export const accountNotFoundResponseSchema = errorSchema.extend({
   code: z.literal(errorCodes.ACCOUNT_NOT_FOUND),
 })
 
@@ -91,14 +91,13 @@ export type UpdateAccountPrivilegeResponse = z.infer<
   typeof updateAccountPrivilegeResponseSchema
 >
 
-export const accountPrivilegeConflictResponseSchema =
-  errorResponseSchema.extend({
-    code: z.enum([
-      errorCodes.ACCOUNT_CHECKSUM_INVALID,
-      errorCodes.ACCOUNT_CONCURRENT_MODIFICATION,
-      errorCodes.ACCOUNT_ONLINE,
-    ]),
-  })
+export const accountPrivilegeConflictResponseSchema = errorSchema.extend({
+  code: z.enum([
+    errorCodes.ACCOUNT_CHECKSUM_INVALID,
+    errorCodes.ACCOUNT_CONCURRENT_MODIFICATION,
+    errorCodes.ACCOUNT_ONLINE,
+  ]),
+})
 
 export type AccountPrivilegeConflictResponse = z.infer<
   typeof accountPrivilegeConflictResponseSchema
@@ -136,16 +135,14 @@ export type RechargeAccountResponse = z.infer<
   typeof rechargeAccountResponseSchema
 >
 
-export const accountRechargeConflictResponseSchema = errorResponseSchema.extend(
-  {
-    code: z.enum([
-      errorCodes.ACCOUNT_CHECKSUM_INVALID,
-      errorCodes.ACCOUNT_CONCURRENT_MODIFICATION,
-      errorCodes.ACCOUNT_ONLINE,
-      errorCodes.ACCOUNT_COIN_LIMIT_EXCEEDED,
-    ]),
-  },
-)
+export const accountRechargeConflictResponseSchema = errorSchema.extend({
+  code: z.enum([
+    errorCodes.ACCOUNT_CHECKSUM_INVALID,
+    errorCodes.ACCOUNT_CONCURRENT_MODIFICATION,
+    errorCodes.ACCOUNT_ONLINE,
+    errorCodes.ACCOUNT_COIN_LIMIT_EXCEEDED,
+  ]),
+})
 
 export type AccountRechargeConflictResponse = z.infer<
   typeof accountRechargeConflictResponseSchema
@@ -171,7 +168,7 @@ export type RegisterAccountResponse = z.infer<
   typeof registerAccountResponseSchema
 >
 
-export const accountConflictResponseSchema = errorResponseSchema.extend({
+export const accountConflictResponseSchema = errorSchema.extend({
   code: z.literal(errorCodes.ACCOUNT_ALREADY_EXISTS),
 })
 

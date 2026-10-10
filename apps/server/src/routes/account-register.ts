@@ -3,7 +3,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import {
   accountConflictResponseSchema,
   errorCodes,
-  errorResponseSchema,
+  errorSchema,
   registerAccountBodySchema,
   registerAccountResponseSchema,
 } from '@atgm/contracts'
@@ -33,9 +33,9 @@ export async function accountRegisterRoutes(app: FastifyInstance) {
         response: {
           201: registerAccountResponseSchema,
           409: accountConflictResponseSchema,
-          400: errorResponseSchema,
-          500: errorResponseSchema,
-          default: errorResponseSchema,
+          400: errorSchema,
+          500: errorSchema,
+          default: errorSchema,
         },
       },
     },

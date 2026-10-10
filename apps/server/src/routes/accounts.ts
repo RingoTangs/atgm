@@ -8,7 +8,7 @@ import {
   accountsQuerySchema,
   accountsResponseSchema,
   errorCodes,
-  errorResponseSchema,
+  errorSchema,
 } from '@atgm/contracts'
 import { sql } from 'kysely'
 import { getOnlineAccounts, isAccountOnline } from '../lib/account-status'
@@ -29,10 +29,10 @@ export async function accountRoutes(app: FastifyInstance) {
         params: accountDetailParamsSchema,
         response: {
           200: accountCharactersResponseSchema,
-          400: errorResponseSchema,
+          400: errorSchema,
           404: accountNotFoundResponseSchema,
-          500: errorResponseSchema,
-          default: errorResponseSchema,
+          500: errorSchema,
+          default: errorSchema,
         },
       },
     },
@@ -89,9 +89,9 @@ export async function accountRoutes(app: FastifyInstance) {
         querystring: accountsQuerySchema,
         response: {
           200: accountsResponseSchema,
-          400: errorResponseSchema,
-          500: errorResponseSchema,
-          default: errorResponseSchema,
+          400: errorSchema,
+          500: errorSchema,
+          default: errorSchema,
         },
       },
     },
@@ -173,9 +173,9 @@ export async function accountRoutes(app: FastifyInstance) {
         response: {
           200: accountDetailResponseSchema,
           404: accountNotFoundResponseSchema,
-          400: errorResponseSchema,
-          500: errorResponseSchema,
-          default: errorResponseSchema,
+          400: errorSchema,
+          500: errorSchema,
+          default: errorSchema,
         },
       },
     },

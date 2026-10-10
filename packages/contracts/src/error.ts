@@ -1,5 +1,5 @@
 export type { ErrorResponse } from '@ringotangs/api-shapes'
-export { errorSchema as errorResponseSchema } from '@ringotangs/api-shapes'
+export { errorSchema } from '@ringotangs/api-shapes'
 
 export const errorCodes = {
   VALIDATION_ERROR: 'VALIDATION_ERROR',

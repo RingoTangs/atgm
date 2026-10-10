@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
-import { errorResponseSchema } from '@atgm/contracts'
+import { errorSchema } from '@atgm/contracts'
 import { afterEach, describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { buildApp } from './app'
@@ -25,7 +25,7 @@ describe('global error responses', () => {
       code: 'VALIDATION_ERROR',
       message: expect.any(String),
     })
-    expect(errorResponseSchema.safeParse(response.json()).success).toBe(true)
+    expect(errorSchema.safeParse(response.json()).success).toBe(true)
     expect(response.json().message.length).toBeGreaterThan(0)
   })
 
@@ -128,7 +128,7 @@ describe('global error responses', () => {
         schema: {
           response: {
             200: z.object({ value: z.string().min(1) }),
-            500: errorResponseSchema,
+            500: errorSchema,
           },
         },
       },

@@ -1,5 +1,5 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
-import { errorCodes, errorResponseSchema } from '@atgm/contracts'
+import { errorCodes, errorSchema } from '@atgm/contracts'
 import { hasZodFastifySchemaValidationErrors } from 'fastify-type-provider-zod'
 import { ZodError } from 'zod'
 
@@ -10,7 +10,7 @@ export function handleServerError(
 ) {
   if (error instanceof ZodError) {
     return reply.code(400).send(
-      errorResponseSchema.parse({
+      errorSchema.parse({
         code: errorCodes.VALIDATION_ERROR,
         message: error.issues
           .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
@@ -26,7 +26,7 @@ export function handleServerError(
       Array.isArray(error.validation))
   ) {
     return reply.code(400).send(
-      errorResponseSchema.parse({
+      errorSchema.parse({
         code: errorCodes.VALIDATION_ERROR,
         message: error.message,
       }),
@@ -41,7 +41,7 @@ export function handleServerError(
     error.statusCode < 500
   ) {
     return reply.code(error.statusCode).send(
-      errorResponseSchema.parse({
+      errorSchema.parse({
         code:
           error.statusCode === 400
             ? errorCodes.VALIDATION_ERROR
@@ -53,7 +53,7 @@ export function handleServerError(
 
   request.log.error({ err: error }, 'Unhandled server error')
   return reply.code(500).send(
-    errorResponseSchema.parse({
+    errorSchema.parse({
       code: errorCodes.INTERNAL_SERVER_ERROR,
       message: 'Internal Server Error',
     }),
@@ -65,7 +65,7 @@ export function registerErrorHandlers(app: FastifyInstance) {
 
   app.setNotFoundHandler((_request, reply) => {
     return reply.code(404).send(
-      errorResponseSchema.parse({
+      errorSchema.parse({
         code: errorCodes.ROUTE_NOT_FOUND,
         message: '路由不存在',
       }),

@@ -1,5 +1,5 @@
 import type { ErrorResponse } from '@atgm/contracts'
-import { errorResponseSchema } from '@atgm/contracts'
+import { errorSchema } from '@atgm/contracts'
 
 export class ApiError extends Error {
   readonly code: string
@@ -20,7 +20,7 @@ export async function checkApiResponse(
   if (response.ok) return
 
   const body: unknown = await response.json().catch(() => undefined)
-  const result = errorResponseSchema.safeParse(body)
+  const result = errorSchema.safeParse(body)
 
   if (result.success) {
     throw new ApiError(result.data, response.status)
