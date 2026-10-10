@@ -1,4 +1,5 @@
-import { z } from 'zod'
+export type { ErrorResponse } from '@ringotangs/api-shapes'
+export { errorSchema as errorResponseSchema } from '@ringotangs/api-shapes'
 
 export const errorCodes = {
   VALIDATION_ERROR: 'VALIDATION_ERROR',
@@ -17,10 +18,3 @@ export const errorCodes = {
 } as const
 
 export type ErrorCode = (typeof errorCodes)[keyof typeof errorCodes]
-
-export const errorResponseSchema = z.object({
-  code: z.string(),
-  message: z.string(),
-})
-
-export type ErrorResponse = z.infer<typeof errorResponseSchema>

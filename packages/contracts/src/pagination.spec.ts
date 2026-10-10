@@ -105,7 +105,11 @@ describe.each([
     { total: -1 },
     { total: 1.5 },
     { total: '1' },
+    { page: 0 },
+    { page: -1 },
     { page: 1.5 },
+    { pageSize: 0 },
+    { pageSize: -1 },
     { pageSize: 1.5 },
     { items: [{}] },
     { items: 'invalid' },
@@ -121,9 +125,9 @@ describe.each([
     ).toBe(false)
   })
 
-  it('preserves the existing response integer ranges', () => {
+  it('does not apply the query page size limit to responses', () => {
     expect(
-      schema.safeParse({ page: 0, pageSize: 101, total: 0, items: [] }).success,
+      schema.safeParse({ page: 1, pageSize: 101, total: 0, items: [] }).success,
     ).toBe(true)
   })
 })
