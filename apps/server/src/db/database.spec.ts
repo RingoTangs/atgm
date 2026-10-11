@@ -135,6 +135,9 @@ describe('createDatabases', () => {
       enableKeepAlive: true,
       keepAliveInitialDelay: 10_000,
     })
+    expect(
+      adbDb.selectFrom('server').select(['server', 'id']).compile().sql,
+    ).toContain('`dl_adb_all`.`server`')
     expect(accountQuery.sql).toContain('`dl_adb_all`.`account`')
     expect(dataQuery.sql).toContain('`dl_ddb_1`.`data`')
     expect(basicCharInfoQuery.sql).toContain('`dl_ddb_1`.`basic_char_info`')

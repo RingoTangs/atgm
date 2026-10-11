@@ -14,6 +14,7 @@ import { accountRechargeRoutes } from './routes/account-recharge'
 import { accountRegisterRoutes } from './routes/account-register'
 import { accountRoutes } from './routes/accounts'
 import { characterRoutes } from './routes/characters'
+import { serverRoutes } from './routes/servers'
 import { statusRoutes } from './routes/status'
 
 export function buildApp() {
@@ -44,6 +45,7 @@ export function buildApp() {
   app.register(accountRechargeRoutes)
   app.register(accountPrivilegeRoutes)
   app.register(characterRoutes)
+  app.register(serverRoutes)
 
   return app
 }

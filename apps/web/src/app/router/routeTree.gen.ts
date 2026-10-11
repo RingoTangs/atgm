@@ -18,6 +18,7 @@ import { Route as AppAccountsIndexRouteImport } from './../../routes/_app/accoun
 import { Route as AppAccountsAccountRouteImport } from './../../routes/_app/accounts.$account'
 import { Route as AppCharactersIndexRouteImport } from './../../routes/_app/characters.index'
 import { Route as AppCharactersGidRouteImport } from './../../routes/_app/characters.$gid'
+import { Route as AppServersIndexRouteImport } from './../../routes/_app/servers.index'
 
 const SplatRoute = SplatRouteImport.update({
   id: '/$',
@@ -63,6 +64,11 @@ const AppCharactersGidRoute = AppCharactersGidRouteImport.update({
   path: '/characters/$gid',
   getParentRoute: () => AppRoute,
 } as any)
+const AppServersIndexRoute = AppServersIndexRouteImport.update({
+  id: '/servers/',
+  path: '/servers/',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/$': typeof SplatRoute
@@ -73,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/characters/$gid': typeof AppCharactersGidRoute
   '/accounts/': typeof AppAccountsIndexRoute
   '/characters/': typeof AppCharactersIndexRoute
+  '/servers/': typeof AppServersIndexRoute
 }
 export interface FileRoutesByTo {
   '/$': typeof SplatRoute
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/characters/$gid': typeof AppCharactersGidRoute
   '/accounts': typeof AppAccountsIndexRoute
   '/characters': typeof AppCharactersIndexRoute
+  '/servers': typeof AppServersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/_app/characters/$gid': typeof AppCharactersGidRoute
   '/_app/accounts/': typeof AppAccountsIndexRoute
   '/_app/characters/': typeof AppCharactersIndexRoute
+  '/_app/servers/': typeof AppServersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/characters/$gid'
     | '/accounts/'
     | '/characters/'
+    | '/servers/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/$'
@@ -115,6 +125,7 @@ export interface FileRouteTypes {
     | '/characters/$gid'
     | '/accounts'
     | '/characters'
+    | '/servers'
   id:
     | '__root__'
     | '/$'
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
     | '/_app/characters/$gid'
     | '/_app/accounts/'
     | '/_app/characters/'
+    | '/_app/servers/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -198,6 +210,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCharactersGidRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/servers/': {
+      id: '/_app/servers/'
+      path: '/servers'
+      fullPath: '/servers/'
+      preLoaderRoute: typeof AppServersIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -221,6 +240,7 @@ interface AppRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
   AppCharactersGidRoute: typeof AppCharactersGidRoute
   AppCharactersIndexRoute: typeof AppCharactersIndexRoute
+  AppServersIndexRoute: typeof AppServersIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -229,6 +249,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppIndexRoute: AppIndexRoute,
   AppCharactersGidRoute: AppCharactersGidRoute,
   AppCharactersIndexRoute: AppCharactersIndexRoute,
+  AppServersIndexRoute: AppServersIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

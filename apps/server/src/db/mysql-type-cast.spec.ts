@@ -20,6 +20,8 @@ const field: Parameters<typeof mysqlTypeCast>[0] = {
 }
 
 const whitelistedFields = [
+  { table: 'server', name: 'server' },
+  { table: 'server', name: 'dist' },
   { table: 'basic_char_info', name: 'name' },
   { table: 'data', name: 'name' },
   { table: 'data', name: 'branch' },
@@ -79,6 +81,14 @@ describe('mysqlTypeCast', () => {
       type: 'VAR_STRING',
       value: Buffer.from([0xff]),
     },
+    { table: 'server', name: 'alias', type: 'VAR_STRING', value: 'alias' },
+    ...['id', 'port', 'max_user', 'enable'].map((name) => ({
+      table: 'server',
+      name,
+      type: 'LONG' as const,
+      value: 1,
+    })),
+    { table: 'server', name: 'enable_multi_ip', type: 'TINY', value: 0 },
     { table: 'data', name: 'memo', type: 'VAR_STRING', value: null },
     { table: 'data', name: 'memo', type: 'BLOB', value: 'existing memo' },
   ] as const)(
@@ -102,6 +112,20 @@ describe('mysqlTypeCast', () => {
     expect(mysqlTypeCast({ ...field, table: 'data', name }, next)).toBe(value)
     expect(buffer).toHaveBeenCalledOnce()
     expect(string).not.toHaveBeenCalled()
+    expect(next).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    { name: 'server', value: '万里长城一线' },
+    { name: 'dist', value: '万里长城' },
+  ])('decodes server.$name', ({ name, value }) => {
+    buffer.mockReturnValue(iconv.encode(value, 'gb18030'))
+    expect(
+      mysqlTypeCast(
+        { ...field, table: 'server', name, db: 'dl_adb_all' },
+        next,
+      ),
+    ).toBe(value)
     expect(next).not.toHaveBeenCalled()
   })
 

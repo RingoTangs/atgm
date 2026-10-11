@@ -64,7 +64,7 @@ beforeEach(() => {
   app = buildApp()
   app.decorate('db', {
     ddb: ddb.$pickTables<'data' | 'basic_char_info'>(),
-    adb: ddb.$pickTables<'account'>().withSchema('dl_adb_all'),
+    adb: ddb.$pickTables<'account' | 'server'>().withSchema('dl_adb_all'),
   })
 })
 

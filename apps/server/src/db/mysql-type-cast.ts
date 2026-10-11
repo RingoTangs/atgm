@@ -2,6 +2,8 @@ import type { PoolOptions } from 'mysql2'
 import { decodeGb18030 } from '../lib/gb18030'
 
 const GB18030_FIELDS = new Set([
+  'server.server',
+  'server.dist',
   'basic_char_info.name',
   'data.name',
   'data.branch',

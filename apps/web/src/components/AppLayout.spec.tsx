@@ -118,6 +118,11 @@ const renderApplication = (
         accountDetailRoute,
         charactersRoute,
         lpcRoute,
+        createRoute({
+          getParentRoute: () => appRoute,
+          path: '/servers',
+          component: () => <h1>服务器管理页面</h1>,
+        }),
       ]),
       brokenRoute,
     ]),
@@ -155,6 +160,31 @@ afterEach(() => {
 })
 
 describe('app layout', () => {
+  it.each([1280, 375])('服务器管理支持导航和高亮（宽度 %s）', async (width) => {
+    installMatchMedia(width)
+    const user = userEvent.setup()
+    renderApplication()
+    await screen.findByRole('heading', { name: 'Dashboard' })
+    if (width === 375)
+      await user.click(screen.getByRole('button', { name: '打开导航' }))
+    await user.click(
+      await screen.findByRole('menuitem', { name: '服务器管理' }),
+    )
+    await screen.findByRole('heading', { name: '服务器管理页面' })
+    if (width === 375) {
+      await waitFor(() =>
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
+      )
+      await user.click(screen.getByRole('button', { name: '打开导航' }))
+    }
+    const item = await screen.findByRole('menuitem', { name: '服务器管理' })
+    expect(item).toHaveClass('ant-menu-item-selected')
+    expect(within(item).getByText('服务器管理')).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+  })
+
   it.each([1280, 375])('lpc 支持导航和高亮（宽度 %s）', async (width) => {
     installMatchMedia(width)
     const user = userEvent.setup()

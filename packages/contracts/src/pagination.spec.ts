@@ -17,6 +17,8 @@ import {
   charactersResponseSchema,
   createPageSchema,
   pageQuerySchema,
+  serversQuerySchema,
+  serversResponseSchema,
 } from '.'
 
 const account: AccountListItem = {
@@ -42,6 +44,7 @@ describe.each([
   ['pagination', pageQuerySchema],
   ['accounts', accountsQuerySchema],
   ['characters', charactersQuerySchema],
+  ['servers', serversQuerySchema],
 ] as const)('%s query pagination', (_name, schema) => {
   it('uses the existing defaults', () => {
     expect(schema.parse({})).toEqual({ page: 1, pageSize: 10 })
@@ -90,6 +93,20 @@ describe('account query conditions', () => {
 describe.each([
   ['accounts', accountsResponseSchema, account],
   ['characters', charactersResponseSchema, character],
+  [
+    'servers',
+    serversResponseSchema,
+    {
+      id: 1,
+      server: '万里长城一线',
+      dist: '万里长城',
+      alias: '',
+      ip: '47.97.104.166',
+      port: 8160,
+      maxUser: 1200,
+      enable: 1,
+    },
+  ],
 ] as const)('%s paginated response', (_name, schema, item) => {
   it('preserves the response structure and list items', () => {
     const response = { page: 1, pageSize: 20, total: 1, items: [item] }

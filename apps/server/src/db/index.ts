@@ -2,6 +2,7 @@ import type { Kysely } from 'kysely'
 import type { AccountTable } from './account-table'
 import type { BasicCharInfoTable } from './basic-char-info-table'
 import type { DataTable } from './data-table'
+import type { ServerTable } from './server-table'
 export type {
   AccountRow,
   AccountTable,
@@ -16,9 +17,16 @@ export type {
 } from './basic-char-info-table'
 export type { DataTable } from './data-table'
 export { createDatabases, registerDatabase } from './database'
+export type {
+  NewServer,
+  ServerRow,
+  ServerTable,
+  ServerUpdate,
+} from './server-table'
 
 export interface AdbDatabase {
   account: AccountTable
+  server: ServerTable
 }
 
 export interface DdbDatabase {

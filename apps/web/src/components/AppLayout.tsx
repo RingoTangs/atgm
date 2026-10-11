@@ -9,6 +9,7 @@ import {
   Moon,
   PanelLeftClose,
   PanelLeftOpen,
+  Server,
   Sun,
   UserRound,
   Users,
@@ -69,6 +70,8 @@ const NavigationMenu: React.FC<NavigationMenuProps> = ({ onNavigate }) => {
     pathname === '/accounts' || pathname.startsWith('/accounts/')
   const isCharactersPath =
     pathname === '/characters' || pathname.startsWith('/characters/')
+  const isServersPath =
+    pathname === '/servers' || pathname.startsWith('/servers/')
   const isLpcPath = pathname === '/lpc'
   const selectedNavigationKey =
     pathname === '/'
@@ -77,9 +80,11 @@ const NavigationMenu: React.FC<NavigationMenuProps> = ({ onNavigate }) => {
         ? '/accounts'
         : isCharactersPath
           ? '/characters'
-          : isLpcPath
-            ? '/lpc'
-            : undefined
+          : isServersPath
+            ? '/servers'
+            : isLpcPath
+              ? '/lpc'
+              : undefined
 
   const navigationItems: MenuProps['items'] = [
     {
@@ -108,6 +113,15 @@ const NavigationMenu: React.FC<NavigationMenuProps> = ({ onNavigate }) => {
       ),
     },
     {
+      key: '/servers',
+      icon: <Server aria-hidden="true" size={18} />,
+      label: (
+        <span aria-current={isServersPath ? 'page' : undefined}>
+          服务器管理
+        </span>
+      ),
+    },
+    {
       key: '/lpc',
       icon: <Braces aria-hidden="true" size={18} />,
       label: <span aria-current={isLpcPath ? 'page' : undefined}>LPC</span>,
@@ -123,6 +137,9 @@ const NavigationMenu: React.FC<NavigationMenuProps> = ({ onNavigate }) => {
 
     if (key === '/accounts') {
       void navigate({ to: '/accounts' })
+    }
+    if (key === '/servers') {
+      void navigate({ to: '/servers' })
     }
     if (key === '/lpc') {
       void navigate({ to: '/lpc' })

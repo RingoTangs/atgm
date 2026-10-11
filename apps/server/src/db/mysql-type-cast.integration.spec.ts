@@ -21,7 +21,7 @@ it.skipIf(process.env.MYSQL_TYPE_CAST_DB_TEST !== '1')(
       )
 
     const env = parseServerEnv(process.env)
-    const { db, ddbDb } = createDatabases(env)
+    const { db, ddbDb, adbDb } = createDatabases(env)
     let baseline: Connection | undefined
     try {
       baseline = await createConnection({
@@ -56,6 +56,30 @@ it.skipIf(process.env.MYSQL_TYPE_CAST_DB_TEST !== '1')(
       expect(Buffer.isBuffer(character.nameBytes)).toBe(true)
       expect(character.nameBytes).toEqual(bytes)
       expect(character.name).toBe(decodeGb18030(bytes))
+
+      const server = await adbDb
+        .selectFrom('server')
+        .select(['server', 'dist', 'id', 'port', 'max_user', 'enable'])
+        .select(sql<string>`HEX(${sql.ref('server')})`.as('serverHex'))
+        .select(sql<string>`HEX(${sql.ref('dist')})`.as('distHex'))
+        .orderBy('id', 'asc')
+        .orderBy('server', 'asc')
+        .limit(1)
+        .executeTakeFirstOrThrow()
+      expect(server.server).toBe(
+        decodeGb18030(Buffer.from(server.serverHex, 'hex')),
+      )
+      expect(server.dist).toBe(
+        decodeGb18030(Buffer.from(server.distHex, 'hex')),
+      )
+      for (const value of [
+        server.id,
+        server.port,
+        server.max_user,
+        server.enable,
+      ]) {
+        expect(typeof value).toBe('number')
+      }
 
       const compiled = query.compile()
       const [defaultCharacters] = await baseline.query<RowDataPacket[]>(
