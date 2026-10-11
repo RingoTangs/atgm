@@ -2,7 +2,7 @@ import type { ServerListItem } from '@atgm/contracts'
 import type { TableProps } from 'antd'
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from '@atgm/contracts'
 import { useQuery } from '@tanstack/react-query'
-import { Alert, Button, Table } from 'antd'
+import { Alert, Badge, Button, Table } from 'antd'
 import { useState } from 'react'
 import { serversQueryOptions } from './servers-queries'
 
@@ -26,7 +26,13 @@ const columns: TableProps<ServerListItem>['columns'] = [
     key: 'enable',
     align: 'center',
     render: (value: number) =>
-      value === 1 ? '已启用' : value === 0 ? '已禁用' : `未知状态（${value}）`,
+      value === 1 ? (
+        <Badge status="success" text="已启用" />
+      ) : value === 0 ? (
+        <Badge status="default" text="已禁用" />
+      ) : (
+        <Badge status="warning" text={`未知状态（${value}）`} />
+      ),
   },
 ]
 
